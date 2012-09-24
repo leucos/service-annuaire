@@ -78,7 +78,7 @@ DROP TABLE IF EXISTS `annuaire`.`etablissement` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`etablissement` (
   `id` INT NOT NULL AUTO_INCREMENT ,
-  `code_uai` CHAR(8) NULL COMMENT 'CoeUAI (UNITE ADMINISTRATIVE IMMATRICULEE) de l\'établissement.\nOn peut les trouver ici :\nhttp://www.infocentre.education.fr/ibce/' ,
+  `code_uai` CHAR(8) NULL COMMENT 'Code UAI (UNITE ADMINISTRATIVE IMMATRICULEE) de l\'établissement.\nOn peut les trouver ici :\nhttp://www.infocentre.education.fr/ibce/' ,
   `nom` VARCHAR(255) NULL ,
   `siren` VARCHAR(45) NULL ,
   `adresse` VARCHAR(255) NULL ,
@@ -86,12 +86,12 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`etablissement` (
   `ville` VARCHAR(255) NULL ,
   `telephone` VARCHAR(32) NULL ,
   `fax` VARCHAR(32) NULL ,
-  `type_etablissement_id` INT NOT NULL ,
   `longitude` FLOAT NULL ,
   `latitude` FLOAT NULL ,
   `date_last_maj_aaf` DATETIME NULL ,
   `nom_passerelle` VARCHAR(255) NULL ,
   `ip_pub_passerelle` VARCHAR(45) NULL ,
+  `type_etablissement_id` INT NOT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_etablissement_type_etablissement1` (`type_etablissement_id` ASC) ,
   CONSTRAINT `fk_etablissement_type_etablissement1`
@@ -128,7 +128,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`regroupement` (
   `date_last_maj_aaf` DATETIME NULL ,
   `libelle_aaf` CHAR(8) NULL COMMENT 'En cas d\'alimentation automatique, un libelle de 8 caractères.' ,
   `niveau_id` INT NULL ,
-  `etablissement_id` CHAR(8) NOT NULL ,
+  `etablissement_id` INT NOT NULL ,
   `type_regroupement_id` CHAR(4) NOT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_regroupement_niveau1` (`niveau_id` ASC) ,
@@ -351,7 +351,7 @@ DROP TABLE IF EXISTS `annuaire`.`profil_user` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`profil_user` (
   `user_id` CHAR(8) NOT NULL ,
-  `etablissement_id` CHAR(8) NOT NULL ,
+  `etablissement_id` INT NOT NULL ,
   `profil_id` CHAR(4) NOT NULL ,
   `bloque` TINYINT(1)  NULL ,
   `actif` TINYINT(1)  NOT NULL DEFAULT 0 COMMENT '1seul profil actif par user' ,
@@ -401,17 +401,17 @@ DROP TABLE IF EXISTS `annuaire`.`app_active` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`app_active` (
   `application_id` INT NOT NULL ,
-  `etablissement_id` CHAR(8) NOT NULL ,
+  `etablissement_id` INT NOT NULL ,
   `active` TINYINT(1)  NULL ,
   PRIMARY KEY (`application_id`, `etablissement_id`) ,
-  INDEX `fk_application_has_etablissement_etablissement1` (`etablissement_id` ASC) ,
   INDEX `fk_application_has_etablissement_application1` (`application_id` ASC) ,
+  INDEX `fk_app_active_etablissement1` (`etablissement_id` ASC) ,
   CONSTRAINT `fk_application_has_etablissement_application1`
     FOREIGN KEY (`application_id` )
     REFERENCES `annuaire`.`app` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_application_has_etablissement_etablissement1`
+  CONSTRAINT `fk_app_active_etablissement1`
     FOREIGN KEY (`etablissement_id` )
     REFERENCES `annuaire`.`etablissement` (`id` )
     ON DELETE NO ACTION
@@ -591,7 +591,7 @@ DROP TABLE IF EXISTS `annuaire`.`role_user` ;
 CREATE  TABLE IF NOT EXISTS `annuaire`.`role_user` (
   `role_id` INT NOT NULL ,
   `profil_user_user_id` CHAR(8) NOT NULL ,
-  `profil_user_etablissement_id` CHAR(8) NOT NULL ,
+  `profil_user_etablissement_id` INT NOT NULL ,
   `profil_user_profil_id` CHAR(4) NOT NULL ,
   PRIMARY KEY (`role_id`, `profil_user_user_id`, `profil_user_etablissement_id`, `profil_user_profil_id`) ,
   INDEX `fk_role_has_profil_user_profil_user1` (`profil_user_user_id` ASC, `profil_user_etablissement_id` ASC, `profil_user_profil_id` ASC) ,
@@ -641,7 +641,7 @@ DROP TABLE IF EXISTS `annuaire`.`param_etablissement` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`param_etablissement` (
   `param_app_id` INT NOT NULL ,
-  `etablissement_id` CHAR(8) NOT NULL ,
+  `etablissement_id` INT NOT NULL ,
   `valeur` VARCHAR(2000) NULL ,
   PRIMARY KEY (`param_app_id`, `etablissement_id`) ,
   INDEX `fk_param_app_has_etablissement_etablissement1` (`etablissement_id` ASC) ,

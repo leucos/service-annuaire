@@ -32,4 +32,4 @@ class Controller < Ramaze::Controller
   end
 end
 
-require __DIR__('user')
+#require __DIR__('user')

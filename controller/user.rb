@@ -1,6 +1,7 @@
 #coding: utf-8
 
 class UserController < Controller
+  
   def index
     login = request.params["login"]
     pass = request.params["password"]

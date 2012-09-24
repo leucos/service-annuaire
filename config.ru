@@ -14,6 +14,10 @@
 # 'start.rb' and use `ruby start.rb` instead.
 require ::File.expand_path('../app', __FILE__)
 
+map "/user" do
+  run UserApi
+end
+
 Ramaze.start(:root => Ramaze.options.roots, :started => true)
 
 run Ramaze

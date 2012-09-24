@@ -6,8 +6,6 @@ module Ramaze
       m.use(mw[0],*mw[1], &mw[2]) # middleware, args, block
     end
 
-    # Define here the middleware to use
-
     m.run(Ramaze::AppMap)
   end
 end

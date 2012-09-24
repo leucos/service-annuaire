@@ -10,6 +10,7 @@ require 'ramaze'
 Ramaze.options.roots = [__DIR__]
 
 require 'sequel'
+require 'grape'
 require 'ramaze/helper/user'
 #require 'ramaze/helper/sixcan'
 #require 'sequelhook'
@@ -20,6 +21,7 @@ require __DIR__('config/init')
 require __DIR__('model/init')
 #require __DIR__('config/abilities')
 require __DIR__('helper/init')
+require __DIR__('api/init')
 require __DIR__('controller/init')
 
 #Rack::RouteExceptions.route(Exception,  MainController.r(:my_error_handler))
