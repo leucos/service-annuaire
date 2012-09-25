@@ -1,4 +1,6 @@
 *.gem
+Gemfile.lock
+vendor
 *.rbc
 .bundle
 .config
@@ -16,3 +18,9 @@ tmp
 .yardoc
 _yardoc
 doc/
+
+#Config files
+config/database.rb
+
+#Mysql Workbench backup files
+*.bak

@@ -50,9 +50,7 @@ class User < Sequel::Model(:user)
 
   # Très important : Hook qui génère l'id unique du user avant de l'inserer dans la BDD
   def before_create
-    Ramaze::Log.debug("here")
     DB.transaction do 
-      
       self.id = UidGenerator::getNextUid()
       self.date_creation ||= Time.now
       super
@@ -61,8 +59,8 @@ class User < Sequel::Model(:user)
 
   # Not nullable cols
   def validate
-    #validates_presence [:date_creation]
-    #validates_unique :id_jointure_aaf, :id_sconet
+    validates_presence [:login, :password, :nom, :prenom]
+    validates_unique :login
   end
 
   def self.authenticate(creds)
