@@ -27,5 +27,6 @@ class App < Sequel::Model(:app)
 
   # Not nullable cols
   def validate
+    super
   end
 end

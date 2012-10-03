@@ -25,5 +25,6 @@ class EnseigneRegroupement < Sequel::Model(:enseigne_regroupement)
 
  # Not nullable cols
  def validate
+  super
  end
 end

@@ -24,6 +24,7 @@ class Fonction < Sequel::Model(:fonction)
 
   # Not nullable cols
   def validate
+    super
     validates_presence [:profil_id]
   end
 end

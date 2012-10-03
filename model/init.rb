@@ -4,6 +4,7 @@
 # generated 2012-05-21 18:00:26 +0200 by model_generator.rb
 #
 #require_relative 'monkeymodel'
+require 'bcrypt'
 
 # MODELS
 require_relative 'activite'

@@ -23,6 +23,7 @@ class TypeEtablissement < Sequel::Model(:type_etablissement)
 
   # Not nullable cols
   def validate
+    super
   end
 
 end

@@ -20,5 +20,6 @@ class TypeParam < Sequel::Model(:type_param)
 
   # Not nullable cols
   def validate
+    super
   end
 end

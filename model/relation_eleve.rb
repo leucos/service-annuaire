@@ -21,6 +21,7 @@ class RelationEleve < Sequel::Model(:relation_eleve)
 
   # Not nullable cols
   def validate
+    super
     validates_presence [:type_relation_eleve_id]
   end
 end

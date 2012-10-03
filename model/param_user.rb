@@ -23,5 +23,6 @@ class ParamUser < Sequel::Model(:param_user)
 
   # Not nullable cols
   def validate
+    super
   end
 end

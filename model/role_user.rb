@@ -24,5 +24,6 @@ class RoleUser < Sequel::Model(:role_user)
 
   # Not nullable cols
   def validate
+    super
   end
 end

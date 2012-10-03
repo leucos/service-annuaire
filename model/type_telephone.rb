@@ -22,5 +22,6 @@ class TypeTelephone < Sequel::Model(:type_telephone)
 
   # Not nullable cols
   def validate
+    super
   end
 end

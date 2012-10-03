@@ -24,6 +24,7 @@ class Activite < Sequel::Model(:activite)
 
   # Not nullable cols
   def validate
+    super
     validates_presence [:app_id]
   end
 end

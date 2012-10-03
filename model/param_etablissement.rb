@@ -23,5 +23,6 @@ class ParamEtablissement < Sequel::Model(:param_etablissement)
 
   # Not nullable cols
   def validate
+    super
   end
 end

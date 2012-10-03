@@ -25,6 +25,7 @@ class MatiereEnseignee < Sequel::Model(:matiere_enseignee)
 
   # Not nullable cols
   def validate
+    super
     validates_presence [:famille_matiere_id]
   end
 end

@@ -14,7 +14,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`user` (
   `id` CHAR(8) NOT NULL COMMENT 'Identifiant utilisé pour toutes les applications de l\'ent. Son format est définit dans le chaier des charges de l\'annuaire ENT p 43.' ,
   `vecteur_id` VARCHAR(500) NULL COMMENT 'Est sous la forme \nprofil|nom|prenom|id|etabId\ndonc doit au moins être au moins être aussi long que le nom + prenom + etbId' ,
   `login` VARCHAR(45) NOT NULL COMMENT 'Login de l\'utilsateur normalement généré selon le principe première lettre du prenom + nom ou prenom+nom.' ,
-  `password` CHAR(32) NOT NULL COMMENT 'Mot de passe encodé en MD5.' ,
+  `password` CHAR(60) NOT NULL COMMENT 'BCrypt hashed password' ,
   `nom` VARCHAR(45) NOT NULL ,
   `prenom` VARCHAR(45) NOT NULL ,
   `sexe` VARCHAR(1) NULL COMMENT 'M ou F' ,

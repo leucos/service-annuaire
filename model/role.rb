@@ -26,6 +26,7 @@ class Role < Sequel::Model(:role)
 
   # Not nullable cols
   def validate
+    super
     validates_presence [:app_id]
   end
 end

@@ -29,6 +29,7 @@ class Regroupement < Sequel::Model(:regroupement)
 
   # Not nullable cols
   def validate
+    super
     validates_presence [:type_regroupement_id]
   end
 

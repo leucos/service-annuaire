@@ -22,5 +22,6 @@ class RoleProfil < Sequel::Model(:role_profil)
 
   # Not nullable cols
   def validate
+    super
   end
 end
