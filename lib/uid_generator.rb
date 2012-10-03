@@ -32,6 +32,7 @@ module UidGenerator
     
     # UTILISE LE LOCK MYSQL
     DB.run("LOCK TABLES last_uid WRITE;")
+
     # lecture des paramètres
     lastuid = DB[:last_uid].first
     if lastuid.nil?
@@ -48,7 +49,9 @@ module UidGenerator
       uid = increment(lastuid)
       # Sauvegarde du dernier UID générer
       DB[:last_uid].update(:last_uid => uid)
-    end    
+    end
+
+    #Ne pas oublier le unlock
     DB.run("UNLOCK TABLES;")
 
     return uid

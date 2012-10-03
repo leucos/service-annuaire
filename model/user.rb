@@ -50,11 +50,9 @@ class User < Sequel::Model(:user)
 
   # Très important : Hook qui génère l'id unique du user avant de l'inserer dans la BDD
   def before_create
-    DB.transaction do 
-      self.id = UidGenerator::getNextUid()
-      self.date_creation ||= Time.now
-      super
-    end
+    self.id = UidGenerator::getNextUid()
+    self.date_creation ||= Time.now
+    super
   end
 
   # Not nullable cols
@@ -75,7 +73,7 @@ class User < Sequel::Model(:user)
   end
 
   def password
-    self[:password] = BCrypt::Password.new(self[:password])
+    BCrypt::Password.new(super)
   end
 
   # Utilise l'algorithme BCrypt pour haser le mot de passe
