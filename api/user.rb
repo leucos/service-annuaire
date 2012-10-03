@@ -8,8 +8,8 @@ class UserApi < Grape::API
     requires :password, type: String
   end
   get do
-    u = User[:login => params[:login], :password => params[:password]]
-    if u
+    u = User[:login => params[:login]]
+    if u and u.password == params[:password]
       u
     else
       error!("Forbidden", 403)
@@ -43,12 +43,36 @@ class UserApi < Grape::API
   end
   post do
     p = params
-    u = User.create(:login => p[:login], :password => p[:password], 
-      :nom => p[:nom], :prenom => p[:prenom], :sexe => p[:sexe],
-      :date_naissance => p[:date_naissance], :adresse => p[:adresse],
-      :code_postal => p[:code_postal], :ville => p[:ville],
-      :id_sconet => p[:id_sconet], :id_jointure_aaf => p[:id_jointure_aaf],
-      :email_principal => p[:email_principal], :email_secondaire => p[:email_secondaire],
-      :email_academique => p[:email_academique])
+    begin
+      u = User.new()
+      params.each do |k,v|
+        if k != "route_info"
+          u.set(k.to_sym => v)
+        end
+      end
+      u.save()
+    rescue Sequel::ValidationFailed
+      error!("Validation failed", 400)
+    end
+  end
+
+  desc "Modification d'un compte utilisateur"
+  put "/:id" do
+    u = User[params[:id]]
+    if u
+      params.each do |k,v|
+        # Un peu hacky mais je ne vois pas comment faire autrement...
+        if k != "id" and k != "route_info"
+          u.set(k.to_sym => v)
+        end
+      end
+      begin
+        u.save
+      rescue Sequel::ValidationFailed
+        error!("Validation failed", 400)
+      end
+    else
+      error!("Utilisateur non trouvé", 400)
+    end
   end
 end

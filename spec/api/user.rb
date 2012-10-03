@@ -50,4 +50,12 @@ describe UserApi do
   should "fail on user creation when given wrong arguments" do
     post('/user', :login => 'test').status.should == 400
   end
+
+  should "modify user" do
+    u = User.create(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test')
+    put("/user/#{u.id}", :prenom => 'titi').status.should == 200
+    u = User.filter(:login => 'test').first
+    u.prenom.should == 'titi'
+    User.filter(:login => 'test').destroy()
+  end
 end
