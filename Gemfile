@@ -7,6 +7,8 @@ gem 'mysql2'
 gem 'thin'
 gem 'bcrypt-ruby'
 gem 'grape', :github => "intridea/grape", :branch => "master"
+gem 'i18n'
+gem 'rake'
 
 group :development do
   gem 'rack-test'

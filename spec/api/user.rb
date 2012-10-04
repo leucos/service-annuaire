@@ -8,12 +8,12 @@ describe UserApi do
   end
 
   # In case something went wrong
-  User.filter(:login => 'test').destroy()
+  delete_test_users()
 
   should "return user profile when giving good login/password" do
-    User.create(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test')
+    create_test_user()
     get('/user?login=test&password=test').status.should == 200
-    User.filter(:login => 'test').destroy()
+    delete_test_users()
   end
 
   should "return http 403 when giving wrong login/password" do
@@ -22,21 +22,21 @@ describe UserApi do
   end
 
   should "return user profile when given the good id" do
-    u = User.create(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test')
+    u = create_test_user()
     get("/user/#{u.id}").status.should == 200
     JSON.parse(last_response.body)[:login].should == 'test'
-    User.filter(:login => 'test').destroy()
+    delete_test_users()
   end
 
   should "return user profile on user creation" do
     post('/user', :login => 'test', :password => 'test', :nom => 'test', :prenom => 'test').status.should == 201
-    User.filter(:login => 'test').destroy().should == 1
+    delete_test_users().should == 1
   end
 
   should "accept optionnal parameters on user creation" do
     post('/user', :login => 'test', :password => 'test', 
       :nom => 'test', :prenom => 'test', :sexe => 'F').status.should == 201
-    User.filter(:login => 'test').destroy().should == 1
+    delete_test_users().should == 1
     JSON.parse(last_response.body)[:sexe].should == 'F'
   end
 
@@ -52,10 +52,16 @@ describe UserApi do
   end
 
   should "modify user" do
-    u = User.create(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test')
+    u = create_test_user()
     put("/user/#{u.id}", :prenom => 'titi').status.should == 200
     u = User.filter(:login => 'test').first
     u.prenom.should == 'titi'
-    User.filter(:login => 'test').destroy()
+    delete_test_users()
+  end
+
+  should "not accept bad parameters" do
+    u = create_test_user()
+    put("/user/#{u.id}", :truc => 'titi').status.should == 400
+    delete_test_users()
   end
 end

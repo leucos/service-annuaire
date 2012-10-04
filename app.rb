@@ -12,6 +12,7 @@ Ramaze.options.roots = [__DIR__]
 require 'sequel'
 require 'grape'
 require 'ramaze/helper/user'
+require 'i18n'
 #require 'ramaze/helper/sixcan'
 #require 'sequelhook'
 
