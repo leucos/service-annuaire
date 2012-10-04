@@ -21,6 +21,13 @@ describe UserApi do
     get('/user?login=test&password=test').status.should == 403 
   end
 
+  should "return user profile when given the good id" do
+    u = User.create(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test')
+    get("/user/#{u.id}").status.should == 200
+    JSON.parse(last_response.body)[:login].should == 'test'
+    User.filter(:login => 'test').destroy()
+  end
+
   should "return user profile on user creation" do
     post('/user', :login => 'test', :password => 'test', :nom => 'test', :prenom => 'test').status.should == 201
     User.filter(:login => 'test').destroy().should == 1

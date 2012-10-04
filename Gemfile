@@ -5,6 +5,7 @@ gem 'ramaze'
 gem 'sequel'
 gem 'mysql2'
 gem 'thin'
+gem 'bcrypt-ruby'
 gem 'grape', :github => "intridea/grape", :branch => "master"
 
 group :development do

@@ -36,6 +36,7 @@ class Etablissement < Sequel::Model(:etablissement)
 
   # Not nullable cols
   def validate
+    super
     validates_presence [:type_etablissement_id]
   end
 

@@ -21,5 +21,6 @@ class TypeRegroupement < Sequel::Model(:type_regroupement)
 
   # Not nullable cols
   def validate
+    super
   end
 end

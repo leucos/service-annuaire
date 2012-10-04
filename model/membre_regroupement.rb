@@ -22,5 +22,6 @@ class MembreRegroupement < Sequel::Model(:membre_regroupement)
 
   # Not nullable cols
   def validate
+    super
   end
 end

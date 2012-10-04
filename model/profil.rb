@@ -24,5 +24,6 @@ class Profil < Sequel::Model(:profil)
 
   # Not nullable cols
   def validate
+    super
   end
 end

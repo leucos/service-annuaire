@@ -22,5 +22,6 @@ class FamilleMatiere < Sequel::Model(:famille_matiere)
 
   # Not nullable cols
   def validate
+    super
   end
 end

@@ -44,8 +44,8 @@ class User < Sequel::Model(:user)
   one_to_many :telephone
 
   # Check si l'id passé en paramètre correspond bien aux critères d'identifiant ENT
-  def self.is_valid_id(id)
-    id.class == String and  id.length == 8 and id[0] == 'V' and id[3] == '6' and id[1..2] =~ /[a-zA-Z]{2}/ and id[4..7] =~ /\d{4}/
+  def self.is_valid_id?(id)
+    !!(id.class == String and id.length == 8 and id[0] == 'V' and id[3] == '6' and id[1..2] =~ /[a-zA-Z]{2}/ and id[4..7] =~ /\d{4}/)
   end
 
   # Très important : Hook qui génère l'id unique du user avant de l'inserer dans la BDD
@@ -59,12 +59,28 @@ class User < Sequel::Model(:user)
 
   # Not nullable cols
   def validate
+    super
     validates_presence [:login, :password, :nom, :prenom]
     validates_unique :login
+    # Doit commencer par une lettre et ne pas comporter d'espace
+    validates_format /^[a-z]\S*$/i, :login
+    # Ne doit comporter que 5 chiffres
+    validates_format /^\d{5}$/, :code_postal if code_postal
+    # Le sexe est soit F  ou M
+    validates_format /^[FM]$/, :sexe if sexe
   end
 
   def self.authenticate(creds)
     User[:login => creds[:user]]
+  end
+
+  def password
+    self[:password] = BCrypt::Password.new(self[:password])
+  end
+
+  # Utilise l'algorithme BCrypt pour haser le mot de passe
+  def password= (pass)
+    super(BCrypt::Password.create(pass))
   end
 
   def profil_actif

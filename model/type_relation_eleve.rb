@@ -21,5 +21,6 @@ class TypeRelationEleve < Sequel::Model(:type_relation_eleve)
 
   # Not nullable cols
   def validate
+    super
   end
 end

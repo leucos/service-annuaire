@@ -24,5 +24,6 @@ class AppActive < Sequel::Model(:app_active)
 
   # Not nullable cols
   def validate
+    super
   end
 end

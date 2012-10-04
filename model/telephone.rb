@@ -23,6 +23,7 @@ class Telephone < Sequel::Model(:telephone)
 
   # Not nullable cols
   def validate
+    super
     validates_presence [:type_telephone_id]
   end
 end

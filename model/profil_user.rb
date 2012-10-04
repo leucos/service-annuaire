@@ -27,6 +27,7 @@ class ProfilUser < Sequel::Model(:profil_user)
 
   # Not nullable cols
   def validate
+    super
     validates_presence [:actif]
   end
 end

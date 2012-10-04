@@ -22,6 +22,7 @@ class ActiviteRole < Sequel::Model(:activite_role)
 
   # Not nullable cols
   def validate
+    super
     validates_presence [:activite_id, :role_id]
   end
 end

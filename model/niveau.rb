@@ -22,5 +22,6 @@ class Niveau < Sequel::Model(:niveau)
 
   # Not nullable cols
   def validate
+    super
   end
 end

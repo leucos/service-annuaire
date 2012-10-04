@@ -31,6 +31,7 @@ class ParamApp < Sequel::Model(:param_app)
 
   # Not nullable cols
   def validate
+    super
     validates_presence [:preference, :app_id, :type_param_id]
   end
 end
