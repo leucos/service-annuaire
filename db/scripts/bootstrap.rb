@@ -58,19 +58,21 @@ def bootstrap_annuaire()
   DB[:type_regroupement].insert(:id => 'LBR', :libelle => "Groupe libre")
 
   #Profils utilisateurs
+  # Les codes nationaux sont pris de la FAQ de l'annuaire ENT du SDET
+  # http://eduscol.education.fr/cid57076/l-annuaire-ent-second-degre-et-son-alimentation-automatique.html
   DB[:profil].insert(:id => 'ELV', :libelle => 'Elève', :code_ent => 'National_1')
-  DB[:profil].insert(:id => 'ADM', :libelle => 'Administrateur Etablissement')
-  DB[:profil].insert(:id => 'TECH', :libelle => 'Administrateur technique')
+  DB[:profil].insert(:id => 'ADM', :libelle => 'Administrateur Etablissement', :code_ent => 'National_3')
+  DB[:profil].insert(:id => 'TECH', :libelle => 'Administrateur technique', :code_ent => 'National_3')
   DB[:profil].insert(:id => 'PAR', :libelle => 'Parent', :code_ent => 'National_2')
   DB[:profil].insert(:id => 'DIR', :libelle => 'Principal', :code_men => 'DIR', :code_ent => 'National_4')
   DB[:profil].insert(:id => 'ENS', :libelle => 'Professeur', :code_men => 'ENS', :code_ent => 'National_3')
-  DB[:profil].insert(:id => 'ADF', :libelle => 'Personnels administratifs', :code_men => 'ADF')
-  DB[:profil].insert(:id => 'ORI', :libelle => "Conseiller(ère) d'orientation", :code_men => 'ORI')
-  DB[:profil].insert(:id => 'DOC', :libelle => 'Documentaliste', :code_men => 'DOC')
+  DB[:profil].insert(:id => 'ADF', :libelle => 'Personnels administratifs', :code_men => 'ADF', :code_ent => 'National_6')
+  DB[:profil].insert(:id => 'ORI', :libelle => "Conseiller(ère) d'orientation", :code_men => 'ORI', :code_ent => 'National_5')
+  DB[:profil].insert(:id => 'DOC', :libelle => 'Documentaliste', :code_men => 'DOC', :code_ent => 'National_6')
   DB[:profil].insert(:id => 'EDU', :libelle => "Conseiller(ère) d'éducation", :code_men => 'EDU', :code_ent => 'National_5')
-  DB[:profil].insert(:id => 'OUV', :libelle => "Personnels ouvriers et de service", :code_men => 'OUV')
-  DB[:profil].insert(:id => 'MDS', :libelle => "Personnels médico-sociaux", :code_men => 'MDS')
-  DB[:profil].insert(:id => 'AED', :libelle => "Assistant(e) d'éducation", :code_men => 'AED')
+  DB[:profil].insert(:id => 'OUV', :libelle => "Personnels ouvriers et de service", :code_men => 'OUV', :code_ent => 'National_6')
+  DB[:profil].insert(:id => 'MDS', :libelle => "Personnels médico-sociaux", :code_men => 'MDS', :code_ent => 'National_6')
+  DB[:profil].insert(:id => 'AED', :libelle => "Assistant(e) d'éducation", :code_men => 'AED', :code_ent => 'National_5')
 
 
   #Tout d'abord on créer des applications
