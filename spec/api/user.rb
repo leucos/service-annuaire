@@ -30,14 +30,16 @@ describe UserApi do
 
   should "return user profile on user creation" do
     post('/user', :login => 'test', :password => 'test', :nom => 'test', :prenom => 'test').status.should == 201
-    delete_test_users().should == 1
+    User.filter(:login => "test").count.should == 1
+    delete_test_users()
   end
 
   should "accept optionnal parameters on user creation" do
     post('/user', :login => 'test', :password => 'test', 
       :nom => 'test', :prenom => 'test', :sexe => 'F').status.should == 201
-    delete_test_users().should == 1
+    User.filter(:login => "test").count.should == 1
     JSON.parse(last_response.body)[:sexe].should == 'F'
+    delete_test_users()
   end
 
   should "fail on user creation when given non regexp compliant arguments" do
@@ -63,5 +65,16 @@ describe UserApi do
     u = create_test_user()
     put("/user/#{u.id}", :truc => 'titi').status.should == 400
     delete_test_users()
+  end
+
+  should "return sso attributes" do
+    get("/user/sso_attributes/root").status.should == 200
+    sso_attr = JSON.parse(last_response.body)
+    sso_attr["login"].should == "root"
+  end
+
+  should "return sso attributes men" do
+    get("/user/sso_attributes_men/root").status.should == 200
+    sso_attr = JSON.parse(last_response.body)
   end
 end

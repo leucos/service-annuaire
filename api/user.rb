@@ -47,7 +47,11 @@ class UserApi < Grape::API
       u = User.new()
       params.each do |k,v|
         if k != "route_info"
-          u.set(k.to_sym => v)
+          begin
+            u.set(k.to_sym => v)
+          rescue
+            error!("Validation failed", 400)
+          end
         end
       end
       u.save()
@@ -63,16 +67,89 @@ class UserApi < Grape::API
       params.each do |k,v|
         # Un peu hacky mais je ne vois pas comment faire autrement...
         if k != "id" and k != "route_info"
-          u.set(k.to_sym => v)
+          begin
+            u.set(k.to_sym => v)
+          rescue
+            error!("Validation failed", 400)
+          end
         end
       end
       begin
-        u.save
+        u.save()
       rescue Sequel::ValidationFailed
         error!("Validation failed", 400)
       end
     else
-      error!("Utilisateur non trouvé", 400)
+      error!("Utilisateur non trouvé", 404)
+    end
+  end
+
+  desc "Service spécifique au SSO"
+  get "/sso_attributes_men/:login" do
+    u = User[:login => params[:login]]
+    if !u.nil? and !u.profil_actif.nil?
+      attributes = {
+        "user" => u.id,
+        "UAI" => u.etablissement.code_uai,
+        "ENTPersonProfils" => u.profil_actif.profil.code_ent,
+        "CodeNivFormation" => nil,
+        "NivFormation" => nil,
+        "NivFormationDiplome" => nil,
+        "Filiere" => nil,
+        "Specialite" => nil,
+        "Enseignement" => nil,
+        "Classe" => nil,
+        "Groupe" => nil,
+        "MatiereEnseignEtab" => nil
+      }
+
+      if u.profil_actif.profil_id == "ENS"
+        attributes["Classe"] = u.enseigne_classes.map{|c| c.libelle}.join(",")
+        attributes["Groupe"] = u.enseigne_groupes.map{|g| g.libelle}.join(",")
+        attributes["MatiereEnseignEtab"] = u.matiere_enseigne.map{|m| m.libelle_court}.join(",")
+      else
+        cls = u.classe
+        attributes["Classe"] = cls.nil? ? nil : cls.libelle
+        attributes["NivFormation"] = cls.nil? ? nil : cls.niveau.libelle
+        attributes["Groupe"] = u.groupes.map{|g| g.libelle}.join(",")
+      end
+
+      attributes
+    else
+      error!("Utilisateur non trouvé", 404)
+    end
+  end
+
+  desc "Service spécifique au SSO"
+  get "/sso_attributes/:login" do
+    u = User[:login => params[:login]]
+    if !u.nil? and !u.profil_actif.nil?
+      attributes = {
+        "login" => u.login,
+        "pass" => u.password,
+        "ENT_id" => u.id,
+        "uid" => u.id,
+        "LaclasseNom" => u.nom,
+        "LaclassePrenom" => u.prenom,
+        "LaclasseDateNais" => u.date_naissance,
+        "LaclasseSexe" => u.sexe,
+        "LaclasseAdresse" => u.adresse,
+        "LaclasseCivilite" => u.civilite,
+        "ENTPersonStructRattach" => u.etablissement.code_uai,
+        "ENTPersonStructRattachRNE" => u.etablissement.code_uai,
+        "ENTPersonProfils" => u.profil_actif.profil.code_ent,
+        "LaclasseEmail" => u.email_principal,
+        "LaclasseEmailAca" => u.email_academique
+      }
+
+      cls = u.classe
+      attributes["ENTEleveClasses"] = cls.nil? ? nil : cls.libelle
+      attributes["LaclasseNomClasse"] = cls.nil? ? nil : cls.libelle
+      attributes["ENTEleveNivFormation"] = cls.nil? ? nil : cls.niveau.libelle
+
+      attributes
+    else
+      error!("Utilisateur non trouvé", 404)
     end
   end
 end
