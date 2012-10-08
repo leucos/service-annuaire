@@ -24,6 +24,14 @@ class UserApi < Grape::API
     User[params[:id]]
   end
 
+  desc "Renvois le profil utilisateur si on donne le bon login. Nécessite une authentification."
+  params do
+    requires :login, type: String
+  end
+  get "/:login" do
+    User[:login => params[:login]]
+  end
+
   desc "Service de création d'un utilisateur"
   params do
     requires :login, type: String, desc: "Doit commencer par une lettre et ne pas comporter d'espace"
