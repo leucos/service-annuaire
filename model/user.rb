@@ -48,13 +48,32 @@ class User < Sequel::Model(:user)
     !!(id.class == String and id.length == 8 and id[0] == 'V' and id[3] == '6' and id[1..2] =~ /[a-zA-Z]{2}/ and id[4..7] =~ /\d{4}/)
   end
 
+  def self.is_login_available(login)
+    User[:login => login].nil?
+  end
+
+  def self.find_available_login(prenom, nom)
+    #On lui créer un login/mot de passe par défaut de type 1ere lettre prenom + nom
+    login = "#{prenom.strip[0].downcase}#{nom.gsub(/\s+/, "").downcase}"
+    #On fait ici de la transliteration (joli hein :) pour éviter d'avoir des accents dans les logins
+    login = I18n.transliterate(login)
+    #Si homonymes, on utilise des numéros à la fin
+    #todo prendre la deuxième lettre du prenom pour éviter les numéros ?
+    login_number = 1
+    final_login = login
+    while !is_login_available(final_login)
+      final_login = "#{login}#{login_number}"
+      login_number += 1
+    end
+
+    return final_login
+  end
+
   # Très important : Hook qui génère l'id unique du user avant de l'inserer dans la BDD
   def before_create
-    DB.transaction do 
-      self.id = UidGenerator::getNextUid()
-      self.date_creation ||= Time.now
-      super
-    end
+    self.id = UidGenerator::getNextUid()
+    self.date_creation ||= Time.now
+    super
   end
 
   # Not nullable cols
@@ -75,7 +94,7 @@ class User < Sequel::Model(:user)
   end
 
   def password
-    self[:password] = BCrypt::Password.new(self[:password])
+    BCrypt::Password.new(super)
   end
 
   # Utilise l'algorithme BCrypt pour haser le mot de passe

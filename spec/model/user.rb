@@ -1,9 +1,10 @@
+#coding: utf-8
 require_relative '../helper'
 
 describe User do
   #In case of something went wrong
-  User.filter(:login => 'test').destroy()
-  
+  delete_test_users()
+
   it "knows what is a valid uid" do
     User.is_valid_id?("VAA60000").should.equal true
     User.is_valid_id?("VGX61569").should.equal true
@@ -18,22 +19,22 @@ describe User do
     last_id = DB[:last_uid].first[:last_uid]
     awaited_next_id = UidGenerator.increment(last_id)
 
-    u = User.create(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test')
+    u = create_test_user()
     u.id.should == awaited_next_id
-    User.filter(:login => 'test').destroy()
+    delete_test_users()
 
     awaited_next_id = UidGenerator.increment(awaited_next_id)
-    u = User.create(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test')
+    u = create_test_user()
     u.id.should == awaited_next_id
-    User.filter(:login => 'test').destroy()
+    delete_test_users()
   end
 
   it "doesn't allow duplicated logins" do
-    u = User.create(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test')
+    u = create_test_user()
     # Sunday bloody sundaaayyy
-    u2 = User.new(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test')
+    u2 = new_test_user()
     u2.valid?.should == false
-    User.filter(:login => 'test').destroy()
+    delete_test_users()
   end
 
   it "doesn't allow bad code_postal" do
@@ -48,7 +49,7 @@ describe User do
   end
 
   it "Hashes passwords on creation" do
-    u = User.new(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test')
+    u = new_test_user()
     # Attention a bien utiliser to_s sinon le test est validé
     u.password.to_s.should != "test"
     u.password.should == "test"
@@ -58,17 +59,38 @@ describe User do
   end
 
   it "store hashed passwords" do
-    User.create(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test')
+    create_test_user()
     u = User.filter(:login => 'test').first
     u.password.to_s.should != "test"
     u.password.should == "test"
-    User.filter(:login => 'test').destroy()
+    delete_test_users()
   end
 
   it "handle password modification" do
-    u = User.new(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test')
+    u = new_test_user()
     u.password = "toto"
     u.password.to_s.should != "toto"
     u.password.should == "toto"
+  end
+
+  it "knows if a login is available or not" do
+    User.is_login_available("test").should == true
+    create_test_user()
+    User.is_login_available("test").should == false
+    delete_test_users()
+  end
+
+  it "find the right next available login" do
+    User.find_available_login("françois", "didier").should == "fdidier"
+    User.find_available_login("monsieur", "àççéñt").should == "maccent"
+    User.find_available_login(" monsieur", " avec des espaces ").should == "mavecdesespaces"
+    User.find_available_login("MOnsieur", "AvecDesMaj").should == "mavecdesmaj"
+    # temp : on laisse les tirets ou pas ?
+    User.find_available_login("madame", "avec-des-tirets").should == "mavec-des-tirets"
+    create_test_user("ttest")
+    User.find_available_login("test", "test").should == "ttest1"
+    create_test_user("ttest1")
+    User.find_available_login("test", "test").should == "ttest2"
+    delete_test_users()
   end
 end

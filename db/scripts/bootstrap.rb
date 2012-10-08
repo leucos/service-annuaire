@@ -19,7 +19,7 @@ def clean_annuaire()
   end
 
   #Création du compte super admin
-  u = User.create(:nom => "Livet", :prenom => "Andréas", :sexe => "M", :login => "root", :password => "root")
+  u = User.create(:nom => "Super", :prenom => "Didier", :sexe => "M", :login => "root", :password => "root")
   DB[:profil_user].insert(:user_id => u.id, :etablissement_id => Etablissement.first.id, :profil_id => 'TECH', :actif => true)
 
 end
@@ -133,8 +133,16 @@ def bootstrap_annuaire()
 
   type_etb_id = DB[:type_etablissement].insert({:nom => 'Service du département', :type_contrat => 'PU'})
   erasme_id = DB[:etablissement].insert(:nom => 'ERASME', :type_etablissement_id =>type_etb_id)
+
+  #Des établissements
+  #Les id d'établissement correspondent à des vrais identifiant pour tester l'alimentation automatique
+  type_etb_id = DB[:type_etablissement].insert(:nom => 'Collège', :type_contrat => 'PU', :libelle => 'Collège publique')
+  etb1_id = DB[:etablissement].insert(:code_uai => '0691670R', :nom => 'Victor Dolto', :type_etablissement_id =>type_etb_id)
+  etb2_id = DB[:etablissement].insert(:code_uai => '0690016T', :nom => 'Françoise Kandelaft', :type_etablissement_id =>type_etb_id)
+
+
   #Création du compte super admin
-  u = User.create(:nom => "Livet", :prenom => "Andréas", :sexe => "M", :login => "root", :password => "root")
+  u = User.create(:nom => "Super", :prenom => "Didier", :sexe => "M", :login => "root", :password => "root")
   DB[:profil_user].insert(:user_id => u.id, :etablissement_id => erasme_id, :profil_id => 'TECH', :actif => true)
 
   # Ajouter des  parametres de test
@@ -149,53 +157,38 @@ def bootstrap_annuaire()
                         Ce paramètre n'est pas modifiable.", :code => "seuil_obtention_diplome", :valeur_defaut => "80", :autres_valeurs => "50", :app_id => 1 , :type_param_id=>"num")
   DB[:param_app].insert(:preference => 0, :libelle => "Ip Adresse", :description => "ip adresse de l'application",
                         :code => "adresse_ip", :valeur_defaut => "http://server1.com", :autres_valeurs => "http://server2.com", :app_id => 1 , :type_param_id=>"text")
-  #Les communes pour l'établissement
-  # fr_id = DB[:pays].insert(:nom => 'France')
-  # reg_id = DB[:region].insert(:nom => 'Rhône-Alpes', :pays_id => fr_id)
-  # rhone_id = DB[:departement].insert(:nom => 'Rhône', :region_id => reg_id)
-  # lyon_id = DB[:commune].insert(:nom => 'Lyon', :departement_id => rhone_id)
-  # stlaurent_id = DB[:commune].insert(:nom => 'Saint-Laurent de Chamousset', :departement_id => rhone_id)
 
-  #Des établissements
-  #Les id d'établissement correspondent à des vrais identifiant pour tester l'alimentation automatique
-  # type_etb_id = DB[:type_etablissement].insert(:type_etab => 'Collège', :type_contrat => 'Publique', :lib_affichage => 'Collège publique')
-  # etb1_id = '0691670R'
-  # DB[:etablissement].insert(:id => etb1_id, :nom => 'Victor Dolto', :commune_id => lyon_id, :type_etablissement_id =>type_etb_id)
-  # etb2_id = '0690016T'
-  # DB[:etablissement].insert(:id => etb2_id, :nom => 'Françoise Kandelaft', :commune_id => stlaurent_id, :type_etablissement_id =>type_etb_id)
 
-  # profil_list = [profil_prof_id, profil_eleve_id, profil_parent_id]
+  profil_list = ['ENS', 'ELV', 'PAR']
 
-  # prenom_list = ['jean', 'francois', 'raymond', 'pierre', 'jeanne', 'frédéric', 'lise', 'michel', 'daniel', 'élodie', 'brigitte', 'béatrice', 'youcef', 'sophie', 'andréas']
-  # nom_list = ['dupond', 'dupont', 'duchamp', 'deschamps', 'leroy', 'lacroix', 'sarkozy', 'zidane', 'bruni', 'hollande', 'levy', 'khadafi', 'chirac']
+  prenom_list = ['jean', 'francois', 'raymond', 'pierre', 'jeanne', 'frédéric', 'lise', 'michel', 'daniel', 'élodie', 'brigitte', 'béatrice', 'youcef', 'sophie', 'andréas']
+  nom_list = ['dupond', 'dupont', 'duchamp', 'deschamps', 'leroy', 'lacroix', 'sarkozy', 'zidane', 'bruni', 'hollande', 'levy', 'khadafi', 'chirac']
 
-  # #On va créer pour chaque établissement 1000 utilisateur
-  # 2.times do |nb|
-  #   etb_id = nb == 0 ? etb1_id : etb2_id
-  #   100.times do |ind|
-  #     #Création d'un id utilisateur compatible sdet (utilise juste AA comme on a pas plus de 9999 utilisateurs)
-  #     usr_id = "VAA6%04d" % (ind + 1000 * nb)
-  #     #Création aléatoire d'un nom et d'un utilisateur
-  #     r = Random.new
-  #     pren = prenom_list[r.rand(prenom_list.length)]
-  #     nom = nom_list[r.rand(nom_list.length)]
-  #     sexe = r.rand(2) == 0 ? "M" : "F"
-  #     #On essait de rendre le login unique avec 1ere lettre prenom + nom + un chiffre aléatoire
-  #     #Y a mieux mais on s'en fou
-  #     login = "#{pren[0]}#{nom}#{r.rand(1000)}"
-  #     #Password = login
-  #     DB[:user].insert(:id => usr_id, :nom => nom, :prenom => pren,
-  #                             :sexe => sexe, :login => login, :password => login, :date_creation => Date.today)
-  #     #Les profil sont choisit aléatoirement
-  #     profil = profil_list[r.rand(profil_list.length)]
-  #     #Sauf qu'on a un principal par etab
-  #     if ind == 0
-  #       profil = profil_princ_id
-  #     #Et un admin d'étab
-  #     elsif ind == 1
-  #       profil = profil_admin_id
-  #     end
-  #     DB[:profil_user].insert(:user_id => usr_id, :etablissement_id => etb_id, :profil_id => profil)
-  #   end
-  # end
+  #On va créer pour chaque établissement 100 utilisateurs
+  2.times do |nb|
+    etb_id = nb == 0 ? etb1_id : etb2_id
+    100.times do |ind|
+      #Création aléatoire d'un nom et d'un utilisateur
+      r = Random.new
+      pren = prenom_list[r.rand(prenom_list.length)]
+      nom = nom_list[r.rand(nom_list.length)]
+      sexe = r.rand(2) == 0 ? "M" : "F"
+      #On essait de rendre le login unique avec 1ere lettre prenom + nom + un chiffre aléatoire
+      #Y a mieux mais on s'en fou
+
+      login = User.find_available_login(pren, nom)
+      #Password = login
+      usr = User.create(:login => login, :password => login, :nom => nom, :prenom => pren, :sexe => sexe)
+      #Les profil sont choisit aléatoirement
+      profil = profil_list[r.rand(profil_list.length)]
+      #Sauf qu'on a un principal par etab
+      if ind == 0
+        profil = "DIR"
+      #Et un admin d'étab
+      elsif ind == 1
+        profil = "ADM"
+      end
+      DB[:profil_user].insert(:user_id => usr.id, :etablissement_id => etb_id, :profil_id => profil, :actif => true)
+    end
+  end
 end
