@@ -35,6 +35,7 @@ require_relative 'type_regroupement'
 require_relative 'type_relation_eleve'
 require_relative 'type_telephone'
 require_relative 'user'
+require_relative 'email'
 
 #On fait manuellement l'association table=>model car elle est impossible a faire automatiquement
 #(pas de lien 1<=>1 entre dataset et model stackoverflow 9408785)
