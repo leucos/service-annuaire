@@ -7,11 +7,12 @@
 # COLUMN_NAME                   | DATA_TYPE           | NULL?    | KEY      | DEFAULT    | EXTRA
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 # id                            | char(8)             | false    | PRI      |            | 
-# vecteur_id                    | varchar(500)        | true     |          |            | 
-# login                         | varchar(45)         | true     |          |            | 
+# id_sconet                     | int(11)             | true     | UNI      |            | 
+# id_jointure_aaf               | int(11)             | true     | UNI      |            | 
+# login                         | varchar(45)         | false    |          |            | 
 # password                      | char(32)            | true     |          |            | 
-# nom                           | varchar(45)         | true     |          |            | 
-# prenom                        | varchar(45)         | true     |          |            | 
+# nom                           | varchar(45)         | false    |          |            | 
+# prenom                        | varchar(45)         | false    |          |            | 
 # sexe                          | varchar(1)          | true     |          |            | 
 # question_secrete              | varchar(512)        | true     |          |            | 
 # reponse_question_secrete      | char(32)            | true     |          |            | 
@@ -24,8 +25,6 @@
 # date_fin_activation           | date                | true     |          |            | 
 # date_derniere_connexion       | date                | true     |          |            | 
 # bloque                        | tinyint(1)          | false    |          | 0          | 
-# id_sconet                     | int(11)             | true     | UNI      |            | 
-# id_jointure_aaf               | int(11)             | true     | UNI      |            | 
 # date_last_maj_aaf             | date                | true     |          |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
@@ -79,8 +78,10 @@ class User < Sequel::Model(:user)
   # Not nullable cols
   def validate
     super
-    validates_presence [:login, :password, :nom, :prenom]
+    validates_presence [:login, :nom, :prenom]
     validates_unique :login
+    validates_unique :id_jointure_aaf if id_jointure_aaf
+    validates_unique :id_sconet if id_sconet
     # Doit commencer par une lettre et ne pas comporter d'espace
     validates_format /^[a-z]\S*$/i, :login
     # Ne doit comporter que 5 chiffres
@@ -222,6 +223,13 @@ class User < Sequel::Model(:user)
     profil_actif.etablissement
   end
 
+  def email_principal
+    Email.filter(:user => self, :principal => true).first
+  end
+
+  def email_academique
+    Email.filter(:user => self, :academique => true).first
+  end
 
 
 private

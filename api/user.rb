@@ -58,9 +58,6 @@ class UserApi < Grape::API
     optional :ville, type: String
     optional :id_sconet, type: Integer
     optional :id_jointure_aaf, type: Integer
-    optional :email_principal, type: String
-    optional :email_secondaire, type: String
-    optional :email_academique, type: String
   end
   
   post do
@@ -113,7 +110,7 @@ class UserApi < Grape::API
       attributes = {
         "user" => u.id,
         "UAI" => u.etablissement.code_uai,
-        "ENTPersonProfils" => u.profil_actif.profil.code_ent,
+        "ENTPersonProfils" => u.profil_actif.profil.code_national,
         "CodeNivFormation" => nil,
         "NivFormation" => nil,
         "NivFormationDiplome" => nil,
@@ -159,7 +156,7 @@ class UserApi < Grape::API
         "LaclasseCivilite" => u.civilite,
         "ENTPersonStructRattach" => u.etablissement.code_uai,
         "ENTPersonStructRattachRNE" => u.etablissement.code_uai,
-        "ENTPersonProfils" => u.profil_actif.profil.code_ent,
+        "ENTPersonProfils" => u.profil_actif.profil.code_national,
         "LaclasseEmail" => u.email_principal,
         "LaclasseEmailAca" => u.email_academique
       }

@@ -12,9 +12,10 @@ DROP TABLE IF EXISTS `annuaire`.`user` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`user` (
   `id` CHAR(8) NOT NULL COMMENT 'Identifiant utilisé pour toutes les applications de l\'ent. Son format est définit dans le chaier des charges de l\'annuaire ENT p 43.' ,
-  `vecteur_id` VARCHAR(500) NULL COMMENT 'Est sous la forme \nprofil|nom|prenom|id|etabId\ndonc doit au moins être au moins être aussi long que le nom + prenom + etbId' ,
+  `id_sconet` INT NULL COMMENT 'Identifiant sconet pour les élèves.\nCorrespond à @ENTEleveStructRattachId' ,
+  `id_jointure_aaf` INT NULL COMMENT 'identifiant de jointure envoyé par l\'annuaire académique fédérateur' ,
   `login` VARCHAR(45) NOT NULL COMMENT 'Login de l\'utilsateur normalement généré selon le principe première lettre du prenom + nom ou prenom+nom.' ,
-  `password` CHAR(60) NOT NULL COMMENT 'BCrypt hashed password' ,
+  `password` CHAR(60) NULL COMMENT 'BCrypt hashed password' ,
   `nom` VARCHAR(45) NOT NULL ,
   `prenom` VARCHAR(45) NOT NULL ,
   `sexe` VARCHAR(1) NULL COMMENT 'M ou F' ,
@@ -29,12 +30,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`user` (
   `date_fin_activation` DATE NULL COMMENT 'La désactivation d\'un compte peut-être prévue (ie compte d\'inspecteur académique)' ,
   `date_derniere_connexion` DATETIME NULL ,
   `bloque` TINYINT(1)  NOT NULL DEFAULT 0 COMMENT 'Si oui ou non le compte est bloqué (plus d\'accès à l\'établissement et autre).' ,
-  `id_sconet` INT NULL COMMENT 'Identifiant sconet pour les élèves.\nCorrespond à @ENTEleveStructRattachId' ,
-  `id_jointure_aaf` INT NULL COMMENT 'identifiant de jointure envoyé par l\'annuaire académique fédérateur' ,
   `date_last_maj_aaf` DATETIME NULL ,
-  `email_principal` VARCHAR(255) NULL ,
-  `email_secondaire` VARCHAR(255) NULL ,
-  `email_academique` VARCHAR(255) NULL ,
   PRIMARY KEY (`id`) ,
   UNIQUE INDEX `id_jointure_aaf_UNIQUE` (`id_jointure_aaf` ASC) ,
   UNIQUE INDEX `id_sconet_UNIQUE` (`id_sconet` ASC) ,
@@ -305,20 +301,21 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `annuaire`.`telephone` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`telephone` (
+  `id` INT NOT NULL AUTO_INCREMENT ,
   `numero` CHAR(32) NOT NULL ,
   `user_id` CHAR(8) NOT NULL ,
   `type_telephone_id` CHAR(4) NOT NULL ,
-  PRIMARY KEY (`numero`, `user_id`) ,
-  INDEX `fk_numero_telephone_user1` (`user_id` ASC) ,
+  PRIMARY KEY (`id`) ,
   INDEX `fk_telephone_type_telephone1` (`type_telephone_id` ASC) ,
-  CONSTRAINT `fk_numero_telephone_user1`
-    FOREIGN KEY (`user_id` )
-    REFERENCES `annuaire`.`user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+  INDEX `fk_telephone_user1` (`user_id` ASC) ,
   CONSTRAINT `fk_telephone_type_telephone1`
     FOREIGN KEY (`type_telephone_id` )
     REFERENCES `annuaire`.`type_telephone` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_telephone_user1`
+    FOREIGN KEY (`user_id` )
+    REFERENCES `annuaire`.`user` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -334,7 +331,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`profil` (
   `libelle` VARCHAR(45) NULL ,
   `description` VARCHAR(1024) NULL ,
   `code_men` VARCHAR(45) NULL COMMENT 'Code du profil selon le référentiel de l\'éducation nationale.' ,
-  `code_ent` VARCHAR(45) NULL COMMENT 'Code du profil type National_1.' ,
+  `code_national` VARCHAR(45) NULL COMMENT 'Code du profil type National_1.' ,
   PRIMARY KEY (`id`) )
 ENGINE = InnoDB;
 
@@ -655,6 +652,28 @@ DROP TABLE IF EXISTS `annuaire`.`last_uid` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`last_uid` (
   `last_uid` CHAR(8) NULL )
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `annuaire`.`email`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `annuaire`.`email` ;
+
+CREATE  TABLE IF NOT EXISTS `annuaire`.`email` (
+  `id` INT NOT NULL AUTO_INCREMENT ,
+  `adresse` VARCHAR(255) NOT NULL ,
+  `principal` TINYINT(1)  NOT NULL DEFAULT 1 COMMENT 'adresse d\'envois par défaut' ,
+  `valide` TINYINT(1)  NOT NULL DEFAULT 0 COMMENT 'Si l\'email a été validé suite à un envois de mail (comme GitHub).' ,
+  `academique` TINYINT(1)  NOT NULL DEFAULT 0 COMMENT 'Si c\'est un mail académique (pour le PEN)' ,
+  `user_id` CHAR(8) NOT NULL ,
+  PRIMARY KEY (`id`) ,
+  INDEX `fk_email_user1` (`user_id` ASC) ,
+  CONSTRAINT `fk_email_user1`
+    FOREIGN KEY (`user_id` )
+    REFERENCES `annuaire`.`user` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
 

@@ -6,8 +6,9 @@
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 # COLUMN_NAME                   | DATA_TYPE           | NULL?    | KEY      | DEFAULT    | EXTRA
 # ------------------------------+---------------------+----------+----------+------------+--------------------
-# numero                        | char(32)            | false    | PRI      |            | 
-# user_id                       | char(8)             | false    | PRI      |            | 
+# id                            | int(11)             | false    | PRI      |            | auto_increment
+# numero                        | char(32)            | false    |          |            | 
+# user_id                       | char(8)             | false    | MUL      |            | 
 # type_telephone_id             | char(4)             | false    | MUL      |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
@@ -24,6 +25,6 @@ class Telephone < Sequel::Model(:telephone)
   # Not nullable cols
   def validate
     super
-    validates_presence [:type_telephone_id]
+    validates_presence [:type_telephone_id, :user_id]
   end
 end

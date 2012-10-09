@@ -10,6 +10,7 @@
 # libelle                       | varchar(45)         | true     |          |            | 
 # description                   | varchar(1024)       | true     |          |            | 
 # code_men                      | varchar(45)         | true     |          |            | 
+# code_national                 | varchar(45)         | true     |          |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
 class Profil < Sequel::Model(:profil)

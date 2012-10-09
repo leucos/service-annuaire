@@ -12,7 +12,7 @@ require_relative 'bcn_parser'
 def clean_annuaire()
   puts "TRUNCATE ALL USER RELATED TABLES"
   [
-    :profil_user, :telephone, :relation_eleve, :membre_regroupement,
+    :profil_user, :telephone, :email, :relation_eleve, :membre_regroupement,
     :enseigne_regroupement, :user, :regroupement
   ].each do |table|
     DB[table].truncate()
@@ -28,7 +28,7 @@ def bootstrap_annuaire()
   puts "TRUNCATE ALL TABLES"
   #On ne peut pas faire un bete DB.tables.each car il faut respecter l'ordre des foreign keys
   [
-  :activite_role, :role_user, :role_profil, :activite, :role, :param_app, :type_param, :app,
+  :activite_role, :role_user, :role_profil, :activite, :role, :param_app, :type_param, :app, :email,
   :profil_user, :telephone, :etablissement, :membre_regroupement, :enseigne_regroupement, :regroupement,
   :user, :type_telephone, :type_regroupement, :type_relation_eleve, :profil, :niveau, :relation_eleve
   ].each do |table|
@@ -60,19 +60,19 @@ def bootstrap_annuaire()
   #Profils utilisateurs
   # Les codes nationaux sont pris de la FAQ de l'annuaire ENT du SDET
   # http://eduscol.education.fr/cid57076/l-annuaire-ent-second-degre-et-son-alimentation-automatique.html
-  DB[:profil].insert(:id => 'ELV', :libelle => 'Elève', :code_ent => 'National_1')
-  DB[:profil].insert(:id => 'ADM', :libelle => 'Administrateur Etablissement', :code_ent => 'National_3')
-  DB[:profil].insert(:id => 'TECH', :libelle => 'Administrateur technique', :code_ent => 'National_3')
-  DB[:profil].insert(:id => 'PAR', :libelle => 'Parent', :code_ent => 'National_2')
-  DB[:profil].insert(:id => 'DIR', :libelle => 'Principal', :code_men => 'DIR', :code_ent => 'National_4')
-  DB[:profil].insert(:id => 'ENS', :libelle => 'Professeur', :code_men => 'ENS', :code_ent => 'National_3')
-  DB[:profil].insert(:id => 'ADF', :libelle => 'Personnels administratifs', :code_men => 'ADF', :code_ent => 'National_6')
-  DB[:profil].insert(:id => 'ORI', :libelle => "Conseiller(ère) d'orientation", :code_men => 'ORI', :code_ent => 'National_5')
-  DB[:profil].insert(:id => 'DOC', :libelle => 'Documentaliste', :code_men => 'DOC', :code_ent => 'National_6')
-  DB[:profil].insert(:id => 'EDU', :libelle => "Conseiller(ère) d'éducation", :code_men => 'EDU', :code_ent => 'National_5')
-  DB[:profil].insert(:id => 'OUV', :libelle => "Personnels ouvriers et de service", :code_men => 'OUV', :code_ent => 'National_6')
-  DB[:profil].insert(:id => 'MDS', :libelle => "Personnels médico-sociaux", :code_men => 'MDS', :code_ent => 'National_6')
-  DB[:profil].insert(:id => 'AED', :libelle => "Assistant(e) d'éducation", :code_men => 'AED', :code_ent => 'National_5')
+  DB[:profil].insert(:id => 'ELV', :libelle => 'Elève', :code_national => 'National_1')
+  DB[:profil].insert(:id => 'ADM', :libelle => 'Administrateur Etablissement', :code_national => 'National_3')
+  DB[:profil].insert(:id => 'TECH', :libelle => 'Administrateur technique', :code_national => 'National_3')
+  DB[:profil].insert(:id => 'PAR', :libelle => 'Parent', :code_national => 'National_2')
+  DB[:profil].insert(:id => 'DIR', :libelle => 'Principal', :code_men => 'DIR', :code_national => 'National_4')
+  DB[:profil].insert(:id => 'ENS', :libelle => 'Professeur', :code_men => 'ENS', :code_national => 'National_3')
+  DB[:profil].insert(:id => 'ADF', :libelle => 'Personnels administratifs', :code_men => 'ADF', :code_national => 'National_6')
+  DB[:profil].insert(:id => 'ORI', :libelle => "Conseiller(ère) d'orientation", :code_men => 'ORI', :code_national => 'National_5')
+  DB[:profil].insert(:id => 'DOC', :libelle => 'Documentaliste', :code_men => 'DOC', :code_national => 'National_6')
+  DB[:profil].insert(:id => 'EDU', :libelle => "Conseiller(ère) d'éducation", :code_men => 'EDU', :code_national => 'National_5')
+  DB[:profil].insert(:id => 'OUV', :libelle => "Personnels ouvriers et de service", :code_men => 'OUV', :code_national => 'National_6')
+  DB[:profil].insert(:id => 'MDS', :libelle => "Personnels médico-sociaux", :code_men => 'MDS', :code_national => 'National_6')
+  DB[:profil].insert(:id => 'AED', :libelle => "Assistant(e) d'éducation", :code_men => 'AED', :code_national => 'National_5')
 
 
   #Tout d'abord on créer des applications

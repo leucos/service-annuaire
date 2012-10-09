@@ -12,7 +12,6 @@ describe User do
     User.is_valid_id?("VAA70000").should.equal false
     User.is_valid_id?("WAA60000").should.equal false
     User.is_valid_id?(12360000).should.equal false
-
   end
 
   it "gives the good next id to user even after a destroy" do
@@ -41,7 +40,7 @@ describe User do
     u = User.new(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test', :code_postal => "69380A")
     u.valid?.should == false
     u = User.new(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test', :code_postal => "6938")
-    u.valid?.should == false
+    u.valid?.should == false  
     u = User.new(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test', :code_postal => 69380)
     u.valid?.should == true
     u = User.new(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test', :code_postal => "69380")
@@ -91,6 +90,29 @@ describe User do
     User.find_available_login("test", "test").should == "ttest1"
     create_test_user("ttest1")
     User.find_available_login("test", "test").should == "ttest2"
+    delete_test_users()
+  end
+
+  it "find principal email" do
+    u = create_test_user()
+    e = Email.create(:adresse => "test@laclasse.com", :user => u)
+    u.email_principal.should == e
+    # Test qu'on ne peut pas avoir 2 email principaux
+    should.raise Sequel::ValidationFailed do
+      e = Email.create(:adresse => "autre_test@laclasse.com", :user => u)
+    end
+    Email.filter(:user => u).delete()
+    u.email_principal.should == nil
+    delete_test_users()
+  end
+
+  it "find academique email" do
+    u = create_test_user()
+    Email.create(:adresse => "test@laclasse.com", :user => u)
+    e = Email.create(:adresse => "test@ac-lyon.fr", :user => u, :academique => true, :principal => false)
+    u.email_academique.should == e
+    Email.filter(:user => u).delete()
+    u.email_academique.should == nil
     delete_test_users()
   end
 end
