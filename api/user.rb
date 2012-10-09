@@ -24,12 +24,25 @@ class UserApi < Grape::API
     User[params[:id]]
   end
 
+  
   desc "Renvois le profil utilisateur si on donne le bon login. Nécessite une authentification."
   params do
     requires :login, type: String
   end
-  get "/:login" do
-    User[:login => params[:login]]
+  get "info/:login" do
+    result = {}
+    u = User[:login => params[:login]]
+    if u
+      #result[:user] = u
+      p = u.profil_actif
+      if p
+        #result[:profil] = {:code_uai => p.etablissement.code_uai, :code_ent => p.profil.code_ent}
+        result = u.to_hash.merge({:code_uai => p.etablissement.code_uai, :categories => p.profil.code_ent}) 
+      end
+    else
+      error!("Utilisateur non trouvé", 404)
+    end
+    result
   end
 
   desc "Service de création d'un utilisateur"
@@ -161,4 +174,15 @@ class UserApi < Grape::API
       error!("Utilisateur non trouvé", 404)
     end
   end
+
+  get "/query/string"  do 
+    Ramaze::Log.debug(params["route_info"])
+    query_params = params
+    query_params.delete("route_info")
+    query_params = query_params.to_hash
+    
+  end 
+
+
+
 end
