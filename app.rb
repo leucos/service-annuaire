@@ -24,6 +24,7 @@ require __DIR__('model/init')
 require __DIR__('helper/init')
 require __DIR__('api/init')
 require __DIR__('controller/init')
+require __DIR__('lib/query')
 
 #Rack::RouteExceptions.route(Exception,  MainController.r(:my_error_handler))
 
