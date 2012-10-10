@@ -2,6 +2,37 @@
 class UserApi < Grape::API
   format :json
 
+    helpers do
+    # return an array of columns 
+    def columns(params)
+      query_cols = params.select{|key,value| key =~ /col_(.*)/}
+      query_cols.keys.each { |k| query_cols[k.sub(/col_/, '').to_sym] = query_cols[k]; query_cols.delete(k) }
+      query_cols
+    end
+
+    def cols 
+        where.keys.each{|k| User.columns.include?(k) ? h[k] = where[k] : true }
+    end
+    def assoc 
+        #where.keys.each do |k| 
+        #User.association_reflections[:enseigne_regroupement][:class_name]
+    end 
+
+    def model
+      params['model'].capitalize
+    end
+
+    def authenticate!
+      error!('401 Unauthorized', 401) unless current_user
+    end
+
+    # input user_name 
+    # output UserName
+    def classify(string)
+      string.split('_').collect!{ |w| w.capitalize }.join
+    end
+  end
+
   desc "Renvois le profil utilisateur si on passe le bon login/password"
   params do
     requires :login, type: String, regexp: /^[a-z]/i, desc: "Doit commencer par une lettre"
@@ -24,12 +55,25 @@ class UserApi < Grape::API
     User[params[:id]]
   end
 
+  
   desc "Renvois le profil utilisateur si on donne le bon login. Nécessite une authentification."
   params do
     requires :login, type: String
   end
-  get "/:login" do
-    User[:login => params[:login]]
+  get "info/:login" do
+    result = {}
+    u = User[:login => params[:login]]
+    if u
+      #result[:user] = u
+      p = u.profil_actif
+      if p
+        #result[:profil] = {:code_uai => p.etablissement.code_uai, :code_ent => p.profil.code_ent}
+        result = u.to_hash.merge({:code_uai => p.etablissement.code_uai, :categories => p.profil.code_ent}) 
+      end
+    else
+      error!("Utilisateur non trouvé", 404)
+    end
+    result
   end
 
   desc "Service de création d'un utilisateur"
@@ -46,6 +90,7 @@ class UserApi < Grape::API
     optional :id_sconet, type: Integer
     optional :id_jointure_aaf, type: Integer
   end
+  
   post do
     p = params
     begin
@@ -157,4 +202,25 @@ class UserApi < Grape::API
       error!("Utilisateur non trouvé", 404)
     end
   end
+
+  get "/query/users"  do
+    # query =, columns = "nom,prenom,id, id_sconet", 
+    #where = col_sexe = F & col_etablissement_id = 2  displaystart = 0, displaylength = 10, sortcol, sortdir, searchcol, searchphrase
+    #if param[:etablissement]
+      #where[:profil_user => ProfilUser.filter(:etablissement_id => 2)]
+    #end
+    #where = {:sexe=>'F', :profil_user => )}
+    #response = PagedQuery.new('User',["nom", "prenom", "id", "id_sconet"], ,0, 10, 1, 'desc', 'sexe','')
+    #response.as_json
+    # query_columns =
+    where = {}
+    puts params.inspect 
+    params["columns"].nil? ? columns = User.columns : columns = params["columns"].split(",")
+    response = PagedQuery.new('User',columns, where,0, 10, 1, 'desc', 'sexe','')
+    response.as_json
+    
+  end 
+
+
+
 end

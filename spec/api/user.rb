@@ -9,7 +9,7 @@ describe UserApi do
 
   # In case something went wrong
   delete_test_users()
-
+=begin 
   should "return user profile when giving good login/password" do
     create_test_user()
     get('/user?login=test&password=test').status.should == 200
@@ -77,4 +77,20 @@ describe UserApi do
     get("/user/sso_attributes_men/root").status.should == 200
     sso_attr = JSON.parse(last_response.body)
   end
+=end
+  should "respond to a query" do
+    get("user/query/users").status.should == 200
+    sso_attr = JSON.parse(last_response.body)
+    puts sso_attr
+  end
+
+  should "query takes also columns as a URL parameter" do 
+    columns = ["nom", "prenom", "id", "id_sconet"]
+    cols = CGI::escape(columns.join(","))
+    puts cols 
+    get("user/query/users?columns=#{cols}").status.should == 200
+    sso_attr = JSON.parse(last_response.body)
+    puts sso_attr
+  end 
+
 end
