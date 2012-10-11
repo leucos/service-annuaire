@@ -224,11 +224,13 @@ class User < Sequel::Model(:user)
   end
 
   def email_principal
-    Email.filter(:user => self, :principal => true).first
+    email = Email.filter(:user => self, :principal => true).first
+    return email.nil? ? "" : email.adresse
   end
 
   def email_academique
-    Email.filter(:user => self, :academique => true).first
+    email = Email.filter(:user => self, :academique => true).first
+    return email.nil? ? "" : email.adresse
   end
 
 

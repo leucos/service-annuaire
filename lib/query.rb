@@ -7,21 +7,21 @@ class PagedQuery
   # where
   # for the moment search would be only on columns.
 
-  def initialize(model, columns, where, displaystart = 0, displaylength = 10, sortcol, sortdir, searchcol, searchphrase)
+  def initialize(model, columns, where, displaystart = 0, displaylength = 10, sortcol, sortdir, searchphrase)
      
     # columns = hash key value   
     @per_page = displaylength.to_i > 0 ? displaylength.to_i : 10
     @page = displaystart.to_i/@per_page+1
-    @sortcolumn = sortcol.to_i % 3
+    @sortcolumn = sortcol.to_i
     @sortdirction = (sortdir == "desc" ? "desc" : "asc")
-    @search = searchphrase
+    @search = searchphrase.split(" ")
      
     begin   
-	  @model= Kernel.const_get(model.downcase.capitalize)
-	  raise "model n'exist pas" unless Kernel.const_get(model.downcase.capitalize)< Sequel::Model
-	rescue
-	  raise "model n'est pas valid "
-	end 
+	   @model= Kernel.const_get(model.downcase.capitalize)
+	   raise "model n'exist pas" unless Kernel.const_get(model.downcase.capitalize)< Sequel::Model
+	  rescue
+	   raise "model n'est pas valid "
+	  end 
 	
 	
     if columns.kind_of?(Array)
@@ -36,6 +36,7 @@ class PagedQuery
       {
         TotalModelRecords: @model.count,
         TotalQueryResults: records.pagination_record_count,
+        Columns: columns_stringify,
         Data: data
       }
     end
@@ -72,8 +73,17 @@ class PagedQuery
 
       if !@search.empty?
         #"nom LIKE '#{@search}%' or prenom Like '#{@search}%'"
-        records = records.where("nom LIKE '#{@search}%'")
-        Ramaze::Log::debug("search object #{records.count}")
+        condition = ''
+        first_round = true 
+        @search.each do |token|
+          if (first_round)
+            condition = condition + "nom sounds like '%#{token}%' or prenom sounds like '%#{token}%'"
+            first_round = false
+          else
+            condition = condition + "or nom sounds like '%#{token}%' or prenom sounds like '%#{token}%'"
+          end
+        end
+        records = records.where(condition)
       end
       records = records.paginate(page,per_page)
       records
@@ -87,5 +97,9 @@ class PagedQuery
     def sort_direction
       return @sortdirction
     end
+
+    def columns_stringify
+      return @columns.map{|v| v.is_a?(String) ? v: v.to_s}
+    end 
 end
 

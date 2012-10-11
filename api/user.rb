@@ -4,34 +4,25 @@ class UserApi < Grape::API
 
     helpers do
     # return an array of columns 
-    def columns(params)
-      query_cols = params.select{|key,value| key =~ /col_(.*)/}
-      query_cols.keys.each { |k| query_cols[k.sub(/col_/, '').to_sym] = query_cols[k]; query_cols.delete(k) }
-      query_cols
-    end
-
-    def cols 
-        where.keys.each{|k| User.columns.include?(k) ? h[k] = where[k] : true }
-    end
-    def assoc 
-        #where.keys.each do |k| 
-        #User.association_reflections[:enseigne_regroupement][:class_name]
-    end 
-
     def model
       params['model'].capitalize
     end
-
-    def authenticate!
-      error!('401 Unauthorized', 401) unless current_user
-    end
-
     # input user_name 
     # output UserName
     def classify(string)
       string.split('_').collect!{ |w| w.capitalize }.join
     end
+    #change hash keys to symbols
+    def symblize_hash(h)
+      h.keys.each do |key|
+        h[(key.to_sym rescue key) || key] = h.delete(key)
+      end 
+    end
+    def symbolize_array(arr)
+      arr.map{|v| v.is_a?(String) ? v.to_sym : v}
+    end 
   end
+
 
   desc "Renvois le profil utilisateur si on passe le bon login/password"
   params do
@@ -204,23 +195,47 @@ class UserApi < Grape::API
   end
 
   get "/query/users"  do
-    # query =, columns = "nom,prenom,id, id_sconet", 
-    #where = col_sexe = F & col_etablissement_id = 2  displaystart = 0, displaylength = 10, sortcol, sortdir, searchcol, searchphrase
-    #if param[:etablissement]
-      #where[:profil_user => ProfilUser.filter(:etablissement_id => 2)]
-    #end
-    #where = {:sexe=>'F', :profil_user => )}
-    #response = PagedQuery.new('User',["nom", "prenom", "id", "id_sconet"], ,0, 10, 1, 'desc', 'sexe','')
-    #response.as_json
-    # query_columns =
-    where = {}
     puts params.inspect 
-    params["columns"].nil? ? columns = User.columns : columns = params["columns"].split(",")
-    response = PagedQuery.new('User',columns, where,0, 10, 1, 'desc', 'sexe','')
-    response.as_json
+    params["columns"].nil? ? columns = User.columns : columns = symbolize_array(params["columns"].split(","))
     
+    #filter_params
+    filter = params["where"].nil? ? {} : params["where"].to_hash
+    symblize_hash(filter)
+
+    filter.keys.each do |k|
+      # key is of a pattern ex. user_profil.etablissement_id  where user_profil is an association and etablissment_id is a column in the association table
+      if(k =~ /\w*[.][a-z]+/) 
+          association_array= k.to_s.split(".")
+          association = symbolize_array(association_array) 
+          model_name  = classify(association[0].to_s)
+          begin 
+            raise "error"  if !User.associations.include?(association[0])
+            model = Kernel.const_get(model_name)
+            column = association[1]
+            raise "error"  if !model.columns.include?(column)
+             # add if filter[assocition] exists add filter to the request
+            if filter[association[0]].nil?
+                filter[association[0]] =  model.filter(column => filter[k])
+            else 
+              filter[association[0]] = filter[association[0]].filter(column => filter[k])
+            end 
+          rescue
+             error!("Bad Request : invalid parameters", 400)  
+          end   
+          #puts model_column.inspect
+          filter.delete(k)
+      elsif( !User.columns.include?(k))
+        error!("Bad Request", 400)  unless User.columns.include?(k)
+      end
+    end
+    start = params["start"].nil? || params["start"].empty? ? 0 : params["start"]
+    length = params["length"].nil? || params["length"].empty? ? 10 : params["length"]
+    sortdir = params["sortdir"].nil? ? "" : params["sortdir"]
+    sortcol = params["sortcol"].nil? || params["sortcol"].empty? ? 1 : columns.include?(params["sortcol"].to_sym) ? columns.index(params["sortcol"].to_sym) : 1 
+    search = params["search"].nil? ?  '' : params["search"]
+
+    response = PagedQuery.new('User',columns, filter,start,length, sortcol, sortdir, search)
+    response.as_json
   end 
-
-
 
 end

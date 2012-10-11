@@ -96,13 +96,13 @@ describe User do
   it "find principal email" do
     u = create_test_user()
     e = Email.create(:adresse => "test@laclasse.com", :user => u)
-    u.email_principal.should == e
+    u.email_principal.should == "test@laclasse.com"
     # Test qu'on ne peut pas avoir 2 email principaux
     should.raise Sequel::ValidationFailed do
       e = Email.create(:adresse => "autre_test@laclasse.com", :user => u)
     end
     Email.filter(:user => u).delete()
-    u.email_principal.should == nil
+    u.email_principal.should == ""
     delete_test_users()
   end
 
@@ -110,9 +110,9 @@ describe User do
     u = create_test_user()
     Email.create(:adresse => "test@laclasse.com", :user => u)
     e = Email.create(:adresse => "test@ac-lyon.fr", :user => u, :academique => true, :principal => false)
-    u.email_academique.should == e
+    u.email_academique.should == "test@ac-lyon.fr"
     Email.filter(:user => u).delete()
-    u.email_academique.should == nil
+    u.email_academique.should == ""
     delete_test_users()
   end
 end
