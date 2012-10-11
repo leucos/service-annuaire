@@ -28,8 +28,6 @@
 # date_last_maj_aaf             | date                | true     |          |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
-require __DIR__('../lib/uid_generator')
-
 class User < Sequel::Model(:user)
 
   # Plugins

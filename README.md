@@ -1,6 +1,9 @@
 service-annuaire
 ================
 
+ATTENTION : CE PROJET COMMENCE A PEINE ET N'EST PAS DU TOUT A UN STADE UTILISABLE. LES SOURCES SONT DISPONIBLES A TITRE INFORMATIF. BEAUCOUP DE CHOSES SONT ENCORE AMENEES A BOUGER DANS LA STRUCTURE DES DONNEES ET L'API UTILISATEUR.
+
+
 Ensemble de service web pour manipuler les données d'annuaire dans laclasse.com
 
 # Documentation de l'API
@@ -121,30 +124,35 @@ Le service d'alimentation est un peu spécial : il permet de gérer l'alimentati
 Il donne accès aux logs, à la configuration et à l'activation de ce service.
 C'est un élément centrale de l'annuaire car il permet à un établissement de créer très rapidement un ensemble de compte (surtout avec l'alimentation automatique).
 
+//Envois de fichier d'alimentation dans la BDD
+POST /alimentation/:etablissement_id
+{type: "xml_menesr"} ?
+
 // Avant l'alimentation on peut manuellement recoller des utilisateurs qui n'ont pas été
 // recoller automatiquement
-POST /alimentation/recollement
+POST /alimentation/recollement/:alimentation_id
 {"id_ent" : "VAA60000", "id_jointure_aaf" : 12345678}
 
 //Récupère les données "brutes" d'une alimentation en cours (pas encore appliquée)
 //Ou déjà effectuée
-GET /alimentation/data?etablissement_id=1234&alimentation_id=1234
+GET /alimentation/data/:etablissement_id?alimentation_id=1234
 
 //Récupère les diffs d'une alimentation en cours (pas encore appliquée)
 //Ou déjà effectuée
-GET /alimentation/diff?etablissement_id=1234&alimentation_id=1234
+GET /alimentation/diff/:etablissement_id?alimentation_id=1234
 
 //Applique une alimentation dans la base de donnée
-POST /alimentation/apply
-{alimentation_id : 1234}
+POST /alimentation/apply/:alimentation_id
 
 //Active ou désactive l'alimentation automatique sur un établissement
 PUT /alimentation/state/:etablissement_id
 {enable: false}
 
+GET /alimentation/state/:etablissement_id
+
 //Récupère l'historique des alimentations d'un établissement
 //Pour le type manuel et/ou automatique
-GET /alimentation/histo?etablissement_id=1234&type=manuel
+GET /alimentation/histo/:etablissement_id?type=manuel
 {
   alimentation : [
     {
