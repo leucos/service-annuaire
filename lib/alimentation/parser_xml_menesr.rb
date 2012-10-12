@@ -1,11 +1,6 @@
 #!ruby
 #coding: utf-8
 
-unless Module.constants.include?(:LOG)
-  File.delete("alimentor.log") if File.exists?("alimentor.log")
-  LOG = Logger.new("alimentor.log", File::WRONLY | File::APPEND | File::CREAT)
-end
-
 #Hash de correspondance des champs XML avec la structure de BDD
 #Les champs absents ne sont pas utilisés dans la BDD
 # PERSON = {
@@ -296,7 +291,7 @@ module Alimentation
       #   ENTEleveStructRattachId
       eleve[:id_sconet] = get_attr(node, "ENTEleveStructRattachId", :int)
       if eleve[:id_sconet].nil?
-        #LOG.warn("Id sconet (ENTEleveStructRattachId) non spécifié pour l'élève #{eleve[:prenom]} #{eleve[:nom]}")
+        #Ramaze::Log.warn("Id sconet (ENTEleveStructRattachId) non spécifié pour l'élève #{eleve[:prenom]} #{eleve[:nom]}")
       end
 
       #
@@ -491,21 +486,26 @@ module Alimentation
         find_deleted_users(doc)
       end
     end
+
+    def init_memory_db
+      #Liste de toutes les données de l'établissement
+      #Présentent dans les fichiers XML
+      #key : nom de la table, value : Array des Model créés
+      #Nécessaire car dans un premier temps on ne touche pas à la base de données
+      #Pas de create, ni de save car on doit avoir un moyen de comparer ce qu'on a réelement
+      #Dans la BDD et ce qui est présent dans le fichier
+      #Voila toutes les tables concernées par l'alimentation auto
+      #Attention, l'ordre est important !
+      @cur_etb_data = MemoryDb.new([:etablissement, :user, :regroupement, :profil_user, :telephone,
+       :email, :relation_eleve, :membre_regroupement, :enseigne_regroupement])
+    end
     
     def parse_etb(uai, file_list)
       #On ne parse que les établissements existants
       @cur_etb_uai = uai
       @cur_etb_xml_id = find_etb_xml_id(file_list)
       if !@cur_etb_xml_id.nil?
-        #Liste de toutes les données de l'établissement
-        #Présentent dans les fichiers XML
-        #key : nom de la table, value : Array des Model créés
-        #Nécessaire car dans un premier temps on ne touche pas à la base de données
-        #Pas de create, ni de save car on doit avoir un moyen de comparer ce qu'on a réelement
-        #Dans la BDD et ce qui est présent dans le fichier
-        #Voila toutes les tables concernées par l'alimentation auto
-        @cur_etb_data = MemoryDb.new([:etablissement, :user, :regroupement, :profil_user, :telephone,
-         :email, :relation_eleve, :membre_regroupement, :enseigne_regroupement])
+        init_memory_db()
         #puts "Etablissement #{@cur_etb_xml_id} avec uai #{@cur_etb_uai} present"
         if file_list.length == 4
           @cur_etb = @cur_etb_data[:etablissement].find_or_add({:code_uai => uai})
@@ -514,7 +514,7 @@ module Alimentation
             parse_file(name)
           end
         else
-          LOG.error("Plus de 4 fichiers pour l'établissement #{uai} : #{file_list}")
+          Ramaze::Log.error("Plus de 4 fichiers pour l'établissement #{uai} : #{file_list}")
         end
       end
 

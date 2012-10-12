@@ -8,9 +8,6 @@ require __DIR__('diff_generator')
 require __DIR__('diff_view')
 require __DIR__('db_sync')
 
-File.delete("alimentor.log") if File.exists?("alimentor.log")
-LOG = Logger.new("alimentor.log", File::WRONLY | File::APPEND | File::CREAT)
-
 #Super classe qui prend un fichier targz (complet ou delta) de l'académie et alimente automatiquement
 #Tous les établissements présents dans l'archive
 module Alimentation
@@ -44,12 +41,12 @@ module Alimentation
       Zlib::GzipReader.open(@archive_name) do |tgz|
         #Unpack the tar, this way it will be easier to work with xml files
         #This may take a while...
-        LOG.info("#{@archive_name} is good")
+        Ramaze::Log.info("#{@archive_name} is good")
         Archive::Tar::Minitar.unpack(tgz, @temp_dir)
       end
 
       ok = Dir.exists?(@temp_dir)
-      LOG.error("Temp dir not created abording alimentation") unless ok
+      Ramaze::Log.error("Temp dir not created abording alimentation") unless ok
       return ok
     end
 
@@ -73,7 +70,7 @@ module Alimentation
     end
 
     def prepare_alimentation
-      LOG.info("prepare_alimentation")
+      Ramaze::Log.info("prepare_alimentation")
       ok = unpack_archive()
       list_all_etb() if ok
 
@@ -84,19 +81,19 @@ module Alimentation
     def parse_all_etb
       @etb_file_map.each do |uai, file_list|
         begin
-          LOG.info("Start parsing etablissement #{uai}")
+          Ramaze::Log.info("Start parsing etablissement #{uai}")
           parser = Parser.new
           cur_etb_data = parser.parse_etb(uai, file_list)
           unless cur_etb_data.nil?
-            LOG.info("Generate diff")
+            Ramaze::Log.info("Generate diff")
             diff_generator = DiffGenerator.new
             diff = diff_generator.generate_diff_etb(uai, cur_etb_data, @is_complet)
 
-            LOG.info("Generate diff_view")
+            Ramaze::Log.info("Generate diff_view")
             diff_view = DiffView.new
             diff_view.generate_html(uai, diff, @date_alim, @is_complet)
 
-            LOG.info("Synchronize DB")
+            Ramaze::Log.info("Synchronize DB")
             sync = DbSync.new
             sync.sync_db(diff)
           end
