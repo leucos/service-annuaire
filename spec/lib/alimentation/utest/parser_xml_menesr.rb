@@ -12,17 +12,25 @@ class ParserTest < Alimentation::ParserXmlMenesr
 end
 
 # Renvois la description XML d'un élève
-def get_eleve_xml
-  Nokogiri::XML('<addRequest>
-<operationalAttributes><attr name="categoriePersonne"><value>Eleve</value></attr></operationalAttributes>
-<identifier><id>748220</id></identifier>
-<attributes>
-<attr name="ENTPersonJointure"><value>123456</value></attr>
-<attr name="ENTPersonDateNaissance"><value>06/06/1996</value></attr>
+def get_eleve_xml(options = {})
+  node = '<addRequest>
+<operationalAttributes><attr name="categoriePersonne"><value>Eleve</value></attr></operationalAttributes>'
+  unless options[:identifier]
+    node += '<identifier><id>123456</id></identifier>'
+  end
+  node += '<attributes>'
+  unless options[:no_id_jointure]
+    node += '<attr name="ENTPersonJointure"><value>123456</value></attr>'
+  end
+  node += '<attr name="ENTPersonDateNaissance"><value>06/06/1996</value></attr>
 <attr name="ENTPersonNomPatro"><value>RODRIGUEZ</value></attr>
-<attr name="sn"><value>RODRIGUEZ</value></attr>
-<attr name="givenName"><value>Michèle</value></attr>
-<attr name="ENTPersonAutresPrenoms"><value>Michèle</value><value>Robert</value></attr>
+<attr name="sn"><value>RODRIGUEZ</value></attr>'
+  if options[:mismatch_first_name]
+    node += '<attr name="givenName"><value>Michèle</value></attr>'
+  else
+    node += '<attr name="givenName"><value>Michele</value></attr>'
+  end
+  node += '<attr name="ENTPersonAutresPrenoms"><value>Michèle</value><value>Robert</value></attr>
 <attr name="personalTitle"><value>Mlle</value></attr>
 <attr name="ENTEleveParents"><value>123457</value><value>123458</value></attr>
 <attr name="ENTElevePere"><value>123457</value></attr>
@@ -45,7 +53,8 @@ def get_eleve_xml
 <attr name="ENTEleveClasses"><value>1234$4E3</value></attr>
 <attr name="ENTEleveGroupes"><value/></attr>
 </attributes>
-</addRequest>').css("addRequest, modifyRequest").first
+</addRequest>'
+  Nokogiri::XML(node).css("addRequest, modifyRequest").first
 end
 
 describe Alimentation::ParserXmlMenesr do

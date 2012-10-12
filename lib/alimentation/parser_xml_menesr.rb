@@ -57,8 +57,15 @@
 #   telephoneNumber: Etablissement.telephone,
 #   facsimileTelephoneNumber: Etablissement.fax
 # }
-
 module Alimentation
+  # Classe d'erreur quand il manque des données pour un profil
+  class MissingDataError < StandardError
+  end
+
+  # Classe utilisée quand il y a des erreurs sur les données
+  class WrongDataError < StandardError
+  end
+
   class ParserXmlMenesr
     CATEGORIE_ELEVE = "Eleve"
     CATEGORIE_PARENT = "PersRelEleve"
@@ -134,104 +141,105 @@ module Alimentation
       return xml_id
     end
 
-    def parse_user(node, categorie, profil_id)
+    def parse_user(node, categorie)
       #On s'assure qu'il s'agit bien de la categorie souhaitée
       cat = get_attr(node, "categoriePersonne")
+      if cat.nil? or cat != categorie
+        raise WrongDataError.new("Catégorie #{categorie} attendue et #{cat} trouvée.")
+      end
+
       #Et que les données obligatoire (idJointure, nom, prenom) sont présentent
+      identifier = node.at_css("identifier id")
+      identifier = identifier.content.to_i if identifier
       id_jointure = get_attr(node, "ENTPersonJointure", :int)
       nom = get_attr(node, 'sn')
       prenom = get_attr(node, 'givenName')
-      if !cat.nil? and cat == categorie and !id_jointure.nil? and !nom.nil? and !prenom.nil?
-        #L'utilisateur peut déjà avoir été créer temporairement (cas d'un enfant dont les parents sont déclarés)
-        parsed_user = @cur_etb_data[:user].find_or_add({:id_jointure_aaf => id_jointure})
-        #   ENTPersonDateNaissance: User[:date_naissance], #Nécessite conversion date
-        date_naissance = get_attr(node, "ENTPersonDateNaissance")
-        #puts "#{date_naissance}"
-        begin
-          parsed_user[:date_naissance] = Date.parse(date_naissance)
-        rescue
-          #puts "Date de naissance manquante ou invalide pour l'utilisateur #{parsed_user.inspect}"
-        end
-        #   sn: User[:nom],
-        parsed_user[:nom] = nom
-        #   givenName: User[:prenom],
-        parsed_user[:prenom] = prenom
-        #   personalTitle: User[:sexe], #Nécessite conversion M. Mme. Mlle => M, F
-        titre = get_attr(node, 'personalTitle')
-        parsed_user[:sexe] = titre == "M." ? "M" : "F"
-        #   ENTPersonAdresse: User.adresse,
-        parsed_user[:adresse] = get_attr(node, "ENTPersonAdresse")
-        #   ENTPersonCodePostal: User.code_postal,
-        parsed_user[:code_postal] = get_attr(node, "ENTPersonCodePostal")
-        #   ENTPersonVille: User.ville,
-        parsed_user[:ville] = get_attr(node, "ENTPersonVille")
-        #   ENTPersonPays: User.ville, #Si diffère de FRANCE
-        pays = get_attr(node, "ENTPersonPays")
-        parsed_user[:ville] += " #{pays}" if !parsed_user[:ville].nil? and !pays.nil? and pays != "FRANCE"
-        #   mail: Email #N'existe que pour les prof et le mail académique
-        adresse = get_attr(node, "mail")
-        unless adresse.nil?
-          email_hash = {adresse: adresse, user: parsed_user}
-          email_hash[:academique] = true if adresse.index(/@ac-.*\.fr/)
-          @cur_etb_data[:email].find_or_add(email_hash)
-        end
-
-        parsed_user[:date_last_maj_aaf] = DateTime.now
-
-        #On récupère la fonction ici car l'établissement de rattachement s'y trouve
-        fonction = get_attr(node, "ENTPersonFonctions")
-        splitted_fct = fonction.split('$') unless fonction.nil?
-
-        #   ENTPersonStructRattach: ProfilUser.etablissement_id, #Nécessite conversion id=>UAI
-        #On s'assure que la personne est bien dans l'établissement
-        #Ou qu'elle est parent et donc rattaché au même établissement que son enfant
-        struct_rattach = get_attr(node, 'ENTPersonStructRattach')
-        #Parfois struct_rattach n'est pas renseigné donc on peu tenter de le trouver
-        #dans ENTPersonFonctions
-        if struct_rattach.nil? and !splitted_fct.nil?
-          struct_rattach = splitted_fct[0]
-        end
-
-        if struct_rattach == @cur_etb_xml_id and !profil_id.nil?
-          #Chercher le profil par le code_men si ENTPersonFonctions renseigné
-          if !splitted_fct.nil? and splitted_fct.length > 1
-            code_men = splitted_fct[1]
-            #Pour l'instant le profil est en fonction du code_men de la fonction
-            #pour tous les pen
-            #todo : utiliser la discipline pour préciser le profil (Principal et Principal Adjoint)
-            profil = Profil[:code_men => code_men]
-            #Si profil pas trouvé, alors on suppose que c'est un prof
-            profil = Profil[:id => profil_id] if profil.nil?
-          else
-            profil = Profil[:id => profil_id]
-          end
-
-          unless profil.nil?
-            profil_user = {
-              etablissement: @cur_etb,
-              user: parsed_user, profil_id: profil.id
-            }
-
-            @cur_etb_data[:profil_user].find_or_add( 
-              {:etablissement => @cur_etb, :user => parsed_user}, profil_user)
-          end
-        end
-
-        #   homePhone: Telephone.numero, a noté qu'il ne s'agit pas forcément du téléphone de la maison
-        #donc on check si c'est un portable au cas où...
-        #Ah spielberg...
-        telephone_maison = get_attr(node, "homePhone")
-        unless telephone_maison.nil?
-          add_phone_to_user(parsed_user, telephone_maison, "MAIS")
-        end
-        #   telephoneNumber: Telephone.numero,
-        tel = get_attr(node, "telephoneNumber")
-        unless tel.nil?
-          add_phone_to_user(parsed_user, tel, "AUTR")
-        end
+      
+      if nom.nil? or prenom.nil? or id_jointure.nil?
+        raise MissingDataError.new(
+          "Au moins une des données suivante est manquante nom=#{nom} prenom=#{prenom} id_jointure=#{id_jointure}"
+          )
       end
 
+      if identifier != id_jointure
+        raise WrongDataError.new("Champs identifier (#{identifier}) et ENTPersonJointure (#{id_jointure}) différents pour #{prenom} #{nom}.") 
+      end
+
+      #L'utilisateur peut déjà avoir été créer temporairement (cas d'un enfant dont les parents sont déclarés)
+      parsed_user = @cur_etb_data[:user].find_or_add({:id_jointure_aaf => id_jointure})
+      #   ENTPersonDateNaissance: User[:date_naissance], #Nécessite conversion date
+      date_naissance = get_attr(node, "ENTPersonDateNaissance")
+      #puts "#{date_naissance}"
+      begin
+        parsed_user[:date_naissance] = Date.parse(date_naissance)
+      rescue
+        Ramaze::Log.info("Date de naissance manquante ou invalide pour l'utilisateur #{parsed_user.inspect}")
+        if categorie == CATEGORIE_ELEVE
+          raise MissingDataError.new("Date de naissance manquante pour #{prenom} #{nom} ##{id_jointure}")
+        end
+      end
+      #   sn: User[:nom],
+      parsed_user[:nom] = nom
+      #   givenName: User[:prenom],
+      parsed_user[:prenom] = prenom
+      #   personalTitle: User[:sexe], #Nécessite conversion M. Mme. Mlle => M, F
+      titre = get_attr(node, 'personalTitle')
+      parsed_user[:sexe] = titre == "M." ? "M" : "F"
+      #   ENTPersonAdresse: User.adresse,
+      parsed_user[:adresse] = get_attr(node, "ENTPersonAdresse")
+      #   ENTPersonCodePostal: User.code_postal,
+      parsed_user[:code_postal] = get_attr(node, "ENTPersonCodePostal")
+      #   ENTPersonVille: User.ville,
+      parsed_user[:ville] = get_attr(node, "ENTPersonVille")
+      #   ENTPersonPays: User.ville, #Si diffère de FRANCE
+      pays = get_attr(node, "ENTPersonPays")
+      parsed_user[:ville] += " #{pays}" if !parsed_user[:ville].nil? and !pays.nil? and pays != "FRANCE"
+      parsed_user[:date_last_maj_aaf] = DateTime.now
+
       return parsed_user
+    end
+
+    def find_pen_profil_id(node, user)
+      # ENTPersonStructRattach: ProfilUser.etablissement_id, #Nécessite conversion id=>UAI
+      # La structure de rattachement n'est pas forcément l'établissement
+      # actuellement parsé
+      struct_rattach = get_attr(node, 'ENTPersonStructRattach')
+      
+      #La personne peut avoir plusieurs fonctions, on cherche celle sur son établissement
+      # TODO : chercher dans les multiples fonctions
+      fonction = get_multiple_attr(node, "ENTPersonFonctions")[0]
+      splitted_fct = fonction.split('$') unless fonction.nil?
+      #Parfois struct_rattach n'est pas renseignée donc on peut tenter de le trouver
+      #dans ENTPersonFonctions
+      if struct_rattach.nil? and !splitted_fct.nil?
+        struct_rattach = splitted_fct[0]
+      end
+      if struct_rattach.nil?
+        raise MissingDataError.new("Structure de rattachement manquante pour le personnel #{user}")
+      end
+
+      if !splitted_fct.nil? and splitted_fct.length > 1
+        code_men = splitted_fct[1]
+        #Pour l'instant le profil est en fonction du code_men de la fonction
+        #pour tous les pen
+        #todo : utiliser la discipline pour préciser le profil (Principal et Principal Adjoint)
+        profil = Profil[:code_men => code_men]
+      end
+
+      #Si profil pas trouvé, alors on suppose que c'est un prof
+      #todo : Peut-être mettre administratif au lieu de prof ?
+      profil = Profil[:id => PROFIL_ENS] if profil.nil?
+
+      return profil.id
+    end
+
+    # Ne traite que les Eleve et PersEtabEducNat
+    # Le profil parent est créé avec les élèves car certaines personnes
+    # ne sont que correspondant
+    def add_profil_to_user(user, profil_id)
+      profil_user = {etablissement: @cur_etb, user: user, profil_id: profil_id}
+      @cur_etb_data[:profil_user].find_or_add( 
+        {:etablissement => @cur_etb, :user => user}, profil_user)
     end
 
     def add_phone_to_user(user, tel, default_type)
@@ -291,9 +299,18 @@ module Alimentation
       #   ENTEleveStructRattachId
       eleve[:id_sconet] = get_attr(node, "ENTEleveStructRattachId", :int)
       if eleve[:id_sconet].nil?
-        #Ramaze::Log.warn("Id sconet (ENTEleveStructRattachId) non spécifié pour l'élève #{eleve[:prenom]} #{eleve[:nom]}")
+        #raise MissingDataError.new("ENTEleveStructRattachId (id sconet) manquant pour l'élève #{eleve}")
       end
 
+      # ENTPersonStructRattach: ProfilUser.etablissement_id, #Nécessite conversion id=>UAI
+      # La structure de rattachement n'est pas forcément l'établissement
+      # actuellement parsé
+      struct_rattach = get_attr(node, 'ENTPersonStructRattach')
+      if struct_rattach.nil?
+        raise MissingDataError.new("Structure de rattachement manquante pour l'élève #{user}")
+      end
+
+      add_profil_to_user(eleve, PROFIL_ELEVE)
       #
       # Gestion des relations élève (parents, correspondants etc)
       #
@@ -323,10 +340,7 @@ module Alimentation
         parent_list = get_multiple_attr(node, "ENTEleveAutoriteParentale", :int)
         if parent_list.include?(id)
           #Création du profil parent
-          @cur_etb_data[:profil_user].find_or_add({
-            etablissement: @cur_etb,
-            user: parent, profil_id: PROFIL_PARENT
-          })
+          add_profil_to_user(parent, PROFIL_PARENT)
         end
 
         case parent[:id_jointure_aaf]
@@ -365,12 +379,24 @@ module Alimentation
 
     def parse_all_eleves(xml_doc)
       xml_doc.css("addRequest, modifyRequest").each do |node|
-        eleve = parse_user(node, CATEGORIE_ELEVE, PROFIL_ELEVE)
+        eleve = parse_user(node, CATEGORIE_ELEVE)
         parse_eleve(node, eleve) unless eleve.nil?
       end
     end
 
     def parse_enseignant(node, enseignant)
+      #   mail: Email 
+      # N'existe que pour les prof et le mail académique
+      adresse = get_attr(node, "mail")
+      unless adresse.nil?
+        email_hash = {adresse: adresse, user: enseignant}
+        email_hash[:academique] = true if adresse.index(/@ac-.*\.fr/)
+        @cur_etb_data[:email].find_or_add(email_hash)
+      end
+
+      profil_id = find_pen_profil_id(node, enseignant)
+      add_profil_to_user(enseignant, profil_id)
+
       #   ENTAuxEnsMatiereEnseignEtab: EnseigneRegroupement.matiere_enseignee_id
       matiere_list = get_multiple_attr_etb(node, "ENTAuxEnsMatiereEnseignEtab")
       unless matiere_list.nil?
@@ -402,7 +428,7 @@ module Alimentation
 
     def parse_all_pens(xml_doc)
       xml_doc.css("addRequest, modifyRequest").each do |node|
-        pen = parse_user(node, CATEGORIE_PEN, PROFIL_ENS)
+        pen = parse_user(node, CATEGORIE_PEN)
 
         #   PersEducNatPresenceDevantEleves: permet de savoir si oui ou non une personne est prof
         enseigne = get_attr(node, "PersEducNatPresenceDevantEleves")
@@ -415,7 +441,20 @@ module Alimentation
     def parse_all_parents(xml_doc)
       xml_doc.css("addRequest, modifyRequest").each do |node|
         #On met nil comme profil car le profil parent est définit lors du parsing de l'élève
-        parent = parse_user(node, CATEGORIE_PARENT, nil)
+        parent = parse_user(node, CATEGORIE_PARENT)
+
+        #   homePhone: Telephone.numero
+        #a noter qu'il ne s'agit pas forcément du téléphone de la maison
+        #donc on check si c'est un portable au cas où...
+        #Ah spielberg...
+        telephone_maison = get_attr(node, "homePhone")
+        add_phone_to_user(parent, telephone_maison, "MAIS") unless telephone_maison.nil?
+        #   telephoneNumber: Telephone.numero,
+        tel = get_attr(node, "telephoneNumber")
+        add_phone_to_user(parent, tel, "AUTR") unless tel.nil?
+        # Spécifique au SDET V4 donc pas encore là
+        mobile = get_attr(node, "mobile")
+        add_phone_to_user(parent, mobile, "PORT") unless mobile.nil?
       end
     end
 
