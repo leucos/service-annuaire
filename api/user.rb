@@ -195,7 +195,6 @@ class UserApi < Grape::API
   end
 
   get "/query/users"  do
-    puts params.inspect 
     params["columns"].nil? ? columns = User.columns : columns = symbolize_array(params["columns"].split(","))
     #filter_params
     filter = params["where"].nil? ? {} : params["where"].to_hash
@@ -235,6 +234,26 @@ class UserApi < Grape::API
 
     response = PagedQuery.new('User',columns, filter,start,length, sortcol, sortdir, search)
     response.as_json
-  end 
+  end
+
+  desc "Search parents of a student that has  a specified sconet_id"
+  get "/parent/eleve"  do
+    nom = params["nom"].nil? ?  "" : params["nom"]
+    prenom = params["prenom"].nil? ?  "" : params["prenom"]
+    eleve_sconet_id = params["sconet_id"].nil? ?  "" : params["sconet_id"]
+    error!("Bad Request", 400)    if eleve_sconet_id.empty?
+    parents = User.join(:relation_eleve, :user_id => :id).
+        filter(:eleve_id => User.select(:id).filter(:id_sconet => eleve_sconet_id), :type_relation_eleve_id => ["PERE", "MERE"]).
+        select(:nom, :prenom, :login)
+
+    if !nom.empty? 
+      parents = parents.filter(:nom => nom)
+    end
+    if !prenom.empty? 
+      parents = parents.filter(:prenom => prenom)
+    end
+    parents  
+  end
+
 
 end

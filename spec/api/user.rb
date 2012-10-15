@@ -7,6 +7,7 @@ describe UserApi do
     Rack::Builder.parse_file("config.ru").first
   end
 
+=begin
   # In case something went wrong
   delete_test_users()
   should "return user profile when giving good login/password" do
@@ -76,6 +77,7 @@ describe UserApi do
     get("/user/sso_attributes_men/root").status.should == 200
     sso_attr = JSON.parse(last_response.body)
   end
+=end
 
   should "respond to a query without parameters" do
     get("user/query/users").status.should == 200
@@ -165,6 +167,21 @@ describe UserApi do
     get("user/query/users?where[sexe]=F&start=0&length=10&search=#{escaped_string}").status.should == 200
     result = JSON.parse(last_response.body)
     result["TotalQueryResults"].should == 19
+  end
+
+  should "find parent besed on eleve_id"  do 
+    # student with sconet_id has 2 parents
+    get("user/parent/eleve?sconet_id=123456").status.should == 200
+    result = JSON.parse(last_response.body)
+    result.count.should == 2 
+  end
+
+  should  "filter parent based also nom, prenom and eleve_id" do 
+    get("user/parent/eleve?nom=bruni&prenom=francois&sconet_id=123456").status.should == 200
+    result = JSON.parse(last_response.body)
+    result.count.should == 1
+    result[0]["nom"].should == "bruni"
+    result[0]["prenom"].should == "francois"
   end 
 
 end
