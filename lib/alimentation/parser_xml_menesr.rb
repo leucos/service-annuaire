@@ -296,9 +296,11 @@ module Alimentation
     def parse_relation_eleve(node, eleve)
       #   ENTEleveAutoriteParentale: RelationEleve, #Faire lien avec id de jointure
       rel_eleve_list = get_multiple_attr(node, "ENTEleveAutoriteParentale", :int)
-      #   ENTElevePere: TypeRelationEleve, #Obsolète apparement
+      #   ENTElevePere: TypeRelationEleve
+      #Obsolète apparement mais utile pour savoir si c'est un pere ou une mere
       pere_id = get_attr(node, "ENTElevePere", :int)
-      #   ENTEleveMere: TypeRelationEleve, #Obsolète apparement
+      #   ENTEleveMere: TypeRelationEleve
+      #Obsolète apparement mais utile pour savoir si c'est un pere ou une mere
       mere_id = get_attr(node, "ENTEleveMere", :int)
       #   ENTElevePersRelEleve1: RelationEleve,
       rel_1_id = get_attr(node, "ENTElevePersRelEleve1", :int)

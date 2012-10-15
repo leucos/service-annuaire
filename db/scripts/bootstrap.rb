@@ -12,7 +12,7 @@ require_relative 'bcn_parser'
 def clean_annuaire()
   puts "TRUNCATE ALL USER RELATED TABLES"
   [
-    :profil_user, :telephone, :email, :relation_eleve, :membre_regroupement,
+    :last_uid, :profil_user, :telephone, :email, :relation_eleve, :membre_regroupement,
     :enseigne_regroupement, :user, :regroupement
   ].each do |table|
     DB[table].truncate()
@@ -28,7 +28,7 @@ def bootstrap_annuaire()
   puts "TRUNCATE ALL TABLES"
   #On ne peut pas faire un bete DB.tables.each car il faut respecter l'ordre des foreign keys
   [
-  :activite_role, :role_user, :role_profil, :activite, :role, :param_app, :type_param, :app, :email,
+  :last_uid, :activite_role, :role_user, :role_profil, :activite, :role, :param_app, :type_param, :app, :email,
   :profil_user, :telephone, :etablissement, :membre_regroupement, :enseigne_regroupement, :regroupement,
   :user, :type_telephone, :type_regroupement, :type_relation_eleve, :profil, :niveau, :relation_eleve
   ].each do |table|
@@ -189,6 +189,25 @@ def bootstrap_annuaire()
       #Et un admin d'étab
       elsif ind == 1
         profil = "ADM"
+      elsif profil == "ELV"
+        # On donne des identifiants sconet aux eleves
+        usr.id_sconet = r.rand(1000000)
+        while User[:id_sconet => usr.id_sconet] != nil
+          usr.id_sconet = r.rand(1000000)
+        end
+        usr.save
+      elsif profil == "PAR"
+        # On rajoute une relation
+        # Soit pere, soit mere
+        rel = r.rand(1) > 0 ? "MERE" : "PERE"
+        #On prend le premier eleve qui n'a pas cette relation
+        eleve = User.
+          left_join(:relation_eleve, :eleve_id => :id).
+          filter(:profil_user => ProfilUser.filter(:profil_id => "ELV")).
+          filter({:type_relation_eleve_id => nil}).first
+        if eleve
+          DB[:relation_eleve].insert(:user_id => usr.id, :eleve_id => eleve.id, :type_relation_eleve_id => rel)
+        end
       end
       DB[:profil_user].insert(:user_id => usr.id, :etablissement_id => etb_id, :profil_id => profil, :actif => true)
     end
