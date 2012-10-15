@@ -47,8 +47,8 @@ def bootstrap_annuaire()
   DB[:type_telephone].insert(:id => 'TRAV', :libelle => 'Travail')
   DB[:type_telephone].insert(:id => 'AUTR', :libelle => 'Autre')
 
-  DB[:type_relation_eleve].insert(:id => 'PERE', :libelle => 'Père')
-  DB[:type_relation_eleve].insert(:id => 'MERE', :libelle => 'Mère')
+  DB[:type_relation_eleve].insert(:id => 'PAR', :libelle => 'Parent')
+  DB[:type_relation_eleve].insert(:id => 'RLGL', :libelle => 'Représentant légal')
   DB[:type_relation_eleve].insert(:id => 'FINA', :libelle => 'Resp. financier')
   DB[:type_relation_eleve].insert(:id => 'CORR', :libelle => 'Correspondant')
 
@@ -198,8 +198,8 @@ def bootstrap_annuaire()
         usr.save
       elsif profil == "PAR"
         # On rajoute une relation
-        # Soit pere, soit mere
-        rel = r.rand(1) > 0 ? "MERE" : "PERE"
+        # Soit parent, soit representant legal
+        rel = r.rand(2) > 0 ? "PAR" : "RLGL"
         #On prend le premier eleve qui n'a pas cette relation
         eleve = User.
           left_join(:relation_eleve, :eleve_id => :id).
