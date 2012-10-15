@@ -233,15 +233,14 @@ module Alimentation
       return profil.id
     end
 
-    # Ne traite que les Eleve et PersEtabEducNat
-    # Le profil parent est créé avec les élèves car certaines personnes
-    # ne sont que correspondant
+
     def add_profil_to_user(user, profil_id)
       profil_user = {etablissement: @cur_etb, user: user, profil_id: profil_id}
       @cur_etb_data[:profil_user].find_or_add( 
         {:etablissement => @cur_etb, :user => user}, profil_user)
     end
 
+    # Pour l'instant les téléphone ne concernent que les comptes parent
     def add_phone_to_user(user, tel, default_type)
       #On cherche à savoir si c'est un portable
       if tel[0,2] == "06" or tel[0,5] == "+33 6"
@@ -253,7 +252,7 @@ module Alimentation
       @cur_etb_data[:telephone].find_or_add({:numero => tel, :user => user}, tel_hash)
     end
 
-    #Parse les rattachement à un regroupement pour les prof et les élèves
+    #Parse les rattachements à un regroupement pour les prof et les élèves
     def parse_regroupement(node, attr_name, reg_type_id, user, matiere_list=nil)
       reg_list = get_multiple_attr_etb(node, attr_name)
       reg_list.each do |code_aaf|
@@ -294,27 +293,7 @@ module Alimentation
       end
     end
 
-    def parse_eleve(node, eleve)
-      #Parsing specific à l'élève
-      #   ENTEleveStructRattachId
-      eleve[:id_sconet] = get_attr(node, "ENTEleveStructRattachId", :int)
-      if eleve[:id_sconet].nil?
-        #raise MissingDataError.new("ENTEleveStructRattachId (id sconet) manquant pour l'élève #{eleve}")
-      end
-
-      # ENTPersonStructRattach: ProfilUser.etablissement_id, #Nécessite conversion id=>UAI
-      # La structure de rattachement n'est pas forcément l'établissement
-      # actuellement parsé
-      struct_rattach = get_attr(node, 'ENTPersonStructRattach')
-      if struct_rattach.nil?
-        raise MissingDataError.new("Structure de rattachement manquante pour l'élève #{user}")
-      end
-
-      add_profil_to_user(eleve, PROFIL_ELEVE)
-      #
-      # Gestion des relations élève (parents, correspondants etc)
-      #
-
+    def parse_relation_eleve(node, eleve)
       #   ENTEleveAutoriteParentale: RelationEleve, #Faire lien avec id de jointure
       rel_eleve_list = get_multiple_attr(node, "ENTEleveAutoriteParentale", :int)
       #   ENTElevePere: TypeRelationEleve, #Obsolète apparement
@@ -323,12 +302,12 @@ module Alimentation
       mere_id = get_attr(node, "ENTEleveMere", :int)
       #   ENTElevePersRelEleve1: RelationEleve,
       rel_1_id = get_attr(node, "ENTElevePersRelEleve1", :int)
-      rel_eleve_list.push(rel_1_id) unless rel_1_id.nil?
+      rel_eleve_list.push(rel_1_id) if rel_1_id
       #   ENTEleveQualitePersRelEleve1: TypeRelationEleve,
       rel_1_type = get_attr(node, "ENTEleveQualitePersRelEleve1")
       #   ENTElevePersRelEleve2: RelationEleve,
       rel_2_id = get_attr(node, "ENTElevePersRelEleve2", :int)
-      rel_eleve_list.push(rel_2_id) unless rel_2_id.nil?
+      rel_eleve_list.push(rel_2_id) if rel_2_id
       #   ENTEleveQualitePersRelEleve2: TypeRelationEleve,
       rel_2_type = get_attr(node, "ENTEleveQualitePersRelEleve2")
 
@@ -369,6 +348,29 @@ module Alimentation
           @cur_etb_data[:relation_eleve].find_or_add({user: parent, eleve: eleve}, relation)
         end
       end
+    end
+
+    def parse_eleve(node, eleve)
+      #Parsing specific à l'élève
+      #   ENTEleveStructRattachId
+      eleve[:id_sconet] = get_attr(node, "ENTEleveStructRattachId", :int)
+      if eleve[:id_sconet].nil?
+        #raise MissingDataError.new("ENTEleveStructRattachId (id sconet) manquant pour l'élève #{eleve}")
+      end
+
+      # ENTPersonStructRattach: ProfilUser.etablissement_id, #Nécessite conversion id=>UAI
+      # La structure de rattachement n'est pas forcément l'établissement
+      # actuellement parsé
+      struct_rattach = get_attr(node, 'ENTPersonStructRattach')
+      if struct_rattach.nil?
+        raise MissingDataError.new("Structure de rattachement manquante pour l'élève #{eleve}")
+      end
+
+      add_profil_to_user(eleve, PROFIL_ELEVE)
+      #
+      # Gestion des relations élève (parents, correspondants etc)
+      #
+      parse_relation_eleve(node, eleve)
 
       #   ENTEleveClasses: MembreRegroupement, #Faire le liens entre libelle_aaf et id interne
       # todo : gérer les codes mef de la classe et le niveau
