@@ -243,7 +243,8 @@ class UserApi < Grape::API
     eleve_sconet_id = params["sconet_id"].nil? ?  "" : params["sconet_id"]
     error!("Bad Request", 400)    if eleve_sconet_id.empty?
     parents = User.join(:relation_eleve, :user_id => :id).
-        filter(:eleve_id => User.select(:id).filter(:id_sconet => eleve_sconet_id), :type_relation_eleve_id => ["PERE", "MERE"]).
+        filter(:eleve_id => User.select(:id).filter(:id_sconet => eleve_sconet_id), :type_relation_eleve_id => ["PAR", "RLGL"]).   # parent or representant légal, il y 
+        # a aussi des parents sans authorité parental.
         select(:nom, :prenom, :login)
 
     if !nom.empty? 
