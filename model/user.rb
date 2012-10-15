@@ -39,7 +39,7 @@ class User < Sequel::Model(:user)
   one_to_many :membre_regroupement
   one_to_many :profil_user
   one_to_many :telephone
-
+  one_to_many :email
   # Check si l'id passé en paramètre correspond bien aux critères d'identifiant ENT
   def self.is_valid_id?(id)
     !!(id.class == String and id.length == 8 and id[0] == 'V' and id[3] == '6' and id[1..2] =~ /[a-zA-Z]{2}/ and id[4..7] =~ /\d{4}/)
@@ -222,11 +222,13 @@ class User < Sequel::Model(:user)
   end
 
   def email_principal
-    Email.filter(:user => self, :principal => true).first
+    email = Email.filter(:user => self, :principal => true).first
+    return email.nil? ? "" : email.adresse
   end
 
   def email_academique
-    Email.filter(:user => self, :academique => true).first
+    email = Email.filter(:user => self, :academique => true).first
+    return email.nil? ? "" : email.adresse
   end
 
 
