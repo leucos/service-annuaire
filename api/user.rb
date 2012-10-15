@@ -197,7 +197,6 @@ class UserApi < Grape::API
   get "/query/users"  do
     puts params.inspect 
     params["columns"].nil? ? columns = User.columns : columns = symbolize_array(params["columns"].split(","))
-    
     #filter_params
     filter = params["where"].nil? ? {} : params["where"].to_hash
     symblize_hash(filter)

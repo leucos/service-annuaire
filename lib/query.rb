@@ -32,30 +32,44 @@ class PagedQuery
       @where = where
   end
 
-    def as_json()
+    def as_json()      
       {
         TotalModelRecords: @model.count,
         TotalQueryResults: records.pagination_record_count,
-        Columns: columns_stringify,
         Data: data
       }
     end
 
   private
+  
     def data
       records.map do |r|
-           a = []
+           a = {}
+           a[:json_class] = @model.to_s
            @columns.each do |c|
              if r.respond_to?(c)
-               a.push(r.send(c))
-             else
-               a.push('empty')
+               a[c] =  r.send(c)
              end
            end
            a
       end
     end
 
+=begin
+    def data
+      rec = records 
+      first_round = true 
+      @columns.each do |col|
+        if (first_round)
+          rec = rec.select(col)
+          first_round = false
+        else 
+          rec  = rec.select_append(col)
+        end
+      end
+      rec
+    end 
+=end
     def records
       fetch_records
     end
@@ -86,6 +100,7 @@ class PagedQuery
         records = records.where(condition)
       end
       records = records.paginate(page,per_page)
+      
       records
     end
 

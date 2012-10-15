@@ -91,18 +91,25 @@ describe UserApi do
     sso_attr = JSON.parse(last_response.body)
     sso_attr["TotalModelRecords"].should == 201
     sso_attr["TotalQueryResults"].should == 201
+    puts sso_attr['Data'][0].inspect
+    
+    
   end 
 
   should "query responds also to model instance methods" do
     # email_acadmeique is instance method and not a columns
     User.columns.include?(:email_principal).should == false
     User.instance_methods.include?(:email_principal).should == true
-    columns = ["nom", "prenom", "id", "id_sconet", ":email_principal"]
+    columns = ["nom", "prenom", "id", "id_sconet", "email_principal"]
     cols = CGI::escape(columns.join(",")) 
-    get("user/query/users?columns=#{cols}").status.should == 200
+    get("user/query/users?columns=#{cols}&where[id]=VAA60000").status.should == 200
+    JSON.create_id = nil
     sso_attr = JSON.parse(last_response.body)
     sso_attr["TotalModelRecords"].should == 201
-    sso_attr["TotalQueryResults"].should == 201
+    sso_attr["TotalQueryResults"].should == 1
+    user = sso_attr["Data"][0]
+    user['email_principal'].should != nil 
+
   end
   should "filter the results using valid columns values" do 
     where  = {:sexe => "F", :nom => "sarkozy"}
