@@ -108,11 +108,11 @@ module Alimentation
       attr_list = get_multiple_attr(node, name)
       attr_list.map! do |attr|
         splitted = attr.split('$')
-        if splitted.length > 1 and splitted[0] == @cur_etb_xml_id
+        if splitted.length > 1 and splitted[0].to_i == @cur_etb_xml_id
           attr = splitted[1]
         end
       end
-      return attr_list
+      return attr_list.compact
     end
 
     #L'établissement est référencé par un ID interne dans l'xml
@@ -252,104 +252,100 @@ module Alimentation
       @cur_etb_data[:telephone].find_or_add({:numero => tel, :user => user}, tel_hash)
     end
 
-    #Parse les rattachements à un regroupement pour les prof et les élèves
-    def parse_regroupement(node, attr_name, reg_type_id, user, matiere_list=nil)
+    #Parse les rattachements à un regroupement pour les profs et les élèves
+    def parse_regroupement(node, attr_name, type_reg_id, user, matiere_list=nil)
       reg_list = get_multiple_attr_etb(node, attr_name)
-      reg_list.each do |code_aaf|
+
+      if type_reg_id == "CLS" and reg_list.length > 1 and matiere_list.nil?
+        raise WrongDataError.new("L'élève #{user} a plusieurs classes de renseignées pour le même établissement.")
+      end
+
+      reg_list.each do |libelle_aaf|
         #Les fichiers xml ne nous fournissent pas la liste des différents classes et groupes de l'établissement
-        #on doit donc la créer nous même à partir des rattachements d'élève
-        type_reg = TypeRegroupement[:id => reg_type_id]
-        unless type_reg.nil?
-          reg = @cur_etb_data[:regroupement].find_or_add( 
-            {etablissement: @cur_etb, libelle_aaf: code_aaf, type_regroupement_id: type_reg.id})
-          #Le libellé par défaut est le code aaf
-          reg[:libelle] = code_aaf if reg[:libelle].nil?
+        #on doit donc la créer nous même à partir des rattachements d'élève et de prof
+        reg = @cur_etb_data[:regroupement].find_or_add( 
+          {etablissement: @cur_etb, libelle_aaf: libelle_aaf, type_regroupement_id: type_reg_id})
+        #Le libellé par défaut est le libellé aaf
+        reg[:libelle] = libelle_aaf if reg[:libelle].nil?
 
-          #Les classes ont un niveau
-          if reg_type_id == "CLS"
-            niv_lib = get_attr(node, "ENTEleveLibelleMEF")
-            niveau = DB[:niveau].filter(:libelle => niv_lib).first
-            niveau = DB[:niveau].first if niveau.nil?
-            reg[:niveau_id] = niveau[:id]
-          end
+        #Les classes ont un niveau
+        if type_reg_id == "CLS"
+          niv_lib = get_attr(node, "ENTEleveLibelleMEF")
+          niveau = DB[:niveau].filter(:libelle => niv_lib).first
+          niveau = DB[:niveau].first if niveau.nil?
+          reg[:niveau_id] = niveau[:id]
+        end
 
-          #Si pas de matière enseignée il s'agit d'un élève
-          if matiere_list.nil?
-            @cur_etb_data[:membre_regroupement].find_or_add({:regroupement => reg, :user => user})
-          #Sinon d'un prof
-          else
-            #   ENTAuxEnsClassesPrincipal: EnseigneRegroupement.prof_principal
-            classes_principal = get_multiple_attr_etb(node, "ENTAuxEnsClassesPrincipal")
-            prof_principal = false
-            classes_principal.each { |cls_code| prof_principal = true if cls_code == code_aaf }
-
-            matiere_list.each do |mat_id|
-              @cur_etb_data[:enseigne_regroupement].find_or_add(
-                {:regroupement => reg, :user => user, :matiere_enseignee_id => mat_id, 
-                  :prof_principal => prof_principal})
-            end
+        #Si pas de matière enseignée il s'agit d'un élève
+        if matiere_list.nil?
+          @cur_etb_data[:membre_regroupement].find_or_add({:regroupement => reg, :user => user})
+        #Sinon d'un prof
+        else
+          #   ENTAuxEnsClassesPrincipal: EnseigneRegroupement.prof_principal
+          classes_principal = get_multiple_attr_etb(node, "ENTAuxEnsClassesPrincipal")
+          prof_principal = false
+          classes_principal.each { |cls_code| prof_principal = true if cls_code == libelle_aaf }
+          # On a juste une liste de matière enseignée pour le professeur
+          # mais on ne sait pas quelle matière est enseignée dans quelle classe.
+          # Donc on met toutes les matières sur toutes les classes.
+          matiere_list.each do |mat_id|
+            @cur_etb_data[:enseigne_regroupement].find_or_add(
+              {:regroupement => reg, :user => user, :matiere_enseignee_id => mat_id, 
+                :prof_principal => prof_principal})
           end
         end
       end
     end
 
+    def add_relation_eleve(eleve, adulte_id, type_rel_id, add_profil_parent = false)
+      adulte = @cur_etb_data[:user].find_or_add({:id_jointure_aaf => adulte_id})
+
+      relation = {user: adulte, eleve: eleve, type_relation_eleve_id: type_rel_id}
+      @cur_etb_data[:relation_eleve].find_or_add({user: adulte, eleve: eleve}, relation)
+
+      add_profil_to_user(adulte, PROFIL_PARENT) if add_profil_parent
+    end
+
+    def parse_rel_eleve(node, eleve, num)
+      adulte_id = get_attr(node, "ENTElevePersRelEleve#{num}", :int)
+      if adulte_id
+        # Check que cette personne ne soit pas déjà en relation avec l'élève
+        adulte = @cur_etb_data[:user].find({:id_jointure_aaf => adulte_id})
+        if adulte 
+          relation = @cur_etb_data[:relation_eleve].find({user: adulte, eleve: eleve})
+          if relation
+            raise WrongDataError.new("L'utilisateur #{adulte} a déjà une relation de spécifiée avec l'élève #{eleve}")
+          end
+        end
+
+        qualite_rel = get_attr(node, "ENTEleveQualitePersRelEleve#{num}")
+        if qualite_rel.nil?
+          raise MissingDataError.new("Pas de qualité spécifiée pour la relation élève entre #{eleve} et l'adulte #{adulte_id}")
+        end
+        # On gère que les responsables financiers et les correspondants
+        rel_id = qualite_rel == "Responsable financier" ? "FINA" : "CORR"
+        add_relation_eleve(eleve, adulte_id, rel_id)
+      end
+    end
+
     def parse_relation_eleve(node, eleve)
       #   ENTEleveAutoriteParentale: RelationEleve, #Faire lien avec id de jointure
-      rel_eleve_list = get_multiple_attr(node, "ENTEleveAutoriteParentale", :int)
-      #   ENTElevePere: TypeRelationEleve
-      #Obsolète apparement mais utile pour savoir si c'est un pere ou une mere
-      pere_id = get_attr(node, "ENTElevePere", :int)
-      #   ENTEleveMere: TypeRelationEleve
-      #Obsolète apparement mais utile pour savoir si c'est un pere ou une mere
-      mere_id = get_attr(node, "ENTEleveMere", :int)
-      #   ENTElevePersRelEleve1: RelationEleve,
-      rel_1_id = get_attr(node, "ENTElevePersRelEleve1", :int)
-      rel_eleve_list.push(rel_1_id) if rel_1_id
-      #   ENTEleveQualitePersRelEleve1: TypeRelationEleve,
-      rel_1_type = get_attr(node, "ENTEleveQualitePersRelEleve1")
-      #   ENTElevePersRelEleve2: RelationEleve,
-      rel_2_id = get_attr(node, "ENTElevePersRelEleve2", :int)
-      rel_eleve_list.push(rel_2_id) if rel_2_id
-      #   ENTEleveQualitePersRelEleve2: TypeRelationEleve,
-      rel_2_type = get_attr(node, "ENTEleveQualitePersRelEleve2")
+      repr_legaux = get_multiple_attr(node, "ENTEleveAutoriteParentale", :int)
+      parents = get_multiple_attr(node, "ENTEleveParents", :int)
+      # Les parents qui ne sont pas dans ENTEleveAutoriteParentale sont des parents sans autorité parentale
+      parents_non_repr = parents - repr_legaux
+      # Ensuite il y a les parents avec autorité parentale (majorité des cas)
+      parents = parents - parents_non_repr
+      # Puis les représentants légaux non parent (famille d'accueil etc.)
+      repr_legaux = repr_legaux - parents
 
-      rel_eleve_list.each do |id|
-        parent = @cur_etb_data[:user].find_or_add({:id_jointure_aaf => id})
+      parents_non_repr.each {|p| add_relation_eleve(eleve, p, "NPAR")}
+      # Seul les responsables légaux et les parents ont un profil
+      parents.each {|p| add_relation_eleve(eleve, p, "PAR", true)}
+      repr_legaux.each {|p| add_relation_eleve(eleve, p, "RLGL", true)}
 
-        #Seule les personnes ayant une autorité parentale sur l'enfant ont un profil
-        #parent dans l'ENT. Les autres sont rentrés à titre informatif dans laclasse.com
-        parent_list = get_multiple_attr(node, "ENTEleveAutoriteParentale", :int)
-        if parent_list.include?(id)
-          #Création du profil parent
-          add_profil_to_user(parent, PROFIL_PARENT)
-        end
-
-        case parent[:id_jointure_aaf]
-          when pere_id
-            rel_id = "PERE"
-          when mere_id
-            rel_id = "MERE"
-          when rel_1_id
-            if rel_1_type == "Responsable financier"
-              rel_id = "FINA"
-            else
-              rel_id = "CORR"
-            end
-          when rel_2_id
-            if rel_2_type == "Responsable financier"
-              rel_id = "FINA"
-            else
-              rel_id = "CORR"
-            end
-        end
-
-        #puts "parent #{parent[:id_jointure_aaf].inspect} #{rel_1_id.inspect} #{rel_2_id.inspect} #{pere_id.inspect} #{mere_id.inspect}"
-        if !rel_id.nil?
-          type_relation = TypeRelationEleve[:id => rel_id]
-          relation = {user: parent, eleve: eleve, type_relation_eleve_id: type_relation.id}
-          @cur_etb_data[:relation_eleve].find_or_add({user: parent, eleve: eleve}, relation)
-        end
-      end
+      parse_rel_eleve(node, eleve, 1)
+      parse_rel_eleve(node, eleve, 2)
     end
 
     def parse_eleve(node, eleve)
@@ -419,7 +415,7 @@ module Alimentation
             MatiereEnseignee.unrestrict_primary_key
             m = MatiereEnseignee.create(:id => new_id, :libelle_long => mat,
               :libelle_edition => mat, :famille_matiere_id => 0)
-            puts "Matière #{mat} inconnue nouvel id #{m.id}"
+            Ramaze::Log.info("Matière #{mat} inconnue nouvel id #{m.id}")
           end
           id = m.id unless m.nil?
         end

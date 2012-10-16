@@ -3,6 +3,7 @@ require_relative '../../../helper'
 
 # Classe qui initialise les données qui vont bien pour les tests
 class ParserTest < Alimentation::ParserXmlMenesr
+  attr_reader :cur_etb_data
   def initialize
     init_memory_db()
     @cur_etb_uai = '0690000X'
@@ -45,11 +46,23 @@ def get_eleve_xml(options = {})
 <attr name="personalTitle"><value>Mlle</value></attr>
 <attr name="ENTEleveParents"><value>123457</value><value>123458</value></attr>
 <attr name="ENTElevePere"><value>123457</value></attr>
-<attr name="ENTEleveMere"><value>123458</value></attr>
-<attr name="ENTEleveAutoriteParentale"><value>123457</value><value>123458</value></attr>
-<attr name="ENTElevePersRelEleve1"><value>123459</value></attr>
-<attr name="ENTEleveQualitePersRelEleve1"><value>CONTACT</value></attr>
-<attr name="ENTElevePersRelEleve2"><value>123460</value></attr>
+<attr name="ENTEleveMere"><value>123458</value></attr>'
+  if options[:different_autorite]
+    node += '<attr name="ENTEleveAutoriteParentale"><value>234567</value><value>234568</value></attr>'
+  else
+    node += '<attr name="ENTEleveAutoriteParentale"><value>123457</value><value>123458</value></attr>'
+  end
+  if options[:corr_is_parent]
+    node += '<attr name="ENTElevePersRelEleve1"><value>123457</value></attr>'
+  else
+    node += '<attr name="ENTElevePersRelEleve1"><value>123459</value></attr>'
+  end
+  if options[:one_resp_financier]
+    node += '<attr name="ENTEleveQualitePersRelEleve1"><value>Responsable financier</value></attr>'
+  else
+    node += '<attr name="ENTEleveQualitePersRelEleve1"><value>CONTACT</value></attr>'
+  end
+node += '<attr name="ENTElevePersRelEleve2"><value>123460</value></attr>
 <attr name="ENTEleveQualitePersRelEleve2"><value>CONTACT</value></attr>
 <attr name="ENTEleveBoursier"><value>N</value></attr>
 <attr name="ENTEleveRegime"><value>EXTERNE LIBRE</value></attr>
@@ -65,8 +78,13 @@ def get_eleve_xml(options = {})
   else
     node += '<attr name="ENTPersonStructRattach"><value>1234</value></attr>'
   end
-  node += '<attr name="ENTEleveClasses"><value>1234$4E3</value></attr>
-<attr name="ENTEleveGroupes"><value/></attr>
+  if options[:two_classes]
+    node += '<attr name="ENTEleveClasses"><value>1234$4E3</value><value>1234$4E5</value></attr>'
+  else  
+    # Un elève peut être dans plusieurs établissements
+    node += '<attr name="ENTEleveClasses"><value>1234$4E3</value><value>4567$4E5</value></attr>'
+  end
+node += '<attr name="ENTEleveGroupes"><value>1234$4DP3</value></attr>
 </attributes>
 </addRequest>'
   Nokogiri::XML(node).css("addRequest, modifyRequest").first
@@ -150,8 +168,85 @@ describe Alimentation::ParserXmlMenesr do
   it "Generate a MissingDataError if no ENTPersonStructRattach on parse_eleve" do
     p = ParserTest.new
     should.raise Alimentation::MissingDataError do
-      eleve = p.parse_user(get_eleve_xml({:no_struct_rattach => true}), CATEGORIE_ELEVE)
-      p.parse_eleve(get_eleve_xml({:no_struct_rattach => true}), eleve)
+      node = get_eleve_xml({:no_struct_rattach => true})
+      eleve = p.parse_user(node, CATEGORIE_ELEVE)
+      p.parse_eleve(node, eleve)
     end
+  end
+
+  it "Has all the relation_eleve for an eleve" do
+    p = ParserTest.new
+    node = get_eleve_xml
+    eleve = p.parse_user(node, CATEGORIE_ELEVE)
+    p.parse_eleve(node, eleve)
+    p.cur_etb_data[:relation_eleve].length.should == 4
+    p.cur_etb_data[:relation_eleve].filter({:type_relation_eleve_id => "PAR"}).length.should == 2
+    p.cur_etb_data[:relation_eleve].filter({:type_relation_eleve_id => "CORR"}).length.should == 2
+    p.cur_etb_data[:profil_user].filter({:profil_id => "PAR"}).length.should == 2
+  end
+
+  it "Handle eleve with Reprensant legaux and parent without autority" do
+    p = ParserTest.new
+    node = get_eleve_xml({:different_autorite => true})
+    eleve = p.parse_user(node, CATEGORIE_ELEVE)
+    p.parse_eleve(node, eleve)
+    p.cur_etb_data[:relation_eleve].length.should == 6
+    p.cur_etb_data[:relation_eleve].filter({:type_relation_eleve_id => "NPAR"}).length.should == 2
+    p.cur_etb_data[:relation_eleve].filter({:type_relation_eleve_id => "CORR"}).length.should == 2
+    p.cur_etb_data[:relation_eleve].filter({:type_relation_eleve_id => "RLGL"}).length.should == 2
+    p.cur_etb_data[:profil_user].filter({:profil_id => "PAR"}).length.should == 2
+  end
+
+  it "Generate WrongDataError when parent is also a correspondant" do
+    p = ParserTest.new
+    node = get_eleve_xml({:corr_is_parent => true})
+    eleve = p.parse_user(node, CATEGORIE_ELEVE)
+    should.raise Alimentation::WrongDataError do
+      p.parse_eleve(node, eleve)
+    end
+  end
+
+  it "Handle Responsable financier relation" do
+    p = ParserTest.new
+    node = get_eleve_xml({:one_resp_financier => true})
+    eleve = p.parse_user(node, CATEGORIE_ELEVE)
+    p.parse_eleve(node, eleve)
+    p.cur_etb_data[:relation_eleve].filter({:type_relation_eleve_id => "CORR"}).length.should == 1
+    p.cur_etb_data[:relation_eleve].filter({:type_relation_eleve_id => "FINA"}).length.should == 1
+  end
+
+  it "Parse well eleve regroupement" do
+    p = ParserTest.new
+    node = get_eleve_xml()
+    eleve = p.parse_user(node, CATEGORIE_ELEVE)
+    p.parse_regroupement(node, "ENTEleveClasses", "CLS", eleve)
+    p.cur_etb_data[:membre_regroupement].length.should == 1
+    p.parse_regroupement(node, "ENTEleveGroupes", "GRP", eleve)
+    p.cur_etb_data[:membre_regroupement].length.should == 2
+  end
+
+  it "Parse well eleve regroupement in parse_eleve" do
+    p = ParserTest.new
+    node = get_eleve_xml()
+    eleve = p.parse_user(node, CATEGORIE_ELEVE)
+    p.parse_eleve(node, eleve)
+    p.cur_etb_data[:membre_regroupement].length.should == 2
+  end
+
+  it "Generate WrongDataError when more than one classe given for an eleve" do
+    p = ParserTest.new
+    node = get_eleve_xml({:two_classes => true})
+    eleve = p.parse_user(node, CATEGORIE_ELEVE)
+    should.raise Alimentation::WrongDataError do
+      p.parse_regroupement(node, "ENTEleveClasses", "CLS", eleve)
+    end
+  end
+
+  it "Parse well multiple_attr_etb" do
+    p = ParserTest.new
+    node = Nokogiri::XML('<attr name="ENTEleveClasses"><value>1234$4E3</value><value>1234$4E5</value></attr>')
+    p.get_multiple_attr_etb(node, "ENTEleveClasses").should == ["4E3", "4E5"]
+    node = Nokogiri::XML('<attr name="ENTEleveClasses"><value>1234$4E3</value><value>4567$4E5</value></attr>')
+    p.get_multiple_attr_etb(node, "ENTEleveClasses").should == ["4E3"]
   end
 end

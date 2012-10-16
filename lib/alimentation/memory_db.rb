@@ -24,13 +24,13 @@ module Alimentation
   #Cette classe fournit des fonctionnalités de requetage très sommaires
   class MemoryTable < Array
     #Find an already parsed model with a very simple search on all the columns
-    # in search_map
+    # in condition_map
     #Can be unique (return a Hash) or multiple (return an Array of Hash)
-    def find(search_map, multiple=false)
+    def find(condition_map, multiple=false)
       result = nil
       each do |d|
         equal = false
-        search_map.each do |k, v|
+        condition_map.each do |k, v|
           #Si la clé est un array
           if k.kind_of?(Array)
             #C'est qu'on fait une requète sur une donnée complexe
@@ -58,12 +58,17 @@ module Alimentation
       return result
     end
 
-    #search_map : Hash des données recherchées
-    #data : Hash des données à rajouté. Si nil alors data et search_map égal.
+    # Alias pour find(condition, true)
+    def filter(condition_map)
+      find(condition_map, true)
+    end
+
+    #condition_map : Hash des données recherchées
+    #data : Hash des données à rajouté. Si nil alors data et condition_map égal.
     #return : soit la donnée passée en paramètre, soit la donnée trouvée
-    def find_or_add(search_map, data=nil)
-      data = search_map if data.nil?
-      existing_data = find(search_map)
+    def find_or_add(condition_map, data=nil)
+      data = condition_map if data.nil?
+      existing_data = find(condition_map)
       if existing_data.nil?
         push(data)
       else

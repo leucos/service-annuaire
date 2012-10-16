@@ -48,6 +48,8 @@ def bootstrap_annuaire()
   DB[:type_telephone].insert(:id => 'AUTR', :libelle => 'Autre')
 
   DB[:type_relation_eleve].insert(:id => 'PAR', :libelle => 'Parent')
+  # Si ENTEleveParents != ENTEleveAutoriteParentale ca veut dire qu'on a des parents sans autorité parentale
+  DB[:type_relation_eleve].insert(:id => 'NPAR', :libelle => 'Parent sans autorité parentale')
   DB[:type_relation_eleve].insert(:id => 'RLGL', :libelle => 'Représentant légal')
   DB[:type_relation_eleve].insert(:id => 'FINA', :libelle => 'Resp. financier')
   DB[:type_relation_eleve].insert(:id => 'CORR', :libelle => 'Correspondant')
