@@ -194,6 +194,8 @@ class UserApi < Grape::API
     end
   end
 
+  desc "a service to search users according to certiain informations"
+  # look at tests to see some examples about parameters
   get "/query/users"  do
     params["columns"].nil? ? columns = User.columns : columns = symbolize_array(params["columns"].split(","))
     #filter_params
@@ -236,7 +238,13 @@ class UserApi < Grape::API
     response.as_json
   end
 
-  desc "Search parents of a student that has  a specified sconet_id"
+  desc "Search parents of a student who has a specific sconet_id"
+  params do
+    requires :sconet_id, type: Integer 
+    optional :nom, type: String
+    optional :prenom, type: String
+  end
+  # returns empty array if parent(s) is(are) not found
   get "/parent/eleve"  do
     nom = params["nom"].nil? ?  "" : params["nom"]
     prenom = params["prenom"].nil? ?  "" : params["prenom"]
