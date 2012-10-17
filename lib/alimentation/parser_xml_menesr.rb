@@ -68,7 +68,7 @@ module Alimentation
 
   class ParserXmlMenesr
     CATEGORIE_ELEVE = "Eleve"
-    CATEGORIE_PARENT = "PersRelEleve"
+    CATEGORIE_REL_ELEVE = "PersRelEleve"
     CATEGORIE_PEN = "PersEducNat"
     #Todo utiliser code_men ou autre pour les profils
     PROFIL_ELEVE = "ELV"
@@ -108,7 +108,7 @@ module Alimentation
       attr_list = get_multiple_attr(node, name)
       attr_list.map! do |attr|
         splitted = attr.split('$')
-        if splitted.length > 1 and splitted[0].to_i == @cur_etb_xml_id
+        if splitted.length > 1 and splitted[0] == @cur_etb_xml_id
           attr = splitted[1]
         end
       end
@@ -299,7 +299,8 @@ module Alimentation
 
     def add_relation_eleve(eleve, adulte_id, type_rel_id, add_profil_parent = false)
       adulte = @cur_etb_data[:user].find_or_add({:id_jointure_aaf => adulte_id})
-
+      # todo : peut-etre qu'il faut pouvoir cumuler les relations avec l'élève ?
+      # ex : Représentant légal et Responsable Financier ?
       relation = {user: adulte, eleve: eleve, type_relation_eleve_id: type_rel_id}
       @cur_etb_data[:relation_eleve].find_or_add({user: adulte, eleve: eleve}, relation)
 
@@ -311,17 +312,19 @@ module Alimentation
       if adulte_id
         # Check que cette personne ne soit pas déjà en relation avec l'élève
         adulte = @cur_etb_data[:user].find({:id_jointure_aaf => adulte_id})
-        if adulte 
-          relation = @cur_etb_data[:relation_eleve].find({user: adulte, eleve: eleve})
+        if adulte
+          relation = @cur_etb_data[:relation_eleve].find({user: adulte, eleve: eleve, type_relation_eleve_id: 'PAR'})
           if relation
-            raise WrongDataError.new("L'utilisateur #{adulte} a déjà une relation de spécifiée avec l'élève #{eleve}")
+            raise WrongDataError.new("L'utilisateur #{adulte} a déjà une relation de type parent spécifiée avec l'élève #{eleve}")
           end
         end
 
         qualite_rel = get_attr(node, "ENTEleveQualitePersRelEleve#{num}")
-        if qualite_rel.nil?
-          raise MissingDataError.new("Pas de qualité spécifiée pour la relation élève entre #{eleve} et l'adulte #{adulte_id}")
-        end
+        # Dans certains cas (AutoriteParental spécifiée), la qualité n'est pas spécifiée.
+        # C'est peut-être normal ?
+        # if qualite_rel.nil?
+        #   raise MissingDataError.new("Pas de qualité spécifiée pour la relation élève entre #{eleve} et l'adulte #{adulte_id}")
+        # end
         # On gère que les responsables financiers et les correspondants
         rel_id = qualite_rel == "Responsable financier" ? "FINA" : "CORR"
         add_relation_eleve(eleve, adulte_id, rel_id)
@@ -394,9 +397,6 @@ module Alimentation
         @cur_etb_data[:email].find_or_add(email_hash)
       end
 
-      profil_id = find_pen_profil_id(node, enseignant)
-      add_profil_to_user(enseignant, profil_id)
-
       #   ENTAuxEnsMatiereEnseignEtab: EnseigneRegroupement.matiere_enseignee_id
       matiere_list = get_multiple_attr_etb(node, "ENTAuxEnsMatiereEnseignEtab")
       unless matiere_list.nil?
@@ -426,40 +426,48 @@ module Alimentation
       end
     end
 
-    def parse_all_pens(xml_doc)
-      xml_doc.css("addRequest, modifyRequest").each do |node|
-        pen = parse_user(node, CATEGORIE_PEN)
-
-        #   PersEducNatPresenceDevantEleves: permet de savoir si oui ou non une personne est prof
-        enseigne = get_attr(node, "PersEducNatPresenceDevantEleves")
-        if !pen.nil? and enseigne == 'O'
-          parse_enseignant(node, pen)
-        end
+    def parse_pen(node, pen)
+      profil_id = find_pen_profil_id(node, pen)
+      add_profil_to_user(pen, profil_id)
+      #   PersEducNatPresenceDevantEleves: permet de savoir si oui ou non une personne est prof
+      enseigne = get_attr(node, "PersEducNatPresenceDevantEleves")
+      if !pen.nil? and enseigne == 'O'
+        parse_enseignant(node, pen)
       end
     end
 
-    def parse_all_parents(xml_doc)
+    def parse_all_pens(xml_doc)
       xml_doc.css("addRequest, modifyRequest").each do |node|
-        #On met nil comme profil car le profil parent est définit lors du parsing de l'élève
-        parent = parse_user(node, CATEGORIE_PARENT)
+        pen = parse_user(node, CATEGORIE_PEN)
+        parse_pen(node, pen)
+      end
+    end
 
-        #   homePhone: Telephone.numero
-        #a noter qu'il ne s'agit pas forcément du téléphone de la maison
-        #donc on check si c'est un portable au cas où...
-        #Ah spielberg...
-        telephone_maison = get_attr(node, "homePhone")
-        add_phone_to_user(parent, telephone_maison, "MAIS") unless telephone_maison.nil?
-        #   telephoneNumber: Telephone.numero,
-        tel = get_attr(node, "telephoneNumber")
-        add_phone_to_user(parent, tel, "AUTR") unless tel.nil?
-        # Spécifique au SDET V4 donc pas encore là
-        mobile = get_attr(node, "mobile")
-        add_phone_to_user(parent, mobile, "PORT") unless mobile.nil?
+    def parse_pers_rel_eleve(node, pers_rel_eleve)
+      #   homePhone: Telephone.numero
+      #a noter qu'il ne s'agit pas forcément du téléphone de la maison
+      #donc on check si c'est un portable au cas où...
+      #Ah spielberg...
+      telephone_maison = get_attr(node, "homePhone")
+      add_phone_to_user(pers_rel_eleve, telephone_maison, "MAIS") unless telephone_maison.nil?
+      #   telephoneNumber: Telephone.numero,
+      tel = get_attr(node, "telephoneNumber")
+      add_phone_to_user(pers_rel_eleve, tel, "AUTR") unless tel.nil?
+      # Spécifique au SDET V4 donc pas encore là
+      mobile = get_attr(node, "mobile")
+      add_phone_to_user(pers_rel_eleve, mobile, "PORT") unless mobile.nil?
+    end
+
+    def parse_all_pers_rel_eleve(xml_doc)
+      xml_doc.css("addRequest, modifyRequest").each do |node|
+        pers_rel_eleve = parse_user(node, CATEGORIE_REL_ELEVE)
+
+        parse_pers_rel_eleve(node, pers_rel_eleve)
       end
     end
 
     def parse_etab_educ_nat(xml_doc)
-      #TODO créer les établissements quand ils n'existent pas
+      #TODO créer les établissements quand ils n'existent pas ?
       xml_doc.css("addRequest, modifyRequest").each do |node|
         uai = get_attr(node, 'ENTEtablissementUAI')
         etb = @cur_etb_data[:etablissement].find_or_add({:code_uai => uai})
@@ -477,7 +485,7 @@ module Alimentation
 
         etb[:adresse] = get_attr(node, 'street')
         etb[:code_postal] = get_attr(node, 'postalCode')
-        #todo : gérer la commune avec une table externe et trouver une solution pour les boites postales
+        #todo : gérer la commune avec une table externe et trouver une solution pour les boites postales ?
         etb[:ville] = get_attr(node, 'l')
         boite_postale = get_attr(node, 'postOfficeBox')
         etb[:ville] += " BP #{boite_postale}" unless boite_postale.nil?
@@ -516,7 +524,7 @@ module Alimentation
         when /_PersEducNat_/
           parse_all_pens(doc)
         when /_PersRelEleve_/
-          parse_all_parents(doc)
+          parse_all_pers_rel_eleve(doc)
         when /_EtabEducNat_/
           parse_etab_educ_nat(doc)
       end

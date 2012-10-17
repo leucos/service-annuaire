@@ -7,7 +7,7 @@ class ParserTest < Alimentation::ParserXmlMenesr
   def initialize
     init_memory_db()
     @cur_etb_uai = '0690000X'
-    @cur_etb_xml_id = 1234
+    @cur_etb_xml_id = "1234"
     @cur_etb = @cur_etb_data[:etablissement].find_or_add({:code_uai => @cur_etb_uai})
   end
 end
@@ -54,6 +54,8 @@ def get_eleve_xml(options = {})
   end
   if options[:corr_is_parent]
     node += '<attr name="ENTElevePersRelEleve1"><value>123457</value></attr>'
+  elsif options[:different_autorite]
+    node += '<attr name="ENTElevePersRelEleve1"><value>234567</value></attr>'
   else
     node += '<attr name="ENTElevePersRelEleve1"><value>123459</value></attr>'
   end
@@ -100,14 +102,68 @@ def get_rel_eleve_xml(options = {})
 <attr name="ENTPersonNomPatro"><value>VAN DAMME</value></attr>
 <attr name="sn"><value>VAN DAMME</value></attr>
 <attr name="givenName"><value>Jean-Claude</value></attr>
-<attr name="personalTitle"><value>M.</value></attr>
-<attr name="homePhone"><value>+33 6 12 34 56 78</value></attr>
-<attr name="telephoneNumber"><value>+33 4 12 34 58 78</value></attr>
+<attr name="personalTitle"><value>M.</value></attr>'
+
+  if options[:home_phone_is_port]
+    node += '<attr name="homePhone"><value>+33 6 12 34 56 78</value></attr>'
+  else
+    node += '<attr name="homePhone"><value>+33 4 13 34 56 78</value></attr>'
+  end
+node += '<attr name="telephoneNumber"><value>+33 4 12 34 58 78</value></attr>
 <attr name="ENTPersonAdresse"><value>3 RUE KARATE</value></attr>
 <attr name="ENTPersonCodePostal"><value>69110</value></attr>
 <attr name="ENTPersonVille"><value>STE FOY LES LYON</value></attr>
 <attr name="ENTPersonPays"><value>FRANCE</value></attr>
 </attributes>
+</addRequest>'
+  Nokogiri::XML(node).css("addRequest, modifyRequest").first
+end
+
+def get_pen(options = {})
+  node = '<addRequest>
+<operationalAttributes><attr name="categoriePersonne"><value>PersEducNat</value></attr></operationalAttributes>
+<identifier><id>1122</id></identifier>
+<attributes>
+<attr name="ENTPersonJointure"><value>1122</value></attr>
+<attr name="ENTPersonDateNaissance"><value>06/05/1952</value></attr>
+<attr name="ENTPersonNomPatro"><value>CLAVIER</value></attr>
+<attr name="sn"><value>CLAVIER</value></attr>
+<attr name="givenName"><value>CHRISTIAN</value></attr>
+<attr name="personalTitle"><value>M.</value></attr>
+<attr name="mail"><value>christian.clavier@ac-lyon.fr</value></attr>
+<attr name="ENTPersonStructRattach"><value>1234</value></attr>'
+  if options[:devant_eleve]
+    node += '<attr name="ENTAuxEnsCategoDiscipline"><value>16$BIOLOGIE - GEOLOGIE</value></attr>
+    <attr name="ENTAuxEnsDisciplinesPoste"><value>SCIENCES DE LA VIE ET DE LA TERRE$16</value></attr>
+    <attr name="ENTAuxEnsMEF"><value>1234$1001000C11A$6EME BILANGUE</value><value>1234$10010012110$6EME</value><value>1234$10110001110$5EME</value><value>1234$1011000C11A$5EME BILANGUE</value><value>1234$1031000D11A$3EME A DEUX LANGUES VIVANTES 1</value><value>1234$10310019110$3EME</value><value>1234$10310019112$3E-EU  3EME A 2 OPT. SECT EUROPEENNE</value></attr>
+    <attr name="ENTAuxEnsMatiereEnseignEtab"><value>1234$SCIENCES DE LA VIE ET DE LA TERRE</value></attr>
+    <attr name="ENTAuxEnsClasses"><value>1234$3E2</value><value>1234$3E3</value><value>1234$3E4</value><value>1234$5E2</value><value>1234$5E3</value></attr>
+    <attr name="ENTAuxEnsGroupes"><value/></attr>
+    <attr name="ENTAuxEnsClassesPrincipal"><value/></attr>
+    <attr name="ENTPersonFonctions"><value>1234$ENS$ENSEIGNEMENT$L1600$SCIENCES DE LA VIE ET DE LA TERRE</value></attr>
+    <attr name="PersEducNatPresenceDevantEleves"><value>O</value></attr>'
+  elsif options[:devant_eleve] == false
+    node += '<attr name="ENTAuxEnsCategoDiscipline"><value>13$MATHEMATIQUES</value></attr>
+<attr name="ENTAuxEnsDisciplinesPoste"><value>MATHEMATIQUES$13</value></attr>
+<attr name="ENTAuxEnsMEF"><value/></attr>
+<attr name="ENTAuxEnsMatiereEnseignEtab"><value/></attr>
+<attr name="ENTAuxEnsClasses"><value/></attr>
+<attr name="ENTAuxEnsGroupes"><value/></attr>
+<attr name="ENTAuxEnsClassesPrincipal"><value/></attr>
+<attr name="ENTPersonFonctions"><value>1234$ENS$ENSEIGNEMENT$L1300$MATHEMATIQUES</value></attr>
+<attr name="PersEducNatPresenceDevantEleves"><value>N</value></attr>'
+  else
+    node += '<attr name="ENTAuxEnsCategoDiscipline"><value>00$NON SPECIALISE</value></attr>
+<attr name="ENTAuxEnsDisciplinesPoste"><value>ORIENTATION$00</value></attr>
+<attr name="ENTAuxEnsMEF"><value/></attr>
+<attr name="ENTAuxEnsMatiereEnseignEtab"><value/></attr>
+<attr name="ENTAuxEnsClasses"><value/></attr>
+<attr name="ENTAuxEnsGroupes"><value/></attr>
+<attr name="ENTAuxEnsClassesPrincipal"><value/></attr>
+<attr name="ENTPersonFonctions"><value>1234$ORI$ORIENTATION$O0040$ORIENTATION</value></attr>
+<attr name="PersEducNatPresenceDevantEleves"><value>N</value></attr>'
+  end
+  node += '</attributes>
 </addRequest>'
   Nokogiri::XML(node).css("addRequest, modifyRequest").first
 end
@@ -190,9 +246,9 @@ describe Alimentation::ParserXmlMenesr do
     node = get_eleve_xml({:different_autorite => true})
     eleve = p.parse_user(node, CATEGORIE_ELEVE)
     p.parse_eleve(node, eleve)
-    p.cur_etb_data[:relation_eleve].length.should == 6
+    p.cur_etb_data[:relation_eleve].length.should == 5
     p.cur_etb_data[:relation_eleve].filter({:type_relation_eleve_id => "NPAR"}).length.should == 2
-    p.cur_etb_data[:relation_eleve].filter({:type_relation_eleve_id => "CORR"}).length.should == 2
+    p.cur_etb_data[:relation_eleve].filter({:type_relation_eleve_id => "CORR"}).length.should == 1
     p.cur_etb_data[:relation_eleve].filter({:type_relation_eleve_id => "RLGL"}).length.should == 2
     p.cur_etb_data[:profil_user].filter({:profil_id => "PAR"}).length.should == 2
   end
@@ -248,5 +304,55 @@ describe Alimentation::ParserXmlMenesr do
     p.get_multiple_attr_etb(node, "ENTEleveClasses").should == ["4E3", "4E5"]
     node = Nokogiri::XML('<attr name="ENTEleveClasses"><value>1234$4E3</value><value>4567$4E5</value></attr>')
     p.get_multiple_attr_etb(node, "ENTEleveClasses").should == ["4E3"]
+  end
+
+  it "Parse well a PerdRelEleve" do
+    p = ParserTest.new
+    node = get_rel_eleve_xml
+    rel_eleve = p.parse_user(node, CATEGORIE_REL_ELEVE)
+    p.parse_pers_rel_eleve(node, rel_eleve)
+    p.cur_etb_data[:telephone].length.should == 2
+    p.cur_etb_data[:telephone].filter(:type_telephone_id => 'MAIS').length.should == 1
+    p.cur_etb_data[:telephone].filter(:type_telephone_id => 'AUTR').length.should == 1
+  end
+
+  it "Detect mobil numbers" do
+    p = ParserTest.new
+    node = get_rel_eleve_xml({:home_phone_is_port => true})
+    rel_eleve = p.parse_user(node, CATEGORIE_REL_ELEVE)
+    p.parse_pers_rel_eleve(node, rel_eleve)
+    p.cur_etb_data[:telephone].length.should == 2
+    p.cur_etb_data[:telephone].filter(:type_telephone_id => 'PORT').length.should == 1
+  end
+
+  it "Parse well a PEN enseignant" do
+    p = ParserTest.new
+    node = get_pen({:devant_eleve => true})
+    pen = p.parse_user(node, CATEGORIE_PEN)
+    p.parse_pen(node, pen)
+    p.cur_etb_data[:regroupement].length.should == 5
+    p.cur_etb_data[:enseigne_regroupement].length.should == 5
+    p.cur_etb_data[:email].length.should == 1
+    mail = p.cur_etb_data[:email][0]
+    mail[:academique].should == true
+    p.cur_etb_data[:profil_user].filter({:profil_id => 'ENS'}).length.should == 1
+  end
+
+  it "Parse well a PEN enseignant pas devant eleve" do
+    p = ParserTest.new
+    node = get_pen({:devant_eleve => false})
+    pen = p.parse_user(node, CATEGORIE_PEN)
+    p.parse_pen(node, pen)
+    p.cur_etb_data[:enseigne_regroupement].length.should == 0
+    p.cur_etb_data[:profil_user].filter({:profil_id => 'ENS'}).length.should == 1
+  end
+
+  it "Parse well a PEN Orientation" do
+    p = ParserTest.new
+    node = get_pen()
+    pen = p.parse_user(node, CATEGORIE_PEN)
+    p.parse_pen(node, pen)
+    p.cur_etb_data[:enseigne_regroupement].length.should == 0
+    p.cur_etb_data[:profil_user].filter({:profil_id => 'ORI'}).length.should == 1
   end
 end
