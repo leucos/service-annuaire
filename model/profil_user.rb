@@ -28,6 +28,6 @@ class ProfilUser < Sequel::Model(:profil_user)
   # Not nullable cols
   def validate
     super
-    validates_presence [:actif]
+    #todo : Vérifier qu'on ne rajoute pas un compte actif alors qu'il y en a déjà un
   end
 end

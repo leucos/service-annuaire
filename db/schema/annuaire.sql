@@ -353,7 +353,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`profil_user` (
   `etablissement_id` INT NOT NULL ,
   `profil_id` CHAR(4) NOT NULL ,
   `bloque` TINYINT(1)  NULL ,
-  `actif` TINYINT(1)  NOT NULL DEFAULT 0 COMMENT '1seul profil actif par user' ,
+  `actif` TINYINT(1)  NOT NULL DEFAULT 1 COMMENT '1seul profil actif par user' ,
   PRIMARY KEY (`user_id`, `etablissement_id`, `profil_id`) ,
   INDEX `fk_type_profil_has_user_user1` (`user_id` ASC) ,
   INDEX `fk_profils_utilisateur_etablissement1` (`etablissement_id` ASC) ,

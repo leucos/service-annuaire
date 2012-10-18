@@ -40,6 +40,18 @@ class User < Sequel::Model(:user)
   one_to_many :profil_user
   one_to_many :telephone
   one_to_many :email
+  # Liste de tous les élèves avec qui l'utilisateur est en relation
+  many_to_many :relation_eleve, :left_key => :user_id, :right_key => :eleve_id, 
+    :join_table => :relation_eleve, :class => self
+  # Liste de tous les utilisateurs (adultes) avec qui l'élève est en relation
+  many_to_many :relation_adulte, :left_key => :eleve_id, :right_key => :user_id, 
+    :join_table => :relation_eleve, :class => self
+  # Liste de tous les parents d'un élève
+  many_to_many :parents, :left_key => :eleve_id, :right_key => :user_id, 
+    :join_table => :relation_eleve, :class => self do |ds|
+    ds.where(:type_relation_eleve_id => ["PAR", "RLGL"])
+  end
+
   # Check si l'id passé en paramètre correspond bien aux critères d'identifiant ENT
   def self.is_valid_id?(id)
     !!(id.class == String and id.length == 8 and id[0] == 'V' and id[3] == '6' and id[1..2] =~ /[a-zA-Z]{2}/ and id[4..7] =~ /\d{4}/)
@@ -155,7 +167,10 @@ class User < Sequel::Model(:user)
   end
 
   def add_profil(new_profil)
+    #temp : Je ne sais pas si c'est la bonne chose à faire ?
+    ProfilUser.unrestrict_primary_key()
     new_profil = ProfilUser.find_or_create(new_profil)
+    ProfilUser.restrict_primary_key()
     if new_profil.actif
       switch_profil(new_profil)
     end
@@ -230,7 +245,6 @@ class User < Sequel::Model(:user)
     email = Email.filter(:user => self, :academique => true).first
     return email.nil? ? "" : email.adresse
   end
-
 
 private
   def regroupements(type_id)

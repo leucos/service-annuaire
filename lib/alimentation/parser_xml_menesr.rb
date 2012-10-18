@@ -309,9 +309,9 @@ module Alimentation
 
     def parse_rel_eleve(node, eleve, num)
       adulte_id = get_attr(node, "ENTElevePersRelEleve#{num}", :int)
+      adulte = @cur_etb_data[:user].find({:id_jointure_aaf => adulte_id})
       if adulte_id
         # Check que cette personne ne soit pas déjà en relation avec l'élève
-        adulte = @cur_etb_data[:user].find({:id_jointure_aaf => adulte_id})
         if adulte
           relation = @cur_etb_data[:relation_eleve].find({user: adulte, eleve: eleve, type_relation_eleve_id: 'PAR'})
           if relation
@@ -322,9 +322,16 @@ module Alimentation
         qualite_rel = get_attr(node, "ENTEleveQualitePersRelEleve#{num}")
         # Dans certains cas (AutoriteParental spécifiée), la qualité n'est pas spécifiée.
         # C'est peut-être normal ?
-        # if qualite_rel.nil?
-        #   raise MissingDataError.new("Pas de qualité spécifiée pour la relation élève entre #{eleve} et l'adulte #{adulte_id}")
-        # end
+        if qualite_rel.nil?
+          if adulte
+            relation = @cur_etb_data[:relation_eleve].find({user: adulte, eleve: eleve})
+          end
+          # Si la personne n'existe pas ou qu'on a pas encore spécifié de relation entre elle
+          # et l'enfant
+          if !adulte or !relation
+            raise MissingDataError.new("Pas de qualité spécifiée pour la relation élève entre #{eleve} et l'adulte #{adulte_id}")
+          end
+        end
         # On gère que les responsables financiers et les correspondants
         rel_id = qualite_rel == "Responsable financier" ? "FINA" : "CORR"
         add_relation_eleve(eleve, adulte_id, rel_id)
