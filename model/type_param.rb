@@ -1,7 +1,7 @@
 #coding: utf-8
 #
 # model for 'type_param' table
-# generated 2012-07-25 12:54:03 +0200 by model_generator.rb
+# generated 2012-10-19 17:11:43 +0200 by model_generator.rb
 #
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 # COLUMN_NAME                   | DATA_TYPE           | NULL? | KEY | DEFAULT | EXTRA
@@ -17,8 +17,9 @@ class TypeParam < Sequel::Model(:type_param)
 
   # Referential integrity
   one_to_many :param_app
+  one_to_many :param_service
 
-  # Not nullable cols
+  # Not nullable cols and unicity validation
   def validate
     super
   end

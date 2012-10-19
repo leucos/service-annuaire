@@ -1,6 +1,6 @@
 #coding: utf-8
 #
-# model for 'param_app' table
+# model for 'param_service' table
 # generated 2012-10-19 17:11:43 +0200 by model_generator.rb
 #
 # ------------------------------+---------------------+----------+----------+------------+--------------------
@@ -13,25 +13,27 @@
 # description                   | varchar(255)        | true     |          |            | 
 # valeur_defaut                 | varchar(2000)       | true     |          |            | 
 # autres_valeurs                | varchar(2000)       | true     |          |            | 
-# app_id                        | int(11)             | false    | MUL      |            | 
+# service_id                    | char(8)             | false    | MUL      |            | 
 # type_param_id                 | char(4)             | false    | MUL      |            | 
 # role_id                       | int(11)             | true     | MUL      |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
-class ParamApp < Sequel::Model(:param_app)
+class ParamService < Sequel::Model(:param_service)
 
   # Plugins
   plugin :validation_helpers
   plugin :json_serializer
 
   # Referential integrity
-  many_to_one :app
-  many_to_one :role
   many_to_one :type_param
+  many_to_one :service
+  many_to_one :role
+  one_to_many :param_etablissement
+  one_to_many :param_user
 
   # Not nullable cols and unicity validation
   def validate
     super
-    validates_presence [:code, :preference, :app_id, :type_param_id]
+    validates_presence [:code, :preference, :service_id, :type_param_id]
   end
 end

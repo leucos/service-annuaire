@@ -85,8 +85,8 @@ res 200:
       "matieres": [ { "id": "", "nom": "Maths" } ]
       "nom": "quper",
       "profils": [ "admin", "prof_principale" ]
-    }
-  ],
+    
+}  ],
   "ressources": [
     {
       "id": ,
@@ -105,6 +105,16 @@ POST /etablissement
 { "id": 1234, "nom": "Saint Honoré" }
 res 200:
 { "id":  ... }
+
+POST /etablissement/:id/role/:user_id
+{"role": "professeur"}
+
+GET /etablissement/:id/role/:user_id
+
+//Il faut aussi pouvoir récupérer quel role à le droit d'attribuer un utilisateur sur un établissement
+//Car on ne doit pas pouvoir attribuer un rôle de super admin si on est que admin_etb
+GET /etablissement/:id/attrib_role/:user_id
+["professeur","admin_etb","eleve"]
 
 ## /regroupement
 
@@ -175,3 +185,14 @@ GET /alimentation/histo/:etablissement_id?type=manuel
     }
   ]
 }
+
+## Preference
+
+GET /preference/:code
+
+
+## rights
+
+GET /rights/:service/:ressource_id/:user_id
+[create_user, add_membre]
+

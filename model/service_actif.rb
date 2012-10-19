@@ -1,24 +1,25 @@
 #coding: utf-8
 #
-# model for 'activite_role' table
-# generated 2012-10-19 17:11:42 +0200 by model_generator.rb
+# model for 'service_actif' table
+# generated 2012-10-19 17:11:43 +0200 by model_generator.rb
 #
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 # COLUMN_NAME                   | DATA_TYPE           | NULL? | KEY | DEFAULT | EXTRA
 # ------------------------------+---------------------+----------+----------+------------+--------------------
-# activite_id                   | int(11)             | false    | PRI      |            | 
-# role_id                       | int(11)             | false    | PRI      |            | 
+# service_id                    | char(8)             | false    | PRI      |            | 
+# etablissement_id              | int(11)             | false    | PRI      |            | 
+# actif                         | tinyint(1)          | false    |          | 0          | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
-class ActiviteRole < Sequel::Model(:activite_role)
+class ServiceActif < Sequel::Model(:service_actif)
 
   # Plugins
   plugin :validation_helpers
   plugin :json_serializer
 
   # Referential integrity
-  many_to_one :activite
-  many_to_one :role
+  many_to_one :service
+  many_to_one :etablissement
 
   # Not nullable cols and unicity validation
   def validate

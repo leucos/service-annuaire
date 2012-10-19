@@ -1,13 +1,13 @@
 #coding: utf-8
 #
 # model for 'app_active' table
-# generated 2012-04-19 17:45:31 +0200 by model_generator.rb
+# generated 2012-10-19 17:11:42 +0200 by model_generator.rb
 #
 # ------------------------------+---------------------+----------+----------+------------+--------------------
-# COLUMN_NAME                   | DATA_TYPE           | NULL?    | KEY      | DEFAULT    | EXTRA
+# COLUMN_NAME                   | DATA_TYPE           | NULL? | KEY | DEFAULT | EXTRA
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 # application_id                | int(11)             | false    | PRI      |            | 
-# etablissement_id              | char(8)             | false    | PRI      |            | 
+# etablissement_id              | int(11)             | false    | PRI      |            | 
 # active                        | tinyint(1)          | true     |          |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
@@ -20,9 +20,8 @@ class AppActive < Sequel::Model(:app_active)
   # Referential integrity
   many_to_one :app, :key=>:application_id
   many_to_one :etablissement
-  one_to_many :param_app_active, :key=>[:app_active_application_id, :app_active_etablissement_id]
 
-  # Not nullable cols
+  # Not nullable cols and unicity validation
   def validate
     super
   end

@@ -1,13 +1,14 @@
 #coding: utf-8
 #
 # model for 'membre_regroupement' table
-# generated 2012-04-19 17:45:31 +0200 by model_generator.rb
+# generated 2012-10-19 17:11:43 +0200 by model_generator.rb
 #
 # ------------------------------+---------------------+----------+----------+------------+--------------------
-# COLUMN_NAME                   | DATA_TYPE           | NULL?    | KEY      | DEFAULT    | EXTRA
+# COLUMN_NAME                   | DATA_TYPE           | NULL? | KEY | DEFAULT | EXTRA
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 # user_id                       | char(8)             | false    | PRI      |            | 
 # regroupement_id               | int(11)             | false    | PRI      |            | 
+# admin                         | tinyint(1)          | true     |          |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
 class MembreRegroupement < Sequel::Model(:membre_regroupement)
@@ -20,7 +21,7 @@ class MembreRegroupement < Sequel::Model(:membre_regroupement)
   many_to_one :regroupement
   many_to_one :user
 
-  # Not nullable cols
+  # Not nullable cols and unicity validation
   def validate
     super
   end

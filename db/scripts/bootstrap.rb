@@ -12,8 +12,8 @@ require_relative 'bcn_parser'
 def clean_annuaire()
   puts "TRUNCATE ALL USER RELATED TABLES"
   [
-    :last_uid, :profil_user, :telephone, :email, :relation_eleve, :membre_regroupement,
-    :enseigne_regroupement, :user, :regroupement
+    :last_uid, :profil_user, :telephone, :email, :relation_eleve,
+    :enseigne_regroupement, :user, :regroupement, :ressource, :role_user
   ].each do |table|
     DB[table].truncate()
   end
@@ -28,9 +28,9 @@ def bootstrap_annuaire()
   puts "TRUNCATE ALL TABLES"
   #On ne peut pas faire un bete DB.tables.each car il faut respecter l'ordre des foreign keys
   [
-  :last_uid, :activite_role, :role_user, :role_profil, :activite, :role, :param_app, :type_param, :app, :email,
-  :profil_user, :telephone, :etablissement, :membre_regroupement, :enseigne_regroupement, :regroupement,
-  :user, :type_telephone, :type_regroupement, :type_relation_eleve, :profil, :niveau, :relation_eleve
+  :last_uid, :activite_role, :role_user, :role_profil, :activite, :role, :param_service, :type_param, :service, :email,
+  :profil_user, :telephone, :etablissement, :enseigne_regroupement, :regroupement,
+  :user, :type_telephone, :type_regroupement, :type_relation_eleve, :profil, :niveau, :relation_eleve, :ressource
   ].each do |table|
     DB[table].truncate()
   end
@@ -79,16 +79,17 @@ def bootstrap_annuaire()
 
   #Tout d'abord on créer des applications
   #Application blog
-  panel_id = DB[:app].insert(:code => 'admin_panel', :libelle => "Panel d'administration", :description => "Outil des gestion des utilisateurs de laclasse.com", :url => "/admin")
-  stat = DB[:activite].insert(:app_id => panel_id, :code => 'statistiques')
-  act = DB[:activite].insert(:app_id => panel_id, :code => 'activation_user')
-  gest = DB[:activite].insert(:app_id => panel_id, :code => 'gestion_user')
-  param = DB[:activite].insert(:app_id => panel_id, :code => 'param_app')
+  panel_id = 'adm_pnl'
+  DB[:service].insert(:id => 'adm_pnl', :libelle => "Panel d'administration", :description => "Outil des gestion des utilisateurs de laclasse.com", :url => "/admin")
+  stat = DB[:activite].insert(:service_id => panel_id, :code => 'statistiques')
+  act = DB[:activite].insert(:service_id => panel_id, :code => 'activation_user')
+  gest = DB[:activite].insert(:service_id => panel_id, :code => 'gestion_user')
+  param = DB[:activite].insert(:service_id => panel_id, :code => 'param_app')
 
-  adm = DB[:role].insert(:libelle => 'Administrateur technique', :app_id => panel_id)
-  com = DB[:role].insert(:libelle => 'Chargé de communication', :app_id => panel_id)
-  assist = DB[:role].insert(:libelle => 'Assistance utilisateur', :app_id => panel_id)
-  activ_cmpt = DB[:role].insert(:libelle => 'Activateur compte', :app_id => panel_id)
+  adm = DB[:role].insert(:libelle => 'Administrateur technique', :service_id => panel_id)
+  com = DB[:role].insert(:libelle => 'Chargé de communication', :service_id => panel_id)
+  assist = DB[:role].insert(:libelle => 'Assistance utilisateur', :service_id => panel_id)
+  activ_cmpt = DB[:role].insert(:libelle => 'Activateur compte', :service_id => panel_id)
 
   DB[:role_profil].insert(:profil_id => 'TECH', :role_id => adm)
   DB[:role_profil].insert(:profil_id => 'DIR', :role_id => com)
@@ -108,26 +109,28 @@ def bootstrap_annuaire()
 
   DB[:activite_role].insert(:activite_id => act, :role_id => activ_cmpt)
 
-  blog_id = DB[:app].insert(:libelle => 'Blog', :code => 'blog', :description => 'Outil de gestion de blog similaire à Wordpress', :url => '/blogs')
-  DB[:activite].insert(:libelle => 'ecrire_article', :app_id => blog_id)
-  DB[:activite].insert(:libelle => 'poster_commentaire', :app_id => blog_id)
-  DB[:activite].insert(:libelle => 'gerer_articles', :app_id => blog_id)
-  DB[:activite].insert(:libelle => 'lire_article', :app_id => blog_id)
+  blog_id = 'blog'
+  DB[:service].insert(:id => 'blog', :libelle => 'Blog', :description => 'Outil de gestion de blog similaire à Wordpress', :url => '/blogs')
+  DB[:activite].insert(:libelle => 'ecrire_article', :service_id => blog_id)
+  DB[:activite].insert(:libelle => 'poster_commentaire', :service_id => blog_id)
+  DB[:activite].insert(:libelle => 'gerer_articles', :service_id => blog_id)
+  DB[:activite].insert(:libelle => 'lire_article', :service_id => blog_id)
 
-  DB[:role].insert(:libelle => 'Contributeur', :app_id => blog_id)
-  DB[:role].insert(:libelle => 'Lecteur', :app_id => blog_id)
-  DB[:role].insert(:libelle => 'Redacteur', :app_id => blog_id)
+  DB[:role].insert(:libelle => 'Contributeur', :service_id => blog_id)
+  DB[:role].insert(:libelle => 'Lecteur', :service_id => blog_id)
+  DB[:role].insert(:libelle => 'Redacteur', :service_id => blog_id)
 
   #Application cahier de texte
-  ct_id = DB[:app].insert(:libelle => 'Cahier de texte', :code => 'cahier_texte', :description => 'Outil de gestion des cahiers de texte', :url => '/ct')
-  DB[:activite].insert(:code => 'ecrire_devoir', :libelle => 'Ecrire devoir', :app_id => ct_id)
-  DB[:activite].insert(:code => 'lire_devoir', :libelle => 'Lire devoir', :app_id => ct_id)
-  DB[:activite].insert(:code => 'viser_cahier', :libelle => 'Viser cahier', :app_id => ct_id)
-  DB[:activite].insert(:code => 'supprimer_devoir', :libelle => 'Supprimer devoir', :app_id => ct_id)
+  ct_id = 'ctexte'
+  DB[:service].insert(:id => ct_id,:libelle => 'Cahier de texte', :description => 'Outil de gestion des cahiers de texte', :url => '/ct')
+  DB[:activite].insert(:code => 'ecrire_devoir', :libelle => 'Ecrire devoir', :service_id => ct_id)
+  DB[:activite].insert(:code => 'lire_devoir', :libelle => 'Lire devoir', :service_id => ct_id)
+  DB[:activite].insert(:code => 'viser_cahier', :libelle => 'Viser cahier', :service_id => ct_id)
+  DB[:activite].insert(:code => 'supprimer_devoir', :libelle => 'Supprimer devoir', :service_id => ct_id)
 
-  role_prof_id = DB[:role].insert(:libelle => 'Prof', :app_id => ct_id)
-  role_eleve_id = DB[:role].insert(:libelle => 'Eleve', :app_id => ct_id)
-  role_principal_id = DB[:role].insert(:libelle => 'Principal', :app_id => ct_id)
+  role_prof_id = DB[:role].insert(:libelle => 'Prof', :service_id => ct_id)
+  role_eleve_id = DB[:role].insert(:libelle => 'Eleve', :service_id => ct_id)
+  role_principal_id = DB[:role].insert(:libelle => 'Principal', :service_id => ct_id)
 
   DB[:role_profil].insert(:profil_id => 'ELV', :role_id => role_eleve_id)
   DB[:role_profil].insert(:profil_id => 'ENS', :role_id => role_prof_id)
@@ -156,11 +159,11 @@ def bootstrap_annuaire()
   DB[:type_param].insert(:id => "num")
   # deuxiement on ajoute les parametre  de test
   DB[:param_app].insert(:preference => 0, :libelle => "Ouverture / Fermenture de l'ENT", :description => "Restreindre l'accès à l'ENT aux parents et aux élèves. Cette restriction est utile avant la rentrée scolaire, pendant la période de constitution des classes et des groupes. Elle prend effet dès que vous l'avez activée et prend fin lorsque vous la désactivez.",
-                        :code => "ent_ouvert", :valeur_defaut => "oui", :autres_valeurs => "non", :app_id => 1 , :type_param_id=>"bool")
+                        :code => "ent_ouvert", :valeur_defaut => "oui", :autres_valeurs => "non", :service_id => 1 , :type_param_id=>"bool")
   DB[:param_app].insert(:preference => 0, :libelle => "Réglage du seuil d'obtention du diplôme", :description => "Ce paramètre est fixé à 80% et détermine le seuil, en pourcentage du nombre de compétences à acquérir, à partir duquel les élèves obtiennent le diplôme du SOCLE.
-                        Ce paramètre n'est pas modifiable.", :code => "seuil_obtention_diplome", :valeur_defaut => "80", :autres_valeurs => "50", :app_id => 1 , :type_param_id=>"num")
+                        Ce paramètre n'est pas modifiable.", :code => "seuil_obtention_diplome", :valeur_defaut => "80", :autres_valeurs => "50", :service_id => 1 , :type_param_id=>"num")
   DB[:param_app].insert(:preference => 0, :libelle => "Ip Adresse", :description => "ip adresse de l'application",
-                        :code => "adresse_ip", :valeur_defaut => "http://server1.com", :autres_valeurs => "http://server2.com", :app_id => 1 , :type_param_id=>"text")
+                        :code => "adresse_ip", :valeur_defaut => "http://server1.com", :autres_valeurs => "http://server2.com", :service_id => 1 , :type_param_id=>"text")
 
 
   profil_list = ['ENS', 'ELV', 'PAR']
