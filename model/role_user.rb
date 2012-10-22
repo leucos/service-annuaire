@@ -9,6 +9,8 @@
 # user_id                       | char(16)            | false    | PRI      |            | 
 # ressource_id                  | int(11)             | false    | PRI      |            | 
 # role_id                       | int(11)             | false    | PRI      |            | 
+# bloque                        | tinyint(1)          | false    |          | 0          | 
+# actif                         | tinyint(1)          | true     |          | 1          | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
 class RoleUser < Sequel::Model(:role_user)

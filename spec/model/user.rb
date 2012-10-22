@@ -93,6 +93,13 @@ describe User do
     delete_test_users()
   end
 
+  it "create and destroy a ressource on creation/deletion" do
+    u = create_test_user()
+    Ressource[:service_id => "USER", :id_externe => u.id].should.not == nil
+    delete_test_users()
+    Ressource[:service_id => "USER", :id_externe => u.id].should == nil
+  end
+
   it "find principal email" do
     u = create_test_user()
     e = Email.create(:adresse => "test@laclasse.com", :user => u)

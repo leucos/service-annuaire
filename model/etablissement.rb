@@ -34,6 +34,18 @@ class Etablissement < Sequel::Model(:etablissement)
   one_to_many :regroupement
   many_to_one :type_etablissement
 
+  def after_create
+    # Rajoute l'établissement en tant que ressource enfant de laclasse
+    Ressource.create(:parent_id => Ressource[:service_id => "LACLASSE"].id, :id_externe => self.id, :service_id => "ETAB")
+    super
+  end
+
+  def after_destroy
+    # Supprimera toutes les ressources liées à cet établissement
+    Ressource.filter(:id_externe => self.id, :service_id => "USER").destroy()
+    super
+  end
+
   # Not nullable cols
   def validate
     super

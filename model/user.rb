@@ -73,6 +73,19 @@ class User < Sequel::Model(:user)
     super
   end
 
+  def after_create
+    # Rajoute l'utilisateur en tant que ressource enfant de laclasse 
+    # Il pourra ensuite être mis en tant qu'enfant d'un établissement pour donnée le droit à l'admin d'établissement de le modifier/supprimer par exemple
+    Ressource.create(:parent_id => Ressource[:service_id => "LACLASSE"].id, :id_externe => self.id, :service_id => "USER")
+    super
+  end
+
+  def after_destroy
+    # Supprimera toutes les ressources liées à cet utilisateur
+    Ressource.filter(:id_externe => self.id, :service_id => "USER").destroy()
+    super
+  end
+
   # Not nullable cols
   def validate
     super
