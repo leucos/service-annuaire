@@ -7,6 +7,8 @@
 require 'bcrypt'
 
 # MODELS
+# ATTENTION SERVICE DOIT POUVOIR ETRE ACCESSIBLE PAR TOUS LES AUTRES MODELS
+require_relative 'service'
 require_relative 'activite'
 require_relative 'activite_role'
 require_relative 'enseigne_regroupement'
@@ -25,7 +27,6 @@ require_relative 'relation_eleve'
 require_relative 'ressource'
 require_relative 'role'
 require_relative 'role_user'
-require_relative 'service'
 require_relative 'service_actif'
 require_relative 'telephone'
 require_relative 'type_etablissement'

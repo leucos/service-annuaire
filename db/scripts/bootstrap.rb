@@ -92,6 +92,10 @@ def bootstrap_annuaire()
 
 
   Service.unrestrict_primary_key()
+  # le service de type service pour gérer les droits sur tout le service
+  # ex : exemple, on veut savoir si un utilisateur peut créer des droits sur /user
+  Service.create(:id => SRV_SERVICE, :libelle => "service", :description => "Service permettant de déclarer les service comme des ressources.", :api => true)
+
   #Tout d'abord, on créer des services (api)
   # service laclasse.com (les super admin y sont reliés)
   Service.create(:id => SRV_LACLASSE, :libelle => "Laclasse.com", :description => "Service auquel tout est rattaché", :url => "/", :api => true)
@@ -291,7 +295,7 @@ def bootstrap_annuaire()
       end
       role_id = Profil[profil].role_id
       # Temp ne marche pas pour l'instant
-      res_etb = Ressource.filter(:service_id => SRV_ETAB, :id => etb.id).first
+      res_etb = Ressource[:service_id => SRV_ETAB, :id => etb.id]
       RoleUser.create(:user_id => usr.id, :role_id => role_id,
         :ressource_id => res_etb.id, :ressource_service_id => SRV_ETAB)
     end

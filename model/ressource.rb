@@ -14,6 +14,9 @@
 #
 class Ressource < Sequel::Model(:ressource)
 
+  class NoClassError < StandardError
+  end
+
   # Plugins
   plugin :validation_helpers
   plugin :json_serializer
@@ -26,5 +29,20 @@ class Ressource < Sequel::Model(:ressource)
   # Not nullable cols and unicity validation
   def validate
     super
+  end
+
+  # A la destruction d'une ressource, il faut supprimer ses ressources enfants
+  def destroy_children()
+    self.children.each do |c|
+      class_const = Service.class_map[c.service_id]
+      raise NoClassError.new("Pas de classe rattachée au service=#{c.service_id}") if class_const.nil?
+      child = class_const[c.id]
+      child.destroy()
+    end
+  end
+
+  # Renvois toutes les ressources qui ont comme parent la ressource en cours
+  def children()
+    Ressource.filter(:parent_id => self.id, :parent_service_id => self.service_id).all
   end
 end

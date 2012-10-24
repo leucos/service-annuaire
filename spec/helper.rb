@@ -14,8 +14,8 @@ def new_test_user(login = "test")
 end
 
 def delete_test_users()
-  User.filter(:nom => "test", :prenom => 'test').delete()
-  User.filter(:login => "test").delete()
+  User.filter(:nom => "test", :prenom => 'test').destroy()
+  User.filter(:login => "test").destroy()
 end
 
 def create_test_eleve_with_parents()
@@ -29,23 +29,24 @@ def create_test_eleve_with_parents()
 
   # Il faut au moins un etablissement
   e = Etablissement.first
-  u.add_profil({:user => u, :etablissement => e, :profil_id => 'ELV', :actif => true})
-  p1.add_profil({:user => p1, :etablissement => e, :profil_id => 'PAR', :actif => true})
-  p2.add_profil({:user => p2, :etablissement => e, :profil_id => 'PAR', :actif => true})
+  u.add_profil({:user => u, :etablissement => e, :profil_id => PRF_ELV, :actif => true})
+  p1.add_profil({:user => p1, :etablissement => e, :profil_id => PRF_PAR, :actif => true})
+  p2.add_profil({:user => p2, :etablissement => e, :profil_id => PRF_PAR, :actif => true})
 
   #todo : faire des fonctions dans User pour faire ça...
   # "vrai" parent
-  DB[:relation_eleve].insert(:user_id => p1.id, :eleve_id => u.id, :type_relation_eleve_id => "PAR")
+  RelationEleve.unrestrict_primary_key()
+  RelationEleve.create(:user_id => p1.id, :eleve_id => u.id, :type_relation_eleve_id => "PAR")
   # Representant legal
-  DB[:relation_eleve].insert(:user_id => p2.id, :eleve_id => u.id, :type_relation_eleve_id => "RLGL")
+  RelationEleve.create(:user_id => p2.id, :eleve_id => u.id, :type_relation_eleve_id => "RLGL")
   return u
 end
 
 def delete_test_eleve_with_parents()
   u = User[:login => "test"]
   RelationEleve.filter(:eleve_id => u.id).delete() if u
-  ProfilUser.filter(:user => User.filter(:nom => "test", :prenom => "test")).delete()
-  ProfilUser.filter(:user => User.filter(:login => "test")).delete()
+  RoleUser.filter(:user => User.filter(:nom => "test", :prenom => "test")).delete()
+  RoleUser.filter(:user => User.filter(:login => "test")).delete()
   delete_test_users()
 end
 

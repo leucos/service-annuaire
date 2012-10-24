@@ -52,6 +52,9 @@ class User < Sequel::Model(:user)
     ds.where(:type_relation_eleve_id => ["PAR", "RLGL"])
   end
 
+  # Important pour la gestion des ressources
+  Service.declare_service_class(SRV_USER, self)
+
   # Check si l'id passé en paramètre correspond bien aux critères d'identifiant ENT
   def self.is_valid_id?(id)
     !!(id.class == String and id.length == 8 and id[0] == 'V' and id[3] == '6' and id[1..2] =~ /[a-zA-Z]{2}/ and id[4..7] =~ /\d{4}/)
@@ -96,7 +99,7 @@ class User < Sequel::Model(:user)
 
   def before_destroy
     # Supprimera toutes les ressources liées à cet utilisateur
-    Ressource.filter(:id_externe => self.id, :service_id => "USER").destroy()
+    Ressource.filter(:id => self.id, :service_id => SRV_USER).destroy()
     super
   end
 
@@ -129,7 +132,7 @@ class User < Sequel::Model(:user)
   end
 
   def profil_actif
-    profil_user.select{|p| p.actif}.first
+    role_user.select{|r| r.actif && r.ressource_service_id == SRV_ETAB}.first
   end
 
   #Trouve le rôle applicatif du profil courant pour l'application passé en paramètre
@@ -170,8 +173,9 @@ class User < Sequel::Model(:user)
   #Change le profil de l'utilisateur
   def change_profil(new_profil, to_change = profil_actif)
     if profil_actif.profil != new_profil
-      ProfilUser.find_or_create(:user => to_change.user, :actif => to_change.actif,
-        :etablissement => to_change.etablissement, :profil => new_profil)
+      RoleUser.find_or_create(:user => to_change.user, :actif => to_change.actif,
+        :ressource_id => to_change.etablissement.id, :ressource_service_id => SRV_ETAB, 
+        :role_id => new_profil.role_id)
 
       #On supprime les role définit spécialement pour cette utilisateur
       RoleUser.filter(:profil_user => to_change).delete()
@@ -182,11 +186,14 @@ class User < Sequel::Model(:user)
   end
 
   def add_profil(new_profil)
+    np = new_profil
     #temp : Je ne sais pas si c'est la bonne chose à faire ?
-    ProfilUser.unrestrict_primary_key()
-    new_profil = ProfilUser.find_or_create(new_profil)
-    ProfilUser.restrict_primary_key()
-    if new_profil.actif
+    RoleUser.unrestrict_primary_key()
+    new_profil = RoleUser.find_or_create(:user => np[:user], :actif => np[:actif],
+        :ressource_id => np[:etablissement].id, :ressource_service_id => SRV_ETAB, 
+        :role_id => Profil[np[:profil_id]].role_id)
+    RoleUser.restrict_primary_key()
+    if np[:actif]
       switch_profil(new_profil)
     end
   end

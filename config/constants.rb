@@ -25,6 +25,11 @@ TYP_REG_GRP = "GRP"
 TYP_REG_LBR = "LBR"
 
 #
+# TypeEtablissement
+#
+TYP_ETB_CTR_PU = "PU"
+
+#
 # Service
 #
 SRV_LACLASSE = "LACLASSE"
@@ -33,6 +38,7 @@ SRV_CLASSE = "CLASSE"
 SRV_GROUPE = "GROUPE"
 SRV_LIBRE = "LIBRE"
 SRV_USER = "USER"
+SRV_SERVICE = "SERVICE"
 
 #
 # Profil
