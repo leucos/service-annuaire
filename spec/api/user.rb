@@ -6,10 +6,12 @@ describe UserApi do
   def app
     Rack::Builder.parse_file("config.ru").first
   end
+  # In case something went wrong
+  delete_test_eleve_with_parents()
+  delete_test_users()
 
 =begin
-  # In case something went wrong
-  delete_test_users()
+
   should "return user profile when giving good login/password" do
     create_test_user()
     get('/user?login=test&password=test').status.should == 200
@@ -77,7 +79,6 @@ describe UserApi do
     get("/user/sso_attributes_men/root").status.should == 200
     sso_attr = JSON.parse(last_response.body)
   end
-=end
 
   should "respond to a query without parameters" do
     get("user/query/users").status.should == 200
@@ -183,5 +184,21 @@ describe UserApi do
     result[0]["nom"].should == "bruni"
     result[0]["prenom"].should == "francois"
   end 
+=end
 
+  should  "filter parent based also nom, prenom and eleve_id" do
+    create_test_eleve_with_parents()
+
+    get("user/parent/eleve?id_sconet=123456").status.should == 200
+    result = JSON.parse(last_response.body)
+    result.count.should == 2
+
+    get("user/parent/eleve?id_sconet=123456&prenom=roger").status.should == 200
+    result = JSON.parse(last_response.body)
+    result.count.should == 1
+    result[0][:nom].should == "test"
+    result[0][:prenom].should == "roger"
+
+    delete_test_eleve_with_parents()
+  end 
 end

@@ -55,6 +55,17 @@ res 200:
 { "users": [ { "id": , "" } ] }
 
 
+//Ajout de profils
+POST /user/:id/profils
+{profil_id: "ELV", etablissement_id: 1234}
+
+//Modification d'un profil
+POST /user/:id/profils
+{profil_id: "ELV", etablissement_id: 1234}
+
+DEL /user/:id/profils/
+{profil_id: "ELV", etablissement_id: 1234}
+
 ### La ressource "utilisateur":
 
 {
