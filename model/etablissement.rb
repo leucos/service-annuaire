@@ -36,7 +36,9 @@ class Etablissement < Sequel::Model(:etablissement)
 
   def after_create
     # Rajoute l'établissement en tant que ressource enfant de laclasse
-    Ressource.create(:parent_id => Ressource[:service_id => "LACLASSE"].id, :id_externe => self.id, :service_id => "ETAB")
+    Ressource.unrestrict_primary_key()
+    Ressource.create(:id => self.id, :service_id => SRV_ETAB, 
+      :parent_id => Ressource[:service_id => SRV_LACLASSE].id, :parent_service_id => SRV_LACLASSE)
     super
   end
 

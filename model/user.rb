@@ -37,7 +37,7 @@ class User < Sequel::Model(:user)
   # Referential integrity
   one_to_many :enseigne_regroupement
   one_to_many :membre_regroupement
-  one_to_many :profil_user
+  one_to_many :role_user
   one_to_many :telephone
   one_to_many :email
   # Check si l'id passé en paramètre correspond bien aux critères d'identifiant ENT
@@ -76,11 +76,13 @@ class User < Sequel::Model(:user)
   def after_create
     # Rajoute l'utilisateur en tant que ressource enfant de laclasse 
     # Il pourra ensuite être mis en tant qu'enfant d'un établissement pour donnée le droit à l'admin d'établissement de le modifier/supprimer par exemple
-    Ressource.create(:parent_id => Ressource[:service_id => "LACLASSE"].id, :id_externe => self.id, :service_id => "USER")
+    Ressource.unrestrict_primary_key()
+    Ressource.create(:id => self.id, :service_id => SRV_USER,
+      :parent_id => Ressource[:service_id => SRV_LACLASSE].id, :parent_service_id => SRV_LACLASSE)
     super
   end
 
-  def after_destroy
+  def before_destroy
     # Supprimera toutes les ressources liées à cet utilisateur
     Ressource.filter(:id_externe => self.id, :service_id => "USER").destroy()
     super

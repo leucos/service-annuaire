@@ -193,6 +193,11 @@ GET /preference/:code
 
 ## rights
 
+//Droits sur une ressource précise
 GET /rights/:service/:ressource_id/:user_id
 [create_user, add_membre]
+
+//Droits sur un service en général (les services sont aussi des ressources)
+GET /rights/service/:service_id
+
 

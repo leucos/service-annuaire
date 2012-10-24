@@ -35,6 +35,15 @@ SRV_LIBRE = "LIBRE"
 SRV_USER = "USER"
 
 #
+# Profil
+#
+PRF_ELV = "ELV"
+PRF_ENS = "ENS"
+PRF_DIR = "DIR"
+PRF_PAR = "PAR"
+PRF_ADM = "ADM"
+
+#
 # Role
 #
 ROL_TECH = "TECH"
