@@ -31,6 +31,12 @@ class Ressource < Sequel::Model(:ressource)
     super
   end
 
+  def before_destroy
+    # Avant suppression, une ressource doit s'assurer de supprimer tous ses enfants
+    self.destroy_children()
+    super
+  end
+
   # A la destruction d'une ressource, il faut supprimer ses ressources enfants
   def destroy_children()
     self.children.each do |c|

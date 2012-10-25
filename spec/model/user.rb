@@ -129,4 +129,11 @@ describe User do
     u.parents.length.should == 2
     delete_test_eleve_with_parents()
   end
+
+  it ".ressource return associated ressource" do
+    u = create_test_user()
+    u.ressource.id.should == u.id
+    u.ressource.service_id.should == SRV_USER
+    delete_test_users()
+  end
 end
