@@ -33,6 +33,7 @@ class User < Sequel::Model(:user)
   # Plugins
   plugin :validation_helpers
   plugin :json_serializer
+  plugin :ressource_link, :service_id => SRV_USER
 
   # Referential integrity
   one_to_many :enseigne_regroupement
@@ -49,11 +50,8 @@ class User < Sequel::Model(:user)
   # Liste de tous les parents d'un élève
   many_to_many :parents, :left_key => :eleve_id, :right_key => :user_id, 
     :join_table => :relation_eleve, :class => self do |ds|
-    ds.where(:type_relation_eleve_id => ["PAR", "RLGL"])
-  end
-
-  # Important pour la gestion des ressources
-  Service.declare_service_class(SRV_USER, self)
+      ds.where(:type_relation_eleve_id => ["PAR", "RLGL"])
+    end
 
   # Check si l'id passé en paramètre correspond bien aux critères d'identifiant ENT
   def self.is_valid_id?(id)
@@ -85,21 +83,6 @@ class User < Sequel::Model(:user)
   def before_create
     self.id = UidGenerator::getNextUid()
     self.date_creation ||= Time.now
-    super
-  end
-
-  def after_create
-    # Rajoute l'utilisateur en tant que ressource enfant de laclasse 
-    # Il pourra ensuite être mis en tant qu'enfant d'un établissement pour donnée le droit à l'admin d'établissement de le modifier/supprimer par exemple
-    Ressource.unrestrict_primary_key()
-    Ressource.create(:id => self.id, :service_id => SRV_USER,
-      :parent_id => Ressource[:service_id => SRV_LACLASSE].id, :parent_service_id => SRV_LACLASSE)
-    super
-  end
-
-  def before_destroy
-    # Supprimera toutes les ressources liées à cet utilisateur
-    Ressource.filter(:id => self.id, :service_id => SRV_USER).destroy()
     super
   end
 
