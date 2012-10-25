@@ -38,7 +38,7 @@ class Service < Sequel::Model(:service)
 
   # Chaque classe liée à un service se déclare ici
   def self.declare_service_class(service_id, class_const)
-    raise NoServiceError.new("Service #{service_id} non existant") if Service[service_id].nil?
+    #raise NoServiceError.new("Service #{service_id} non existant") if Service[service_id].nil?
     @@class_map[service_id] = class_const
   end
 

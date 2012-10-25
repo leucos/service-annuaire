@@ -50,6 +50,27 @@ def delete_test_eleve_with_parents()
   delete_test_users()
 end
 
+def create_test_user_in_etab(etb_id, login)
+  u = create_test_user(login)
+  # On assigne manuellement la ressource utilisateur à cet établissement
+  r = Ressource[:id => u.id, :service_id => SRV_USER]
+  r.parent_id = etb_id
+  r.parent_service_id = SRV_ETAB
+  r.save()
+end
+
+def create_test_ressources_tree
+  e = Etablissement.create(:nom => "test", :type_etablissement => TypeEtablissement.first)
+  create_test_user_in_etab(e.id, "test")
+  create_test_user_in_etab(e.id, "test2")
+  return Ressource[:id => e.id, :service_id => SRV_ETAB]
+end
+
+def delete_test_ressources_tree
+  delete_test_users()
+  Etablissement.filter(:nom => "test").destroy()
+end
+
 
 # HELPER SPECIFIC A L ALIMENTATION AUTO
 FILE_DIR = "spec/fixtures"

@@ -7,3 +7,6 @@ require __DIR__('alimentation/diff_generator')
 require __DIR__('alimentation/diff_view')
 require __DIR__('alimentation/memory_db')
 require __DIR__('alimentation/db_sync')
+require __DIR__('rights')
+
+
