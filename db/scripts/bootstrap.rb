@@ -5,6 +5,27 @@ require_relative '../../config/database'
 require_relative '../../model/init'
 require_relative 'bcn_parser'
 
+
+def create_super_admin_and_ressource_laclasse()
+  # laclasse est un ressource un peu spéciale car elle ne correspond pas a quelque chose en mémoire
+  #Création de la ressource laclasse avec l'id externe 0 qui correspond à rien
+  Ressource.unrestrict_primary_key()
+  r = Ressource.create(:id => 0, :service_id => SRV_LACLASSE)
+  #Création du compte super admin
+  u = User.create(:nom => "Super", :prenom => "Didier", :sexe => "M", :login => "root", :password => "root")
+  RoleUser.unrestrict_primary_key()
+  RoleUser.create(:user_id => u.id, :ressource_id => r.id, :ressource_service_id => r.service_id, :role_id => ROL_TECH, :actif => true)
+end
+
+def truncate_ressource()
+  # La suppression des ressource est un peu spéciale vu qu'il y a un lien de parentalité dans la table
+  # Pour ne pas se compliquer la vie on enlève temporairement le check sur les foreign key
+  DB.run("SET FOREIGN_KEY_CHECKS = 0;")
+
+  DB[:ressource].truncate()
+
+  DB.run("SET FOREIGN_KEY_CHECKS = 1;")
+end
 ##
 ## ATTENTION : A NE SURTOUT PAS UTILISER EN PRODUCTION
 ## SUPPRIME TOUTE LA BDD !!!!!!!
@@ -13,29 +34,33 @@ def clean_annuaire()
   puts "TRUNCATE ALL USER RELATED TABLES"
   [
     :last_uid, :telephone, :email, :relation_eleve,
-    :enseigne_regroupement, :user, :regroupement, :ressource, :role_user
+    :enseigne_regroupement, :user, :regroupement, :role_user
   ].each do |table|
-    DB[table].truncate()
+    if table == :ressource
+      truncate_ressource()
+    else    
+      DB[table].truncate()
+    end
   end
 
-  #Création de la ressource laclasse
-  r = Ressource.create(:id_externe => 0, :service_id => SRV_LACLASSE)
-  #Création du compte super admin
-  u = User.create(:nom => "Super", :prenom => "Didier", :sexe => "M", :login => "root", :password => "root")
-  RoleUser.unrestrict_primary_key()
-  RoleUser.create(:user_id => u.id, :ressource_id => r.id, :role_id => ROL_TECH, :actif => true)
-
+  create_super_admin_and_ressource_laclasse()
 end
 
 def bootstrap_annuaire()
   puts "TRUNCATE ALL TABLES"
+  #ATTENTION : CODE SPECIFIQUE MYSQL
   #On ne peut pas faire un bete DB.tables.each car il faut respecter l'ordre des foreign keys
+  # TODO : supprimer les ressources en faisant attention aux parents
   [
   :last_uid, :activite_role, :role_user, :activite, :role, :param_service, :type_param, :ressource, :service, :email,
   :telephone, :etablissement, :enseigne_regroupement, :regroupement,
   :user, :type_telephone, :type_regroupement, :type_relation_eleve, :profil, :niveau, :relation_eleve
   ].each do |table|
-    DB[table].truncate()
+    if table == :ressource
+      truncate_ressource()
+    else    
+      DB[table].truncate()
+    end
   end
 
   puts "INSERT DEFAULT DATA"
@@ -67,15 +92,18 @@ def bootstrap_annuaire()
 
 
   Service.unrestrict_primary_key()
+  # le service de type service pour gérer les droits sur tout le service
+  # ex : exemple, on veut savoir si un utilisateur peut créer des droits sur /user
+  Service.create(:id => SRV_SERVICE, :libelle => "service", :description => "Service permettant de déclarer les service comme des ressources.", :api => true)
+
   #Tout d'abord, on créer des services (api)
   # service laclasse.com (les super admin y sont reliés)
   Service.create(:id => SRV_LACLASSE, :libelle => "Laclasse.com", :description => "Service auquel tout est rattaché", :url => "/", :api => true)
-  # laclasse est un ressource un peu spéciale car elle ne correspond pas a quelque chose en mémoire
-  # on met comme id_externe 0
-  ressource_laclasse = Ressource.create(:id_externe => 0, :service_id => SRV_LACLASSE)
+
   Role.unrestrict_primary_key()
   # Création des roles associés à ce service
   Role.create(:id => ROL_TECH, :libelle => "Administrateur technique", :service_id => SRV_LACLASSE)
+
 
   #
   # service /user
@@ -192,20 +220,16 @@ def bootstrap_annuaire()
 
   bootstrap_matiere()
 
+  create_super_admin_and_ressource_laclasse()
+
   type_etb = TypeEtablissement.create({:nom => 'Service du département', :type_contrat => 'PU'})
-  erasme_id = Etablissement.create(:nom => 'ERASME', :type_etablissement_id =>type_etb.id)
+  erasme = Etablissement.create(:nom => 'ERASME', :type_etablissement_id =>type_etb.id)
 
   #Des établissements
   #Les id d'établissement correspondent à des vrais identifiant pour tester l'alimentation automatique
   type_etb = TypeEtablissement.create(:nom => 'Collège', :type_contrat => 'PU', :libelle => 'Collège publique')
-  etb1_id = Etablissement.create(:code_uai => '0691670R', :nom => 'Victor Dolto', :type_etablissement_id =>type_etb.id)
-  etb2_id = Etablissement.create(:code_uai => '0690016T', :nom => 'Françoise Kandelaft', :type_etablissement_id =>type_etb.id)
-
-
-  #Création du compte super admin
-  u = User.create(:nom => "Super", :prenom => "Didier", :sexe => "M", :login => "root", :password => "root")
-  RoleUser.unrestrict_primary_key()
-  RoleUser.create(:user_id => u.id, :ressource_id => ressource_laclasse.id, :role_id => ROL_TECH, :actif => true)
+  etb1 = Etablissement.create(:code_uai => '0691670R', :nom => 'Victor Dolto', :type_etablissement_id =>type_etb.id)
+  etb2 = Etablissement.create(:code_uai => '0690016T', :nom => 'Françoise Kandelaft', :type_etablissement_id =>type_etb.id)
 
   # Ajouter des  parametres de test
   # d'abord on ajoute les param_type (text, num, bool)
@@ -222,7 +246,7 @@ def bootstrap_annuaire()
   #                       :code => "adresse_ip", :valeur_defaut => "http://server1.com", :autres_valeurs => "http://server2.com", :service_id => 1 , :type_param_id=>"text")
 
 
-  profil_list = ['ENS', 'ELV', 'PAR']
+  profil_list = [PRF_ENS, PRF_ELV, PRF_PAR]
 
   prenom_list = ['jean', 'francois', 'raymond', 'pierre', 'jeanne', 'frédéric', 'lise', 'michel', 'daniel', 'élodie', 'brigitte', 'béatrice', 'youcef', 'sophie', 'andréas']
   nom_list = ['dupond', 'dupont', 'duchamp', 'deschamps', 'leroy', 'lacroix', 'sarkozy', 'zidane', 'bruni', 'hollande', 'levy', 'khadafi', 'chirac']
@@ -230,15 +254,13 @@ def bootstrap_annuaire()
   RelationEleve.unrestrict_primary_key()
   #On va créer pour chaque établissement 100 utilisateurs
   2.times do |nb|
-    etb_id = nb == 0 ? etb1_id : etb2_id
+    etb = nb == 0 ? etb1 : etb2
     100.times do |ind|
       #Création aléatoire d'un nom et d'un utilisateur
       r = Random.new
       pren = prenom_list[r.rand(prenom_list.length)]
       nom = nom_list[r.rand(nom_list.length)]
       sexe = r.rand(2) == 0 ? "M" : "F"
-      #On essait de rendre le login unique avec 1ere lettre prenom + nom + un chiffre aléatoire
-      #Y a mieux mais on s'en fou
 
       login = User.find_available_login(pren, nom)
       #Password = login
@@ -247,25 +269,25 @@ def bootstrap_annuaire()
       profil = profil_list[r.rand(profil_list.length)]
       #Sauf qu'on a un principal par etab
       if ind == 0
-        profil = "DIR"
+        profil = PRF_DIR
       #Et un admin d'étab
       elsif ind == 1
-        profil = "ADM"
-      elsif profil == "ELV"
+        profil = PRF_ADM
+      elsif profil == PRF_ELV
         # On donne des identifiants sconet aux eleves
         usr.id_sconet = r.rand(1000000)
         while User[:id_sconet => usr.id_sconet] != nil
           usr.id_sconet = r.rand(1000000)
         end
         usr.save
-      elsif profil == "PAR"
+      elsif profil == PRF_PAR
         # On rajoute une relation
         # Soit parent, soit representant legal
-        rel = r.rand(2) > 0 ? "PAR" : "RLGL"
+        rel = r.rand(2) > 0 ? TYP_REL_PAR : TYP_REL_RLGL
         #On prend le premier eleve qui n'a pas cette relation
         eleve = User.
           left_join(:relation_eleve, :eleve_id => :id).
-          filter(:profil_user => ProfilUser.filter(:profil_id => "ELV")).
+          filter(:role_user => RoleUser.filter(:role_id => ROL_ELV_ETB)).
           filter({:type_relation_eleve_id => nil}).first
         if eleve
           RelationEleve.create(:user_id => usr.id, :eleve_id => eleve.id, :type_relation_eleve_id => rel)
@@ -273,8 +295,9 @@ def bootstrap_annuaire()
       end
       role_id = Profil[profil].role_id
       # Temp ne marche pas pour l'instant
-      #res_etb = Ressource.filter(:service_id => SRV_ETAB, :id_externe => etb_id).first
-      #RoleUser.create(:user_id => usr.id, :ressource_id => res_etb.id, :role_id => role_id, :actif => true)
+      res_etb = Ressource[:service_id => SRV_ETAB, :id => etb.id]
+      RoleUser.create(:user_id => usr.id, :role_id => role_id,
+        :ressource_id => res_etb.id, :ressource_service_id => SRV_ETAB)
     end
   end
 end

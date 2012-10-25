@@ -15,6 +15,9 @@
 #
 class Service < Sequel::Model(:service)
 
+  class NoServiceError < StandardError
+  end
+
   # Plugins
   plugin :validation_helpers
   plugin :json_serializer
@@ -25,9 +28,35 @@ class Service < Sequel::Model(:service)
   one_to_many :role
   one_to_many :service_actif
 
+  # A un service correspond une classe représentant la ressource (etablissement, user etc.)
+  # Cette classe doit avoir l'operateur [] pour récupérer la ressource avec son identifiant
+  # et une fonction destroy() pour pouvoir la supprimer
+  @@class_map = {}
+  def self.class_map
+    @@class_map
+  end
+
+  # Chaque classe liée à un service se déclare ici
+  def self.declare_service_class(service_id, class_const)
+    raise NoServiceError.new("Service #{service_id} non existant") if Service[service_id].nil?
+    @@class_map[service_id] = class_const
+  end
+
   # Not nullable cols and unicity validation
   def validate
     super
     validates_presence [:api]
+  end
+
+  def after_create
+    Ressource.unrestrict_primary_key()
+    Ressource.create(:id => self.id, :service_id => SRV_SERVICE)
+    super
+  end
+
+  def before_destroy
+    # Supprimera toutes les ressources liées à ce service (devrait pas y en avoir)
+    Ressource.filter(:id => self.id, :service_id => SRV_SERVICE).destroy()
+    super
   end
 end

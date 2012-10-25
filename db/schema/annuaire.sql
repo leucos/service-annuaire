@@ -491,58 +491,25 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `annuaire`.`ressource` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`ressource` (
-  `id` INT NOT NULL AUTO_INCREMENT ,
-  `parent_id` INT NULL ,
-  `id_externe` VARCHAR(255) NOT NULL ,
+  `id` VARCHAR(255) NOT NULL ,
   `service_id` CHAR(8) NOT NULL ,
-  PRIMARY KEY (`id`) ,
-  INDEX `fk_ressource_ressource1` (`parent_id` ASC) ,
+  `parent_service_id` CHAR(8) NULL ,
+  `parent_id` VARCHAR(255) NULL ,
   INDEX `fk_ressource_service1` (`service_id` ASC) ,
-  CONSTRAINT `fk_ressource_ressource1`
-    FOREIGN KEY (`parent_id` )
-    REFERENCES `annuaire`.`ressource` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+  PRIMARY KEY (`service_id`, `id`) ,
+  INDEX `fk_ressource_ressource1` (`parent_service_id` ASC, `parent_id` ASC) ,
   CONSTRAINT `fk_ressource_service1`
     FOREIGN KEY (`service_id` )
     REFERENCES `annuaire`.`service` (`id` )
     ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_ressource_ressource1`
+    FOREIGN KEY (`parent_service_id` , `parent_id` )
+    REFERENCES `annuaire`.`ressource` (`service_id` , `id` )
+    ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB, 
 COMMENT = 'Une ressource est n\'importe quel élément sur lequel on peut ' /* comment truncated */ ;
-
-
--- -----------------------------------------------------
--- Table `annuaire`.`role_user`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuaire`.`role_user` ;
-
-CREATE  TABLE IF NOT EXISTS `annuaire`.`role_user` (
-  `user_id` CHAR(16) NOT NULL ,
-  `ressource_id` INT NOT NULL ,
-  `role_id` CHAR(8) NOT NULL ,
-  `bloque` TINYINT(1)  NOT NULL DEFAULT 0 ,
-  `actif` TINYINT(1)  NULL DEFAULT 1 COMMENT 'le role est-il actif ? utile pour les roles d\'etablissements.' ,
-  PRIMARY KEY (`user_id`, `ressource_id`, `role_id`) ,
-  INDEX `fk_user_has_ressource_ressource1` (`ressource_id` ASC) ,
-  INDEX `fk_user_has_ressource_user1` (`user_id` ASC) ,
-  INDEX `fk_role_user_role1` (`role_id` ASC) ,
-  CONSTRAINT `fk_user_has_ressource_user1`
-    FOREIGN KEY (`user_id` )
-    REFERENCES `annuaire`.`user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_user_has_ressource_ressource1`
-    FOREIGN KEY (`ressource_id` )
-    REFERENCES `annuaire`.`ressource` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_role_user_role1`
-    FOREIGN KEY (`role_id` )
-    REFERENCES `annuaire`.`role` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
@@ -639,6 +606,40 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`activite_role` (
   CONSTRAINT `fk_activite_has_role_role1`
     FOREIGN KEY (`role_id` )
     REFERENCES `annuaire`.`role` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `annuaire`.`role_user`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `annuaire`.`role_user` ;
+
+CREATE  TABLE IF NOT EXISTS `annuaire`.`role_user` (
+  `role_id` CHAR(8) NOT NULL ,
+  `user_id` CHAR(16) NOT NULL ,
+  `ressource_service_id` CHAR(8) NOT NULL ,
+  `ressource_id` VARCHAR(255) NOT NULL ,
+  `bloque` TINYINT(1)  NOT NULL DEFAULT 0 ,
+  `actif` TINYINT(1)  NULL DEFAULT 1 ,
+  PRIMARY KEY (`role_id`, `user_id`, `ressource_service_id`, `ressource_id`) ,
+  INDEX `fk_role_user_user1` (`user_id` ASC) ,
+  INDEX `fk_role_user_role1` (`role_id` ASC) ,
+  INDEX `fk_role_user_ressource1` (`ressource_service_id` ASC, `ressource_id` ASC) ,
+  CONSTRAINT `fk_role_has_user_role1`
+    FOREIGN KEY (`role_id` )
+    REFERENCES `annuaire`.`role` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_role_has_user_user1`
+    FOREIGN KEY (`user_id` )
+    REFERENCES `annuaire`.`user` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_role_user_ressource1`
+    FOREIGN KEY (`ressource_service_id` , `ressource_id` )
+    REFERENCES `annuaire`.`ressource` (`service_id` , `id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;

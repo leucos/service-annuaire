@@ -34,15 +34,20 @@ class Etablissement < Sequel::Model(:etablissement)
   one_to_many :regroupement
   many_to_one :type_etablissement
 
+  # Important pour la gestion des ressources
+  Service.declare_service_class(SRV_ETAB, self)
+
   def after_create
     # Rajoute l'établissement en tant que ressource enfant de laclasse
-    Ressource.create(:parent_id => Ressource[:service_id => "LACLASSE"].id, :id_externe => self.id, :service_id => "ETAB")
+    Ressource.unrestrict_primary_key()
+    Ressource.create(:id => self.id, :service_id => SRV_ETAB, 
+      :parent_id => Ressource[:service_id => SRV_LACLASSE].id, :parent_service_id => SRV_LACLASSE)
     super
   end
 
-  def after_destroy
+  def before_destroy
     # Supprimera toutes les ressources liées à cet établissement
-    Ressource.filter(:id_externe => self.id, :service_id => "USER").destroy()
+    Ressource.filter(:id => self.id, :service_id => SRV_ETAB).destroy()
     super
   end
 

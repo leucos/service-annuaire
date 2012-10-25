@@ -55,6 +55,17 @@ res 200:
 { "users": [ { "id": , "" } ] }
 
 
+//Ajout de profils
+POST /user/:id/profils
+{profil_id: "ELV", etablissement_id: 1234}
+
+//Modification d'un profil
+POST /user/:id/profils
+{profil_id: "ELV", etablissement_id: 1234}
+
+DEL /user/:id/profils/
+{profil_id: "ELV", etablissement_id: 1234}
+
 ### La ressource "utilisateur":
 
 {
@@ -193,6 +204,11 @@ GET /preference/:code
 
 ## rights
 
+//Droits sur une ressource précise
 GET /rights/:service/:ressource_id/:user_id
 [create_user, add_membre]
+
+//Droits sur un service en général (les services sont aussi des ressources)
+GET /rights/service/:service_id
+
 

@@ -3,6 +3,7 @@ require_relative '../helper'
 
 describe User do
   #In case of something went wrong
+  delete_test_eleve_with_parents()
   delete_test_users()
 
   it "knows what is a valid uid" do
@@ -95,9 +96,9 @@ describe User do
 
   it "create and destroy a ressource on creation/deletion" do
     u = create_test_user()
-    Ressource[:service_id => "USER", :id_externe => u.id].should.not == nil
+    Ressource[:service_id => SRV_USER, :id => u.id].should.not == nil
     delete_test_users()
-    Ressource[:service_id => "USER", :id_externe => u.id].should == nil
+    Ressource[:service_id => SRV_USER, :id => u.id].should == nil
   end
 
   it "find principal email" do
@@ -121,5 +122,11 @@ describe User do
     Email.filter(:user => u).delete()
     u.email_academique.should == ""
     delete_test_users()
+  end
+
+  it "find user parents" do
+    u = create_test_eleve_with_parents()
+    u.parents.length.should == 2
+    delete_test_eleve_with_parents()
   end
 end

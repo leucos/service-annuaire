@@ -24,5 +24,6 @@ class ServiceActif < Sequel::Model(:service_actif)
   # Not nullable cols and unicity validation
   def validate
     super
+    #todo : Vérifier qu'on ne rajoute pas un compte actif alors qu'il y en a déjà un
   end
 end

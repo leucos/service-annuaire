@@ -46,7 +46,7 @@ class UserApi < Grape::API
     User[params[:id]]
   end
 
-  
+  # TODO : merger ce code avec /:id => nécessite modif SSO
   desc "Renvois le profil utilisateur si on donne le bon login. Nécessite une authentification."
   params do
     requires :login, type: String
@@ -67,10 +67,12 @@ class UserApi < Grape::API
     result
   end
 
+  # Renvois la ressource user
   desc "Service de création d'un utilisateur"
   params do
+    # todo : optional mais si password, login obligé et vice/versa
     requires :login, type: String, desc: "Doit commencer par une lettre et ne pas comporter d'espace"
-    requires :password, type: String
+    optional :password, type: String
     requires :nom, type: String
     requires :prenom, type: String
     optional :sexe, type: String, desc: "Valeurs possibles : F ou M"
@@ -81,7 +83,6 @@ class UserApi < Grape::API
     optional :id_sconet, type: Integer
     optional :id_jointure_aaf, type: Integer
   end
-  
   post do
     p = params
     begin
@@ -101,6 +102,8 @@ class UserApi < Grape::API
     end
   end
 
+  # Même chose que post mais peut ne pas prendre des champs require
+  # Renvois la ressource user complète
   desc "Modification d'un compte utilisateur"
   put "/:id" do
     u = User[params[:id]]
@@ -234,13 +237,13 @@ class UserApi < Grape::API
     sortcol = params["sortcol"].nil? || params["sortcol"].empty? ? 1 : columns.include?(params["sortcol"].to_sym) ? columns.index(params["sortcol"].to_sym) : 1 
     search = params["search"].nil? ?  '' : params["search"]
 
-    response = PagedQuery.new('User',columns, filter,start,length, sortcol, sortdir, search)
+    response = PagedQuery.new('User', columns, filter, start, length, sortcol, sortdir, search)
     response.as_json
   end
 
   desc "Search parents of a student who has a specific sconet_id"
   params do
-    requires :sconet_id, type: Integer 
+    requires :id_sconet, type: Integer 
     optional :nom, type: String
     optional :prenom, type: String
   end
@@ -248,20 +251,21 @@ class UserApi < Grape::API
   get "/parent/eleve"  do
     nom = params["nom"].nil? ?  "" : params["nom"]
     prenom = params["prenom"].nil? ?  "" : params["prenom"]
-    eleve_sconet_id = params["sconet_id"].nil? ?  "" : params["sconet_id"]
-    error!("Bad Request", 400)    if eleve_sconet_id.empty?
-    parents = User.join(:relation_eleve, :user_id => :id).
-        filter(:eleve_id => User.select(:id).filter(:id_sconet => eleve_sconet_id), :type_relation_eleve_id => ["PAR", "RLGL"]).   # parent or representant légal, il y 
-        # a aussi des parents sans authorité parental.
-        select(:nom, :prenom, :login)
+    eleve = User[:id_sconet => params["id_sconet"]]
+    parents = eleve.parents
 
-    if !nom.empty? 
-      parents = parents.filter(:nom => nom)
+    parents.keep_if do |p|
+      keep_parent = true
+      if !nom.empty?
+        keep_parent = p.nom == nom
+      end
+      if !prenom.empty? and keep_parent
+        keep_parent = p.prenom == prenom
+      end
+      keep_parent
     end
-    if !prenom.empty? 
-      parents = parents.filter(:prenom => prenom)
-    end
-    parents  
+
+    parents
   end
 
 

@@ -14,12 +14,40 @@ def new_test_user(login = "test")
 end
 
 def delete_test_users()
-  User.filter(:nom => "test", :prenom => 'test').delete()
-  User.filter(:login => "test").delete()
+  User.filter(:nom => "test", :prenom => 'test').destroy()
+  User.filter(:login => "test").destroy()
 end
 
-def create_test_eleve(login = "eleve")
+def create_test_eleve_with_parents()
+  u = create_test_user("test1")
+  u.id_sconet = 123456
+  u.save()
+  p1 = create_test_user()
+  p1.prenom = "roger"
+  p1.save()
+  p2 = create_test_user("test2")
 
+  # Il faut au moins un etablissement
+  e = Etablissement.first
+  u.add_profil({:user => u, :etablissement => e, :profil_id => PRF_ELV, :actif => true})
+  p1.add_profil({:user => p1, :etablissement => e, :profil_id => PRF_PAR, :actif => true})
+  p2.add_profil({:user => p2, :etablissement => e, :profil_id => PRF_PAR, :actif => true})
+
+  #todo : faire des fonctions dans User pour faire ça...
+  # "vrai" parent
+  RelationEleve.unrestrict_primary_key()
+  RelationEleve.create(:user_id => p1.id, :eleve_id => u.id, :type_relation_eleve_id => "PAR")
+  # Representant legal
+  RelationEleve.create(:user_id => p2.id, :eleve_id => u.id, :type_relation_eleve_id => "RLGL")
+  return u
+end
+
+def delete_test_eleve_with_parents()
+  u = User[:login => "test"]
+  RelationEleve.filter(:eleve_id => u.id).delete() if u
+  RoleUser.filter(:user => User.filter(:nom => "test", :prenom => "test")).delete()
+  RoleUser.filter(:user => User.filter(:login => "test")).delete()
+  delete_test_users()
 end
 
 

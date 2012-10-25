@@ -37,9 +37,24 @@ class User < Sequel::Model(:user)
   # Referential integrity
   one_to_many :enseigne_regroupement
   one_to_many :membre_regroupement
-  one_to_many :profil_user
+  one_to_many :role_user
   one_to_many :telephone
   one_to_many :email
+  # Liste de tous les élèves avec qui l'utilisateur est en relation
+  many_to_many :relation_eleve, :left_key => :user_id, :right_key => :eleve_id, 
+    :join_table => :relation_eleve, :class => self
+  # Liste de tous les utilisateurs (adultes) avec qui l'élève est en relation
+  many_to_many :relation_adulte, :left_key => :eleve_id, :right_key => :user_id, 
+    :join_table => :relation_eleve, :class => self
+  # Liste de tous les parents d'un élève
+  many_to_many :parents, :left_key => :eleve_id, :right_key => :user_id, 
+    :join_table => :relation_eleve, :class => self do |ds|
+    ds.where(:type_relation_eleve_id => ["PAR", "RLGL"])
+  end
+
+  # Important pour la gestion des ressources
+  Service.declare_service_class(SRV_USER, self)
+
   # Check si l'id passé en paramètre correspond bien aux critères d'identifiant ENT
   def self.is_valid_id?(id)
     !!(id.class == String and id.length == 8 and id[0] == 'V' and id[3] == '6' and id[1..2] =~ /[a-zA-Z]{2}/ and id[4..7] =~ /\d{4}/)
@@ -76,13 +91,15 @@ class User < Sequel::Model(:user)
   def after_create
     # Rajoute l'utilisateur en tant que ressource enfant de laclasse 
     # Il pourra ensuite être mis en tant qu'enfant d'un établissement pour donnée le droit à l'admin d'établissement de le modifier/supprimer par exemple
-    Ressource.create(:parent_id => Ressource[:service_id => "LACLASSE"].id, :id_externe => self.id, :service_id => "USER")
+    Ressource.unrestrict_primary_key()
+    Ressource.create(:id => self.id, :service_id => SRV_USER,
+      :parent_id => Ressource[:service_id => SRV_LACLASSE].id, :parent_service_id => SRV_LACLASSE)
     super
   end
 
-  def after_destroy
+  def before_destroy
     # Supprimera toutes les ressources liées à cet utilisateur
-    Ressource.filter(:id_externe => self.id, :service_id => "USER").destroy()
+    Ressource.filter(:id => self.id, :service_id => SRV_USER).destroy()
     super
   end
 
@@ -115,7 +132,7 @@ class User < Sequel::Model(:user)
   end
 
   def profil_actif
-    profil_user.select{|p| p.actif}.first
+    role_user.select{|r| r.actif && r.ressource_service_id == SRV_ETAB}.first
   end
 
   #Trouve le rôle applicatif du profil courant pour l'application passé en paramètre
@@ -156,8 +173,9 @@ class User < Sequel::Model(:user)
   #Change le profil de l'utilisateur
   def change_profil(new_profil, to_change = profil_actif)
     if profil_actif.profil != new_profil
-      ProfilUser.find_or_create(:user => to_change.user, :actif => to_change.actif,
-        :etablissement => to_change.etablissement, :profil => new_profil)
+      RoleUser.find_or_create(:user => to_change.user, :actif => to_change.actif,
+        :ressource_id => to_change.etablissement.id, :ressource_service_id => SRV_ETAB, 
+        :role_id => new_profil.role_id)
 
       #On supprime les role définit spécialement pour cette utilisateur
       RoleUser.filter(:profil_user => to_change).delete()
@@ -168,8 +186,14 @@ class User < Sequel::Model(:user)
   end
 
   def add_profil(new_profil)
-    new_profil = ProfilUser.find_or_create(new_profil)
-    if new_profil.actif
+    np = new_profil
+    #temp : Je ne sais pas si c'est la bonne chose à faire ?
+    RoleUser.unrestrict_primary_key()
+    new_profil = RoleUser.find_or_create(:user => np[:user], :actif => np[:actif],
+        :ressource_id => np[:etablissement].id, :ressource_service_id => SRV_ETAB, 
+        :role_id => Profil[np[:profil_id]].role_id)
+    RoleUser.restrict_primary_key()
+    if np[:actif]
       switch_profil(new_profil)
     end
   end
@@ -243,7 +267,6 @@ class User < Sequel::Model(:user)
     email = Email.filter(:user => self, :academique => true).first
     return email.nil? ? "" : email.adresse
   end
-
 
 private
   def regroupements(type_id)
