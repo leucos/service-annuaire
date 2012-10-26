@@ -12,7 +12,6 @@ def bootstrap_matiere
   #C'est le CSV qui va nous donner les id
   first = true
   puts "parse n_famille_matiere_BCN.csv"
-  puts Dir.pwd
   #Petit script qui va parser les fichiers csv de la BCN (Base Centrale des Nommenclature) pour remplir les tables liées au matières
   CSV.foreach("db/data/n_famille_matiere_BCN.csv") do |row|
     unless first

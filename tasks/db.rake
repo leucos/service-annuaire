@@ -70,6 +70,12 @@ namespace :db do
     bootstrap_annuaire()
   end
 
+  desc 'Truncate famille_matiere and matiere_enseignee and fill them with BCN data'
+  task :bootstrap_matiere => :load_config do
+    require_relative '../db/scripts/bcn_parser'
+    bootstrap_matiere()
+  end
+
   desc 'Truncate all user table but let laclasse.com datas (good for test)'
   task :clean => :load_config do
     require_relative '../db/scripts/bootstrap'

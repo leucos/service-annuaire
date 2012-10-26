@@ -44,6 +44,10 @@ class User < Sequel::Model(:user)
   # Liste de tous les élèves avec qui l'utilisateur est en relation
   many_to_many :relation_eleve, :left_key => :user_id, :right_key => :eleve_id, 
     :join_table => :relation_eleve, :class => self
+  many_to_many :enfants, :left_key => :user_id, :right_key => :eleve_id, 
+    :join_table => :relation_eleve, :class => self do |ds|
+      ds.where(:type_relation_eleve_id => ["PAR", "RLGL"])
+    end
   # Liste de tous les utilisateurs (adultes) avec qui l'élève est en relation
   many_to_many :relation_adulte, :left_key => :eleve_id, :right_key => :user_id, 
     :join_table => :relation_eleve, :class => self
@@ -83,6 +87,24 @@ class User < Sequel::Model(:user)
   def before_create
     self.id = UidGenerator::getNextUid()
     self.date_creation ||= Time.now
+    super
+  end
+
+  def before_destroy
+    #Supprime tous les email et les numéros de téléphone du User
+    email_dataset.destroy()
+    telephone_dataset.destroy()
+
+    # Supprime aussi toutes les relation_eleve liées au User
+    # La syntaxe pour les OR sql est pas évidente je trouve..
+    RelationEleve.where(Sequel.expr(:user_id => self.id) | Sequel.expr(:eleve_id => self.id)).destroy()
+
+    # On supprime tous les RoleUser liés à ce User
+    role_user_dataset.destroy()
+    
+
+    # Et les enseignements
+    enseigne_regroupement_dataset.destroy()
     super
   end
 
@@ -154,8 +176,12 @@ class User < Sequel::Model(:user)
   end
 
   #Change le profil de l'utilisateur
-  def change_profil(new_profil, to_change = profil_actif)
+  def set_profil(new_profil, to_change = profil_actif)
     if profil_actif.profil != new_profil
+      # ProfilUser sert juste a afficher le profil administratif de l'utilisateur
+      ProfilUser.find_or_create(:user => to_change.user, 
+        :etablissement => to_change.etablissement, :profil => new_profil)
+
       RoleUser.find_or_create(:user => to_change.user, :actif => to_change.actif,
         :ressource_id => to_change.etablissement.id, :ressource_service_id => SRV_ETAB, 
         :role_id => new_profil.role_id)
@@ -170,6 +196,10 @@ class User < Sequel::Model(:user)
 
   def add_profil(new_profil)
     np = new_profil
+
+    # ProfilUser sert juste a afficher le profil administratif de l'utilisateur
+    ProfilUser.find_or_create(:user => to_change.user, 
+        :etablissement => to_change.etablissement, :profil => new_profil)
     #temp : Je ne sais pas si c'est la bonne chose à faire ?
     RoleUser.unrestrict_primary_key()
     new_profil = RoleUser.find_or_create(:user => np[:user], :actif => np[:actif],
@@ -203,6 +233,16 @@ class User < Sequel::Model(:user)
   def full_name
     # @todo utiliser un camelize qu'on aura monkey patché a String
     "#{nom.capitalize} #{prenom.capitalize}"
+  end
+
+  def add_parent(parent, type_relation_id=TYP_REL_PAR)
+    RelationEleve.unrestrict_primary_key()
+    RelationEleve.create(:user_id => parent.id, :eleve_id => self.id, :type_relation_eleve_id => type_relation_id)
+  end
+
+  def add_enfant(enfant, type_relation_id=TYP_REL_PAR)
+    RelationEleve.unrestrict_primary_key()
+    RelationEleve.create(:user_id => self.id, :eleve_id => enfant.id, :type_relation_eleve_id => type_relation_id)
   end
 
   #Classe dans laquelle est actuellement (profil actif) l'élève
@@ -242,12 +282,12 @@ class User < Sequel::Model(:user)
   end
 
   def email_principal
-    email = Email.filter(:user => self, :principal => true).first
+    email = email_dataset.filter(:principal => true).first
     return email.nil? ? "" : email.adresse
   end
 
   def email_academique
-    email = Email.filter(:user => self, :academique => true).first
+    email = email_dataset.filter(:academique => true).first
     return email.nil? ? "" : email.adresse
   end
 

@@ -3,7 +3,7 @@ require_relative '../helper'
 
 describe User do
   #In case of something went wrong
-  delete_test_eleve_with_parents()
+  delete_test_users()
   delete_test_users()
 
   it "knows what is a valid uid" do
@@ -124,10 +124,38 @@ describe User do
     delete_test_users()
   end
 
+  it "destroy email on user destruction" do
+    u = create_test_user()
+    id = u.id
+    Email.create(:adresse => "test@laclasse.com", :user => u)
+    delete_test_users()
+    Email.filter(:user_id => id).count.should == 0
+  end
+
+  it "destroy telephone on user destruction" do
+    u = create_test_user()
+    id = u.id
+    Telephone.create(:numero => "0412345678", :user => u, :type_telephone_id => TYP_TEL_MAIS)
+    delete_test_users()  
+    Telephone.filter(:user_id => id).count.should == 0
+  end
+
   it "find user parents" do
     u = create_test_eleve_with_parents()
     u.parents.length.should == 2
-    delete_test_eleve_with_parents()
+    u.relation_adulte.length.should == 2
+    parent = u.parents[0]
+    parent.relation_eleve.length.should == 1
+    delete_test_users()
+  end
+
+  it "add user parent" do
+    u = create_test_user()
+    p = create_test_user("testp")
+    u.add_parent(p)
+    u.parents.length.should == 1
+    p.enfants.length.should == 1
+    delete_test_users()
   end
 
   it ".ressource return associated ressource" do
@@ -135,5 +163,14 @@ describe User do
     u.ressource.id.should == u.id
     u.ressource.service_id.should == SRV_USER
     delete_test_users()
+  end
+
+  it "add a profil" do
+  end
+
+  it "set the profil" do
+  end
+
+  it "change the current active profil" do
   end
 end

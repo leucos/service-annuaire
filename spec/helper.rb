@@ -33,21 +33,11 @@ def create_test_eleve_with_parents()
   p1.add_profil({:user => p1, :etablissement => e, :profil_id => PRF_PAR, :actif => true})
   p2.add_profil({:user => p2, :etablissement => e, :profil_id => PRF_PAR, :actif => true})
 
-  #todo : faire des fonctions dans User pour faire ça...
   # "vrai" parent
-  RelationEleve.unrestrict_primary_key()
-  RelationEleve.create(:user_id => p1.id, :eleve_id => u.id, :type_relation_eleve_id => "PAR")
+  u.add_parent(p1)
   # Representant legal
-  RelationEleve.create(:user_id => p2.id, :eleve_id => u.id, :type_relation_eleve_id => "RLGL")
+  u.add_parent(p2, TYP_REL_RLGL)
   return u
-end
-
-def delete_test_eleve_with_parents()
-  u = User[:login => "test"]
-  RelationEleve.filter(:eleve_id => u.id).delete() if u
-  RoleUser.filter(:user => User.filter(:nom => "test", :prenom => "test")).delete()
-  RoleUser.filter(:user => User.filter(:login => "test")).delete()
-  delete_test_users()
 end
 
 def create_test_user_in_etab(etb_id, login)

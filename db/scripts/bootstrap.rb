@@ -217,9 +217,6 @@ def bootstrap_annuaire()
   # role_eleve_id = Role.create(:libelle => 'Eleve', :service_id => ct_id)
   # role_principal_id = Role.create(:libelle => 'Principal', :service_id => ct_id)
 
-
-  bootstrap_matiere()
-
   create_super_admin_and_ressource_laclasse()
 
   type_etb = TypeEtablissement.create({:nom => 'Service du département', :type_contrat => 'PU'})

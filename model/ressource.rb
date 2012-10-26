@@ -34,6 +34,10 @@ class Ressource < Sequel::Model(:ressource)
   def before_destroy
     # Avant suppression, une ressource doit s'assurer de supprimer tous ses enfants
     self.destroy_children()
+
+    # On supprime tous les RoleUser liés à cette Ressource
+    # Merci au méthode rajoutée par Sequel
+    role_user_dataset.destroy()
     super
   end
 
