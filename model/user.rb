@@ -102,7 +102,6 @@ class User < Sequel::Model(:user)
     # On supprime tous les RoleUser liés à ce User
     role_user_dataset.destroy()
     
-
     # Et les enseignements
     enseigne_regroupement_dataset.destroy()
     super

@@ -16,7 +16,6 @@ describe Rights do
 
   def create_admin_etb(ressource = nil)
     u = create_test_user("test_admin")
-    Role.unrestrict_primary_key()
     ressource = Ressource[:service_id => SRV_LACLASSE] if ressource.nil?
     RoleUser.unrestrict_primary_key()
     RoleUser.create(:user_id => u.id, 

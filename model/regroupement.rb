@@ -28,7 +28,6 @@ class Regroupement < Sequel::Model(:regroupement)
 
   # Referential integrity
   one_to_many :enseigne_regroupement
-  one_to_many :membre_regroupement
   many_to_one :etablissement
   one_to_one :ressource, :key => :id do |ds|
     ds.where(:service_id => [SRV_GROUPE, SRV_CLASSE, SRV_LIBRE])
@@ -61,6 +60,8 @@ class Regroupement < Sequel::Model(:regroupement)
   def before_destroy
     # Supprimera toutes les ressources liées à ce regroupement
     self.ressource.destroy() if self.ressource
+    # Supprime tous les enseignements effectués dans ce regroupement
+    enseigne_regroupement_dataset.destroy()
     super
   end
 
