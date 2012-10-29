@@ -358,18 +358,10 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `annuaire`.`activite` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`activite` (
-  `id` INT NOT NULL AUTO_INCREMENT ,
-  `code` VARCHAR(45) NOT NULL ,
+  `id` VARCHAR(45) NOT NULL ,
   `libelle` VARCHAR(255) NULL ,
   `description` VARCHAR(1024) NULL ,
-  `service_id` CHAR(8) NOT NULL ,
-  PRIMARY KEY (`id`) ,
-  INDEX `fk_activite_service1` (`service_id` ASC) ,
-  CONSTRAINT `fk_activite_service1`
-    FOREIGN KEY (`service_id` )
-    REFERENCES `annuaire`.`service` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+  PRIMARY KEY (`id`) )
 ENGINE = InnoDB;
 
 
@@ -582,21 +574,16 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `annuaire`.`role_user` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`role_user` (
-  `role_id` CHAR(8) NOT NULL ,
   `user_id` CHAR(16) NOT NULL ,
   `ressource_service_id` CHAR(8) NOT NULL ,
   `ressource_id` VARCHAR(255) NOT NULL ,
   `bloque` TINYINT(1)  NOT NULL DEFAULT 0 ,
   `actif` TINYINT(1)  NULL DEFAULT 1 ,
-  PRIMARY KEY (`role_id`, `user_id`, `ressource_service_id`, `ressource_id`) ,
+  `role_id` CHAR(8) NOT NULL ,
+  PRIMARY KEY (`user_id`, `ressource_service_id`, `ressource_id`) ,
   INDEX `fk_role_user_user1` (`user_id` ASC) ,
-  INDEX `fk_role_user_role1` (`role_id` ASC) ,
   INDEX `fk_role_user_ressource1` (`ressource_service_id` ASC, `ressource_id` ASC) ,
-  CONSTRAINT `fk_role_has_user_role1`
-    FOREIGN KEY (`role_id` )
-    REFERENCES `annuaire`.`role` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+  INDEX `fk_role_user_role1` (`role_id` ASC) ,
   CONSTRAINT `fk_role_has_user_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuaire`.`user` (`id` )
@@ -605,6 +592,11 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`role_user` (
   CONSTRAINT `fk_role_user_ressource1`
     FOREIGN KEY (`ressource_service_id` , `ressource_id` )
     REFERENCES `annuaire`.`ressource` (`service_id` , `id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_role_user_role1`
+    FOREIGN KEY (`role_id` )
+    REFERENCES `annuaire`.`role` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -647,19 +639,26 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `annuaire`.`activite_role` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`activite_role` (
-  `activite_id` INT NOT NULL ,
   `role_id` CHAR(8) NOT NULL ,
-  PRIMARY KEY (`activite_id`, `role_id`) ,
+  `service_id` CHAR(8) NOT NULL ,
+  `activite_id` VARCHAR(45) NOT NULL ,
+  PRIMARY KEY (`role_id`, `service_id`, `activite_id`) ,
   INDEX `fk_activite_has_role_role1` (`role_id` ASC) ,
-  INDEX `fk_activite_has_role_activite1` (`activite_id` ASC) ,
-  CONSTRAINT `fk_activite_has_role_activite1`
-    FOREIGN KEY (`activite_id` )
-    REFERENCES `annuaire`.`activite` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+  INDEX `fk_activite_role_service1` (`service_id` ASC) ,
+  INDEX `fk_activite_role_activite1` (`activite_id` ASC) ,
   CONSTRAINT `fk_activite_has_role_role1`
     FOREIGN KEY (`role_id` )
     REFERENCES `annuaire`.`role` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_activite_role_service1`
+    FOREIGN KEY (`service_id` )
+    REFERENCES `annuaire`.`service` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_activite_role_activite1`
+    FOREIGN KEY (`activite_id` )
+    REFERENCES `annuaire`.`activite` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;

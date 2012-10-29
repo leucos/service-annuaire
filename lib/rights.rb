@@ -1,25 +1,31 @@
-#/rights/:service_name/:ressource_external_id/:user_id” ⇒ [“create_user”, “assign_role_user”, “create_classe”] 
-
-
 module Rights
-  rights = [] 
-  def find_rights(user_id, resource_id, rights)
-    role_id = RoleUser[:user_id => user_id, :ressource_id => resource_id].role_id
-    if !role_id.empty? 
-      activities = Activite.filter(:id => ActiviteRole(:role_id => role_id)).select(:libelle)
-      activites.each do |act| 
-        rights.push(act)
+  # Function qui récupère les droits sur une ressource de manière récursive
+  # en remontant tous les ancètres
+  def self.find_rights(user_id, ressource, initial_service_id, rights)
+    role_user = RoleUser[:user_id => user_id, :ressource_id => ressource.id, :ressource_service_id => ressource.service_id]
+    if role_user 
+      activites = ActiviteRole.filter(:role_id => role_user.role_id, :service_id => initial_service_id)
+      activites.each do |act|
+        #puts "rights=#{act[:activite_id]}"
+        rights.push(act[:activite_id])
       end
     end
-    parent_id = Ressource[:id => :resource_id].id
-    if !parent_id.nil?
-      find_rights(user_id, parent_id, rights)
-    else
-      return rights
+    if ressource.parent
+      #puts "parent=#{ressource.parent.inspect}"
+      find_rights(user_id, ressource.parent, initial_service_id, rights)
     end
+
+    rights.uniq!
   end
 
-  def get_rights(user_id, service_id, ressource_id)
-
+  ##/rights/:service_name/:ressource_external_id/:user_id” ⇒ [“create_user”, “assign_role_user”, “create_classe”] 
+  def self.get_rights(user_id, service_id, ressource_id)
+    # Il est possible que la ressource n'existe pas
+    ressource = Ressource[:id => ressource_id, :service_id => service_id]
+    #puts "ressource=#{ressource.parent}"
+    return [] if ressource.nil?
+    rights = []
+    find_rights(user_id, ressource, ressource.service_id, rights)
+    return rights
   end
 end 

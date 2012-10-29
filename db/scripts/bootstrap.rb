@@ -92,6 +92,8 @@ def bootstrap_annuaire()
 
 
   Service.unrestrict_primary_key()
+  ActiviteRole.unrestrict_primary_key()
+  Activite.unrestrict_primary_key()
   # le service de type service pour gérer les droits sur tout le service
   # ex : exemple, on veut savoir si un utilisateur peut créer des droits sur /user
   Service.create(:id => SRV_SERVICE, :libelle => "service", :description => "Service permettant de déclarer les service comme des ressources.", :api => true)
@@ -115,14 +117,31 @@ def bootstrap_annuaire()
   #
   Service.create(:id => SRV_ETAB, :libelle => "Gestion etablissement", :description => "Service de gestion des etablissements de laclasse.com", :url => "/etablissement", :api => true)
 
-  #Création des rôles associés à ce service
+  # Création des activités associées à ce service
+  Activite.create(:id => ACT_CREATE_USER)
+  Activite.create(:id => ACT_DELETE_USER)
+  Activite.create(:id => ACT_UPDATE_USER)
+  Activite.create(:id => ACT_READ_USER)
+
+  # Et des Role et ActiviteRole
   Role.create(:id => ROL_PROF_ETB, :libelle => "Professeur", :service_id => SRV_ETAB)
   Role.create(:id => ROL_ELV_ETB, :libelle => "Elève", :service_id => SRV_ETAB)
+  
   Role.create(:id => ROL_ADM_ETB, :libelle => "Administrateur d'établissement", :service_id => SRV_ETAB)
+  ActiviteRole.create(:service_id => SRV_ETAB, :role_id => ROL_ADM_ETB, :activite_id => ACT_CREATE_USER)
+  ActiviteRole.create(:service_id => SRV_ETAB, :role_id => ROL_ADM_ETB, :activite_id => ACT_READ_USER)
+  ActiviteRole.create(:service_id => SRV_ETAB, :role_id => ROL_ADM_ETB, :activite_id => ACT_UPDATE_USER)
+  ActiviteRole.create(:service_id => SRV_ETAB, :role_id => ROL_ADM_ETB, :activite_id => ACT_DELETE_USER)
+
   Role.create(:id => ROL_PAR_ETB, :libelle => "Parent", :service_id => SRV_ETAB)
   Role.create(:id => ROL_DIR_ETB, :libelle => "Principal", :service_id => SRV_ETAB)
   Role.create(:id => ROL_CPE_ETB, :libelle => "CPE", :service_id => SRV_ETAB)
   Role.create(:id => ROL_BUR_ETB, :libelle => "Personnel administratif", :service_id => SRV_ETAB)
+
+  
+
+  # Et les ActiviteRole
+
 
   #
   # service /classe
@@ -134,9 +153,9 @@ def bootstrap_annuaire()
   Role.create(:id => ROL_ELV_CLS, :libelle => "Elève", :service_id => SRV_CLASSE)
 
   # service /groupe
-
+  Service.create(:id => SRV_GROUPE, :libelle => "Service de gestion des groupes d'élèves", :url => "/groupe", :api => true)
   # service /libre
-
+  Service.create(:id => SRV_LIBRE, :libelle => "Service de gestion des groupes libres", :url => "/libre", :api => true)
   # service /rights
 
   # service /alimentation
@@ -250,7 +269,8 @@ def bootstrap_annuaire()
 
   RelationEleve.unrestrict_primary_key()
   #On va créer pour chaque établissement 100 utilisateurs
-  2.times do |nb|
+  # 2.times do |nb|
+  0.times do |nb|
     etb = nb == 0 ? etb1 : etb2
     100.times do |ind|
       #Création aléatoire d'un nom et d'un utilisateur

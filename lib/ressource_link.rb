@@ -13,6 +13,7 @@ module Sequel
         # todo : ca serait bien de pouvoir rajouter une variable de classe
         service_id = hash[:service_id]
         Service.declare_service_class(service_id, model)
+
         # Retrieve Service ID from 
         model.one_to_one :ressource, :key => :id do |ds|
           ds.where(:service_id => service_id)
@@ -23,7 +24,7 @@ module Sequel
           # Je n'arrive pas a rajouter de variable de classe dynamiquement en ruby
           # Donc je vais rechercher le service ID à la mano
           service_id = Service.class_map.rassoc(self.class)[0]
-          # Rajoute l'utilisateur en tant que ressource enfant de laclasse 
+          # Rajoute l'instance en tant que ressource enfant de laclasse 
           # Il pourra ensuite être mis en tant qu'enfant d'un établissement pour donnée le droit à l'admin d'établissement de le modifier/supprimer par exemple
           Ressource.unrestrict_primary_key()
           Ressource.create(:id => self.id, :service_id => service_id,
@@ -32,7 +33,7 @@ module Sequel
         end
 
         def before_destroy
-          # Supprimera toutes les ressources liées à cet utilisateur
+          # Supprimera toutes les ressources liées à cette instance
           self.ressource.destroy() if self.ressource
           super
         end

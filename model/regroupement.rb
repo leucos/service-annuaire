@@ -22,15 +22,46 @@ class Regroupement < Sequel::Model(:regroupement)
   plugin :validation_helpers
   plugin :json_serializer
 
+  [SRV_CLASSE, SRV_GROUPE, SRV_LIBRE].each do |service|
+    Service.declare_service_class(service, self)  
+  end
+
   # Referential integrity
   one_to_many :enseigne_regroupement
   one_to_many :membre_regroupement
   many_to_one :etablissement
+  one_to_one :ressource, :key => :id do |ds|
+    ds.where(:service_id => [SRV_GROUPE, SRV_CLASSE, SRV_LIBRE])
+  end
 
   # Not nullable cols
   def validate
     super
     validates_presence [:type_regroupement_id]
+  end
+
+
+  def after_create
+    # On définit le type de service en fonction du type de regroupement
+    case type_regroupement_id
+      when TYP_REG_CLS
+        service_id = SRV_CLASSE
+      when TYP_REG_GRP
+        service_id = SRV_GROUPE
+      when TYP_REG_LBR
+        service_id = SRV_LIBRE
+    end
+
+    Ressource.unrestrict_primary_key()
+    Ressource.create(:id => self.id, :service_id => service_id,
+      :parent_id => etablissement_id, :parent_service_id => SRV_ETAB)
+    super
+  end
+
+  def before_destroy
+    # Supprimera toutes les ressources liées à ce regroupement
+    self.ressource.destroy() if self.ressource
+    super
   end
 
   #Les regroupement de type classe ont forcément un niveau

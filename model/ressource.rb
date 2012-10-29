@@ -23,7 +23,8 @@ class Ressource < Sequel::Model(:ressource)
 
   # Referential integrity
   many_to_one :service
-  many_to_one :parent, :key=>[:parent_service_id, :parent_id]
+  # Todo : make it work and add children
+  #many_to_one :parent, :key=>[:parent_service_id, :parent_id], :class => self
   one_to_many :role_user, :key=>[:ressource_service_id, :ressource_id]
 
   # Not nullable cols and unicity validation
@@ -54,5 +55,9 @@ class Ressource < Sequel::Model(:ressource)
   # Renvois toutes les ressources qui ont comme parent la ressource en cours
   def children()
     Ressource.filter(:parent_id => self.id, :parent_service_id => self.service_id).all
+  end
+
+  def parent()
+    self.parent_id ? Ressource[:id => self.parent_id, :service_id => self.parent_service_id] : nil
   end
 end
