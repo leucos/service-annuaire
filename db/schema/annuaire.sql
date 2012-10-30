@@ -386,11 +386,24 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `annuaire`.`param_service`
+-- Table `annuaire`.`application`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuaire`.`param_service` ;
+DROP TABLE IF EXISTS `annuaire`.`application` ;
 
-CREATE  TABLE IF NOT EXISTS `annuaire`.`param_service` (
+CREATE  TABLE IF NOT EXISTS `annuaire`.`application` (
+  `id` CHAR(8) NOT NULL ,
+  `libelle` VARCHAR(255) NULL ,
+  `description` VARCHAR(1024) NULL ,
+  PRIMARY KEY (`id`) )
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `annuaire`.`param_application`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `annuaire`.`param_application` ;
+
+CREATE  TABLE IF NOT EXISTS `annuaire`.`param_application` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `code` VARCHAR(45) NOT NULL ,
   `preference` TINYINT(1)  NOT NULL COMMENT 'Preference utilisateur ou param etablissement ?' ,
@@ -398,26 +411,26 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`param_service` (
   `description` VARCHAR(1024) NULL ,
   `valeur_defaut` VARCHAR(2000) NULL ,
   `autres_valeurs` VARCHAR(2000) NULL COMMENT '\'Strings séparée par \\\";\\\". Choix multiples\'' ,
-  `service_id` CHAR(8) NOT NULL ,
   `type_param_id` CHAR(4) NOT NULL ,
-  `role_id` CHAR(8) NOT NULL ,
+  `application_id` CHAR(8) NOT NULL ,
+  `role_id` CHAR(8) NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_param_service_type_param1` (`type_param_id` ASC) ,
-  INDEX `fk_param_service_service1` (`service_id` ASC) ,
   INDEX `fk_param_service_role1` (`role_id` ASC) ,
+  INDEX `fk_param_application_application1` (`application_id` ASC) ,
   CONSTRAINT `fk_param_service_type_param1`
     FOREIGN KEY (`type_param_id` )
     REFERENCES `annuaire`.`type_param` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_param_service_service1`
-    FOREIGN KEY (`service_id` )
-    REFERENCES `annuaire`.`service` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
   CONSTRAINT `fk_param_service_role1`
     FOREIGN KEY (`role_id` )
     REFERENCES `annuaire`.`role` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_param_application_application1`
+    FOREIGN KEY (`application_id` )
+    REFERENCES `annuaire`.`application` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB, 
@@ -507,50 +520,25 @@ COMMENT = 'Une ressource est n\'importe quel élément sur lequel on peut ' /* c
 
 
 -- -----------------------------------------------------
--- Table `annuaire`.`service_actif`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuaire`.`service_actif` ;
-
-CREATE  TABLE IF NOT EXISTS `annuaire`.`service_actif` (
-  `service_id` CHAR(8) NOT NULL ,
-  `etablissement_id` INT NOT NULL ,
-  `actif` TINYINT(1)  NOT NULL DEFAULT 0 ,
-  PRIMARY KEY (`service_id`, `etablissement_id`) ,
-  INDEX `fk_service_has_etablissement_etablissement1` (`etablissement_id` ASC) ,
-  INDEX `fk_service_has_etablissement_service1` (`service_id` ASC) ,
-  CONSTRAINT `fk_service_has_etablissement_service1`
-    FOREIGN KEY (`service_id` )
-    REFERENCES `annuaire`.`service` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_service_has_etablissement_etablissement1`
-    FOREIGN KEY (`etablissement_id` )
-    REFERENCES `annuaire`.`etablissement` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
 -- Table `annuaire`.`param_etablissement`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `annuaire`.`param_etablissement` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`param_etablissement` (
   `etablissement_id` INT NOT NULL ,
-  `param_service_id` INT NOT NULL ,
+  `param_application_id` INT NOT NULL ,
   `valeur` VARCHAR(2000) NULL ,
-  PRIMARY KEY (`etablissement_id`, `param_service_id`) ,
+  PRIMARY KEY (`etablissement_id`, `param_application_id`) ,
   INDEX `fk_param_service_has_etablissement_etablissement1` (`etablissement_id` ASC) ,
-  INDEX `fk_param_etablissement_param_service1` (`param_service_id` ASC) ,
+  INDEX `fk_param_etablissement_param_application1` (`param_application_id` ASC) ,
   CONSTRAINT `fk_param_service_has_etablissement_etablissement1`
     FOREIGN KEY (`etablissement_id` )
     REFERENCES `annuaire`.`etablissement` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_param_etablissement_param_service1`
-    FOREIGN KEY (`param_service_id` )
-    REFERENCES `annuaire`.`param_service` (`id` )
+  CONSTRAINT `fk_param_etablissement_param_application1`
+    FOREIGN KEY (`param_application_id` )
+    REFERENCES `annuaire`.`param_application` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -563,19 +551,19 @@ DROP TABLE IF EXISTS `annuaire`.`param_user` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`param_user` (
   `user_id` CHAR(16) NOT NULL ,
-  `param_service_id` INT NOT NULL ,
+  `param_application_id` INT NOT NULL ,
   `valeur` VARCHAR(2000) NULL ,
-  PRIMARY KEY (`user_id`, `param_service_id`) ,
+  PRIMARY KEY (`user_id`, `param_application_id`) ,
   INDEX `fk_param_service_has_user_user1` (`user_id` ASC) ,
-  INDEX `fk_param_user_param_service1` (`param_service_id` ASC) ,
+  INDEX `fk_param_user_param_application1` (`param_application_id` ASC) ,
   CONSTRAINT `fk_param_service_has_user_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuaire`.`user` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_param_user_param_service1`
-    FOREIGN KEY (`param_service_id` )
-    REFERENCES `annuaire`.`param_service` (`id` )
+  CONSTRAINT `fk_param_user_param_application1`
+    FOREIGN KEY (`param_application_id` )
+    REFERENCES `annuaire`.`param_application` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -655,10 +643,12 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`activite_role` (
   `role_id` CHAR(8) NOT NULL ,
   `service_id` CHAR(8) NOT NULL ,
   `activite_id` VARCHAR(45) NOT NULL ,
+  `parent_service_id` CHAR(8) NULL COMMENT 'permet de restreindre l\'activité à un parent.\nEx : On donne l\'activité read_file que sur tous les enfant d\'établissement mais pas sur le reste.' ,
   PRIMARY KEY (`role_id`, `service_id`, `activite_id`) ,
   INDEX `fk_activite_has_role_role1` (`role_id` ASC) ,
   INDEX `fk_activite_role_service1` (`service_id` ASC) ,
   INDEX `fk_activite_role_activite1` (`activite_id` ASC) ,
+  INDEX `fk_activite_role_service2` (`parent_service_id` ASC) ,
   CONSTRAINT `fk_activite_has_role_role1`
     FOREIGN KEY (`role_id` )
     REFERENCES `annuaire`.`role` (`id` )
@@ -672,6 +662,35 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`activite_role` (
   CONSTRAINT `fk_activite_role_activite1`
     FOREIGN KEY (`activite_id` )
     REFERENCES `annuaire`.`activite` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_activite_role_service2`
+    FOREIGN KEY (`parent_service_id` )
+    REFERENCES `annuaire`.`service` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `annuaire`.`application_etablissement`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `annuaire`.`application_etablissement` ;
+
+CREATE  TABLE IF NOT EXISTS `annuaire`.`application_etablissement` (
+  `application_id` CHAR(8) NOT NULL ,
+  `etablissement_id` INT NOT NULL ,
+  PRIMARY KEY (`application_id`, `etablissement_id`) ,
+  INDEX `fk_application_has_etablissement_etablissement1` (`etablissement_id` ASC) ,
+  INDEX `fk_application_has_etablissement_application1` (`application_id` ASC) ,
+  CONSTRAINT `fk_application_has_etablissement_application1`
+    FOREIGN KEY (`application_id` )
+    REFERENCES `annuaire`.`application` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_application_has_etablissement_etablissement1`
+    FOREIGN KEY (`etablissement_id` )
+    REFERENCES `annuaire`.`etablissement` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;

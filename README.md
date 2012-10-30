@@ -14,6 +14,11 @@ ATTENTION, il ne s'agit pas forcément de l'api actuelle mais de ce que l'on aim
 
 Permet de manipuler les utilisateurs ainsi que leur ressources associés (numéro de téléphone, adresse, email, rattachements?)
 
+  `
+  //TODO : gestion création de compte
+  //Activation avec code
+  //Gestion des rattachement à un autre fournisseur d'identité
+
   // open bar, sans cookie
   GET /user?login=test&password=test
   res 200:
@@ -43,7 +48,7 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
 
   // modification d'un compte utilisateur
   PUT /user
-  { "prenom": "Toto", "password": "test2" }
+  { "prenom": "Toto", "password": "test2", telephone: {type: "MAIS", numero: "0412345678"} }
   res 200:
   { "id": ... }
 
@@ -55,19 +60,55 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   { "users": [ { "id": , "" } ] }
 
 
-  //Ajout de profils
-  POST /user/:id/profils
-  {profil_id: "ELV", etablissement_id: 1234}
+  //Récupération des relations
+  GET /user/:user_id/relations
 
-  //Modification d'un profil
-  POST /user/:id/profils
-  {profil_id: "ELV", etablissement_id: 1234}
+  //Ajout d'une relation entre un adulte et un élève
+  //Il ne peut y en avoir qu'une part adulte
+  POST /user/:user_id/relation
+  //Cas d'un user qui devient parent d'élève
+  {eleve_id: VAA60001, type_relation_id: "PAR"}
 
-  DEL /user/:id/profils/
-  {profil_id: "ELV", etablissement_id: 1234}
+  //Modification de la relation
+  PUT /user/:user_id/relation/:eleve_id
+  {type_relation_id: "RLGL"}
+
+  //Suppression de la relation (1 par adulte)
+  DEL /user/:user_id/relation/:eleve_id
+
+  //Email ?
+  GET /user/:user_id/emails
+  [{id: 1, adresse: "test@laclasse.com"},{id: 2, adresse: "test2@laclasse.com"}]
+  POST /user/:user_id/email
+  param : {adresse: "alivet@ac-lyon.fr", academique: true}
+  res : {id: 1, adresse: "alivet@ac-lyon.fr", academique: true}
+  PUT /user/:user_id/email/:email_id
+  {adresse: "test@lyon.fr"}
+  DELETE /user/:user_id/email/:email_id
+
+  //Telephone
+  GET /user/:user_id/telephones
+  [{id: 1, numero: "0472541212", type_telephone_id: "MAIS"}]
+  POST /user/:user_id/telephone
+  param : {numero: "0472548989"}
+  res: {id: 1, numero: "0472548989", type_telephone_id: "MAIS"}
+  DELETE /user/:user_id/telephone/:telephone_id
+
+  //Récupère les préférences d'une application
+  GET /user/:user_id/application/application_id/preferences
+  //Modifie une préférence
+  PUT /user/:user_id/application/application_id/preferences
+  {"show_toolbar":true}
+  //Remettre la valeure par défaut de la préférence
+  PUT /user/:user_id/application/application_id/preferences
+  {"show_toolbar":null}
+  //Remettre la valeure par défaut pour toutes les préférences
+  DEL /user/:user_id/application/application_id/preferences
+  `
 
 ### La ressource "utilisateur":
 
+  `
   {
     "id": "vaa60001",
     "prenom": "Toto",
@@ -106,76 +147,17 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
         "groupe": "23"
       }
     ]
-  }// open bar, sans cookie
-  GET /user?login=test&password=test
-  res 200:
-  { id: "vaa60001", ... }
-  res 40x:
-  { "code": 1, ... }
-
-  // récupère le cookie ou l'id en param GET ou
-  // une entête HTTP maison
-  GET /user/vaa6001
-  res 200:
-  { "id": "vaa60001", ... }
-
-  // création d'un compte utilisateur. Nécessite les droits
-  // admin ou une clef d'un autre service (via la conf)
-  POST /user
-  { "login": "test", "password": "test", "prenom": "Toto" ...}
-  res 200:
-  { "id": ... }
-  res 400: // infos insuffisantes
-  { "code": 15, "message": ""}
-  res 401: // pas les droits
-
-  // suppression d'un utilisateur
-  DELETE /user/vaa60001
-  res 200
-
-  // modification d'un compte utilisateur
-  PUT /user
-  { "prenom": "Toto", "password": "test2" }
-  res 200:
-  { "id": ... }
-
-  // recherche les utilisateurs. Filtré par le compte
-  // utilisateur en cours. Limite par défaut et limite max
-  // en fonction du compte courant...
-  GET /users?query=toto+titi&limit=100&page=1&order=prenom&prenom=titi&etab=15
-  res 200:
-  { "users": [ { "id": , "" } ] }
-
-
-  //Ajout de profils
-  POST /user/:id/profils
-  {profil_id: "ELV", etablissement_id: 1234}
-
-  //Modification d'un profil
-  POST /user/:id/profils
-  {profil_id: "ELV", etablissement_id: 1234}
-
-  DEL /user/:id/profils/
-  {profil_id: "ELV", etablissement_id: 1234}
-
+  }
+  `
 
 ## /etablissement
 
+  `
   // creer un etablissement
   POST /etablissement
   { "id": 1234, "nom": "Saint Honoré" }
   res 200:
   { "id":  ... }
-
-  POST /etablissement/:id/role/:user_id
-  {"role": "professeur"}
-
-  GET /etablissement/:id/role/:user_id
-
-  //Il faut aussi pouvoir récupérer quel role à le droit d'attribuer un utilisateur sur un établissement
-  //Car on ne doit pas pouvoir attribuer un rôle de super admin si on est que admin_etb
-  GET /etablissement/:id/attrib_role/:user_id
-  ["professeur","admin_etb","eleve"]
 
   //Assigner un role à quelqu'un
   POST /etablissement/:id/role_user/:user_id
@@ -214,12 +196,49 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   //Récupérer les niveaux pour cet établissement
   GET /etablissement/:id/classe/niveaux
 
+  //Ajout de profils utilisateur
+  //Ajoute aussi le role en conséquence
+  POST /etablissement/:id/profil_user/:user_id
+  {profil_id: "ELV"}
+
+  //Modification d'un profil
+  //Modifie le role en conséquence
+  PUT /etablissement/:id/profil_user/:user_id/:old_profil_id
+  {new_profil_id: "PROF", etablissement_id: 1234}
+
+  //Suppression d'un profil
+  //Supprimme le RoleUser associé
+  DEL /etablissement/:id/profil_user/:user_id/:profil_id
+
+  //Parametre d'établissement
+  //Récupère un parametre précis
+  GET /etablissement/:id/parametre/:service_id/:code
+  //Modifie un parametre
+  PUT /etablissement/:id/parametre/:service_id/:code
+  //Remettre la valeure par défaut de la préférence
+  DEL /etablissement/:id/parametre/:service_id/:code
+
+  //Récupère tous les paramètres sur un service donné
+  GET /etablissement/:id/parametres/:service_id
+  //Récupère tous les  paramètres de l'établissement
+  GET /etablissement/:id/parametres
+
+  //Gestion de l'activation des services
+  GET /etablissement/:id/services_actifs
+  {"GED": true, "CAHIER_TXT": false}
+  PUT /etablissement/:id/services_actifs/:service_id
+  {actif: true|false}
+  `
+
 ## /matiere
+  `
   //Permet de chercher une matière parmis les quelques 2600 fournient par la BCN
   GET /matiere/?query="Fran"&niveau="4EME"
+  `
 
 ## /libre (groupes libres)
 
+  `
   POST /libre
   { "nom": "Test groupe" }
   res 200:
@@ -238,12 +257,15 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   {role_id : "MEMBRE"}
   //Supprimer son role sur l'établissement
   DEL /etablissement/:id/role_user/:user_id
+  `
 
 ## /classe
 
+  `
   //Récupérer tous les niveaux possibles
   GET /classe/niveaux/
   ["CP",... "4EME"... "Terminale"]
+  `
 
 ## /alimentation
 
@@ -303,11 +325,26 @@ C'est un élément centrale de l'annuaire car il permet à un établissement de 
     ]
   }
 
-## Preference
+## Paramètre d'établissement et Préférence utilisateur
 
-  GET /preference/:code
-
-
+  //Récupérer un paramètre
+  GET /param/:param_id
+  {id: 1, service_id: "GED", type_param_id: "BOOL", code: "affiche_photo", preference: true}
+  //Créer un paramètre
+  POST /param/
+  {service_id: "GED", type_param_id: "BOOL", code: "affiche_photo", preference: true}
+  PUT /param/:param_id
+  {preference: false}
+  DEL /param/:param_id
+  //Récupère les paramètres d'un service
+  GET /params/:service_id
+  [{id: 1, code: ""...}, {id: 2, code: "..."}]
+  //Récupère tous les paramètres
+  GET /params
+  {
+    "GED" : [{id: 1, code: ""...}, {id: 2, code: "..."}]
+    "CAHIER_TXT" : [{id: 1, code: ""...}, {id: 2, code: "..."}]
+  }
 ## rights
 
   //Droits sur une ressource précise
