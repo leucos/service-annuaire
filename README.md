@@ -20,7 +20,8 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   //Gestion des rattachement à un autre fournisseur d'identité
 
   // open bar, sans cookie
-  GET /user?login=test&password=test
+  * GET /user?login=test&password=test
+
   res 200:
   { id: "vaa60001", ... }
   res 40x:
@@ -28,13 +29,13 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
 
   // récupère le cookie ou l'id en param GET ou
   // une entête HTTP maison
-  GET /user/vaa6001
+  * GET /user/vaa6001
   res 200:
   { "id": "vaa60001", ... }
 
   // création d'un compte utilisateur. Nécessite les droits
   // admin ou une clef d'un autre service (via la conf)
-  POST /user
+  * POST /user
   { "login": "test", "password": "test", "prenom": "Toto" ...}
   res 200:
   { "id": ... }
@@ -43,7 +44,7 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   res 401: // pas les droits
 
   // suppression d'un utilisateur
-  DELETE /user/vaa60001
+  * DELETE /user/vaa60001
   res 200
 
   // modification d'un compte utilisateur
@@ -55,7 +56,7 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   // recherche les utilisateurs. Filtré par le compte
   // utilisateur en cours. Limite par défaut et limite max
   // en fonction du compte courant...
-  GET /users?query=toto+titi&limit=100&page=1&order=prenom&prenom=titi&etab=15
+  * GET /users?query=toto+titi&limit=100&page=1&order=prenom&prenom=titi&etab=15
   res 200:
   { "users": [ { "id": , "" } ] }
 
