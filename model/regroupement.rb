@@ -33,7 +33,7 @@ class Regroupement < Sequel::Model(:regroupement)
     ds.where(:service_id => [SRV_GROUPE, SRV_CLASSE, SRV_LIBRE])
   end
 
-  def self.get_type_ressource(type_regroupement_id)
+  def self.get_service_id(type_regroupement_id)
     case type_regroupement_id
       when TYP_REG_CLS
         return SERVICE_CLASSE
