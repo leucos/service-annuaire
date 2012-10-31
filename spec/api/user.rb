@@ -9,7 +9,7 @@ describe UserApi do
   # In case something went wrong
   delete_test_eleve_with_parents()
   delete_test_users()
-
+=begin
   should "return user profile when giving good login/password" do
     u = create_test_user()
     get("/user?login=test&password=test").status.should == 200
@@ -119,6 +119,33 @@ describe UserApi do
     user = JSON.parse(last_response.body)
     delete_test_users("testuser")
   end
+=end
+  should "be able to add new relations to users if sending good parameters and return bad request or resource not found otherwise" do 
+    u = create_test_user("testuser")
+    post("user/#{u.id}/relation", :eleve_id => "VAA60000", :type_relation_id => "PAR").status.should == 201
+    response = JSON.parse(last_response.body)
+    # bad request 
+    post("user/#{u.id}/relation", :type_relation_id => "PAR").status.should == 400
+
+    #resource not found (non trouvé)
+    post("user/VADD/relation", :eleve_id => "VAA60000", :type_relation_id => "PAR").status.should == 404 
+
+    delete_test_users("testuser")
+    #puts response.inspect
+  end
+
+  should "be able to modify the type of an existing relation between two users" do 
+    u = create_test_user("testuser")
+    #good request
+    put("user/#{u.id}/relation/VAA60000", :type_relation_id => "PAR").status.should == 200
+    #bad requests
+    put("user/#{u.id}/relation/VAA60000", :type_relation_id => "").status.should == 400
+    put("user/#{u.id}/relation/", :type_relation_id => "PAR").status.should == 405
+    put("user/vva/relation/VAA60000", :type_relation_id => "PAR").status.should == 403
+
+    delete_test_users("testuser")
+  end 
+
 
 =begin
   should "filter the results using valid columns values" do 

@@ -52,7 +52,7 @@ class UserApi < Grape::API
     requires :login, type: String
   end
   get "profil/:login" do
-    result = {}
+    result = {} 
     u = User[:login => params[:login]]
     if u
       #result[:user] = u
@@ -268,16 +268,68 @@ class UserApi < Grape::API
     parents
   end
 
+  # Récupération des relations 
+  # returns the relations of a user 
+  # actually not complet 
   get "/:id/relations" do 
-
     id = params[:id]
     if !id.nil? and !id.empty?
       user = User[:id => id]
     else
       error!("Utilisateur non trouvé", 404)
     end 
-    user.to_json
-  end 
+    relation = !user.relation_adulte.empty? ? user.relation_adulte : user.relation_eleve
+  end
+
+  
+  # @state[not finished]
+  #Il ne peut y en avoir qu'une part adulte
+  #Cas d'un user qui devient parent d'élève {eleve_id: VAA60001, type_relation_id: "PAR"}
+  desc "Ajout d'une relation entre un adulte et un élève"  
+  post "/:user_id/relation" do
+    user_id = params["user_id"]
+    if User[:id => user_id].nil? 
+      error!("ressource non trouvé", 404)
+    end 
+    eleve_id = params["eleve_id"]
+    type_relation_id = params["type_relation_id"]
+
+    if !eleve_id.nil? and !eleve_id.empty?
+      if !type_relation_id.nil? and !type_relation_id.empty?
+        #User[:id => user_id].add_relation(eleve_id, type_relation_id) 
+        # returns {id: user_id ,relations: [{eleve_id, type_relation id}]}
+
+        {:user_id => user_id , :eleve_id => eleve_id , :type_relation_id => type_relation_id}
+      else
+        error!("mauvaise requete", 400)
+      end 
+    else
+      error!("mauvaise requete", 400) 
+    end 
+
+  end
+
+
+  # @state[not finished]
+  desc "Modification de la relation"
+  params do
+    requires :type_relation_id, type: String
+    requires :eleve_id, type:String 
+  end
+  put "/:user_id/relation/:eleve_id" do
+    user_id = params["user_id"]
+    if User[:id => user_id].nil?
+      error!("ressource non trouvé", 403)
+    end
+    eleve_id = params["eleve_id"]
+    type_relation_id = !params["type_relation_id"].empty? ? params["type_relation_id"] : error!("mauvaise requete", 400)
+    {:user_id => user_id, :eleve_id => eleve_id}
+  end
+  
+
+  #//Suppression de la relation (1 par adulte)
+  #DEL /user/:user_id/relation/:eleve_id  
+
 
 
 end
