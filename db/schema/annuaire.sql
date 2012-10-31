@@ -478,7 +478,7 @@ DROP TABLE IF EXISTS `annuaire`.`email` ;
 CREATE  TABLE IF NOT EXISTS `annuaire`.`email` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `adresse` VARCHAR(255) NOT NULL ,
-  `principal` TINYINT(1)  NOT NULL DEFAULT 1 COMMENT 'adresse d\'envois par défaut' ,
+  `principal` TINYINT(1)  NOT NULL DEFAULT 0 COMMENT 'adresse d\'envois par défaut' ,
   `valide` TINYINT(1)  NOT NULL DEFAULT 0 COMMENT 'Si l\'email a été validé suite à un envois de mail (comme GitHub).' ,
   `academique` TINYINT(1)  NOT NULL DEFAULT 0 COMMENT 'Si c\'est un mail académique (pour le PEN)' ,
   `user_id` CHAR(16) NOT NULL ,

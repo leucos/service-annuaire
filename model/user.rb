@@ -138,6 +138,11 @@ class User < Sequel::Model(:user)
     super(BCrypt::Password.create(pass))
   end
 
+  # Renvois toutes les relation_eleve dans lequel est impliqué l'utilisateur
+  def relations
+    RelationEleve.filter({:eleve_id => self.id, :user_id => self.id}.sql_or).all
+  end
+
   def profil_actif
     role_user.select{|r| r.actif && r.ressource_service_id == SRV_ETAB}.first
   end
@@ -283,16 +288,35 @@ class User < Sequel::Model(:user)
     profil_actif.etablissement
   end
 
+  # Rajoute un email à un utilisateur et le met en principal si c'est le premier
+  # @param adresse : adresse de l'email
+  # @param academique : si oui ou non il s'agit d'un mail académique
+  # todo : détecter automatiquement le type académique ?
+  def add_email(adresse, academique = false)
+    # Si l'utilisateur n'a pas d'email c'est son mail principal
+    principal = email.count == 0
+    Email.create(:adresse => adresse, :user => self, :academique => academique, :principal => principal)
+  end
+
   def email_principal
     email = email_dataset.filter(:principal => true).first
-    return email.nil? ? "" : email.adresse
+    return email.nil? ? nil : email.adresse
   end
 
   def email_academique
     email = email_dataset.filter(:academique => true).first
-    return email.nil? ? "" : email.adresse
+    return email.nil? ? nil : email.adresse
   end
 
+  # Ajoute un téléphone à l'utilisateur
+  # type par défaut Maison mais détecte si c'est un portable
+  def add_telephone(numero, type_telephone_id = TYP_TEL_MAIS)
+    # On ne détecte le téléphone portable que si on a le type par défaut
+    if type_telephone_id == TYP_TEL_MAIS and (numero[0,2] == "06" or numero[0,5] == "+33 6")
+      type_telephone_id = TYP_TEL_PORT
+    end
+    Telephone.create(:numero => numero, :user => self, :type_telephone_id => type_telephone_id)
+  end
 private
   def regroupements(etablissement_id, type_id)
     service_id = Regroupement.get_service_id(type_id)
