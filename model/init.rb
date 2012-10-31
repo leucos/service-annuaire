@@ -11,13 +11,16 @@ require 'bcrypt'
 require_relative 'service'
 require_relative 'activite'
 require_relative 'activite_role'
+require_relative 'application'
+require_relative 'application_etablissement'
 require_relative 'enseigne_regroupement'
 require_relative 'etablissement'
 require_relative 'famille_matiere'
 require_relative 'fonction'
+require_relative 'last_uid'
 require_relative 'matiere_enseignee'
 require_relative 'niveau'
-require_relative 'param_service'
+require_relative 'param_application'
 require_relative 'param_etablissement'
 require_relative 'param_user'
 require_relative 'profil'
@@ -27,7 +30,6 @@ require_relative 'relation_eleve'
 require_relative 'ressource'
 require_relative 'role'
 require_relative 'role_user'
-require_relative 'service_actif'
 require_relative 'telephone'
 require_relative 'type_etablissement'
 require_relative 'type_param'
@@ -43,7 +45,7 @@ MODEL_MAP = {}
 DB.tables.each do |table|
   capitalize_name = table.to_s.split(/[^a-z0-9]/i).map{|w| w.capitalize}.join
   begin
-    MODEL_MAP[table] = Kernel.const_get(capitalize_name) unless table == :last_uid #table speciale qui n'a pas de model
+    MODEL_MAP[table] = Kernel.const_get(capitalize_name)
   rescue => e
     puts e.message
   end

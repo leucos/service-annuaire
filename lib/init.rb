@@ -1,4 +1,3 @@
-require __DIR__('uid_generator')
 require __DIR__('query')
 require __DIR__('ressource_link')
 require __DIR__('alimentation/alimentor')

@@ -23,10 +23,8 @@ class Service < Sequel::Model(:service)
   plugin :json_serializer
 
   # Referential integrity
-  one_to_many :param_service
   one_to_many :ressource
   one_to_many :role
-  one_to_many :service_actif
 
   # A un service correspond une classe représentant la ressource (etablissement, user etc.)
   # Cette classe doit avoir l'operateur [] pour récupérer la ressource avec son identifiant
@@ -55,8 +53,10 @@ class Service < Sequel::Model(:service)
   end
 
   def before_destroy
-    # Supprimera toutes les ressources liées à ce service (devrait pas y en avoir)
+    # Supprimera toutes les ressources liées à ce service (devrait y en avoir qu'une)
     Ressource.filter(:id => self.id, :service_id => SRV_SERVICE).destroy()
+    # On supprime aussi tous les roles liés à ce service
+    role_dataset.destroy()
     super
   end
 end

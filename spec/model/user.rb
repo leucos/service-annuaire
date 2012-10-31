@@ -17,13 +17,13 @@ describe User do
 
   it "gives the good next id to user even after a destroy" do
     last_id = DB[:last_uid].first[:last_uid]
-    awaited_next_id = UidGenerator.increment(last_id)
+    awaited_next_id = LastUid.increment_uid(last_id)
 
     u = create_test_user()
     u.id.should == awaited_next_id
     delete_test_users()
 
-    awaited_next_id = UidGenerator.increment(awaited_next_id)
+    awaited_next_id = LastUid.increment_uid(awaited_next_id)
     u = create_test_user()
     u.id.should == awaited_next_id
     delete_test_users()
@@ -101,6 +101,9 @@ describe User do
     Ressource[:service_id => SRV_USER, :id => u.id].should == nil
   end
 
+  it "add an email" do
+  end
+
   it "find principal email" do
     u = create_test_user()
     e = Email.create(:adresse => "test@laclasse.com", :user => u)
@@ -131,6 +134,17 @@ describe User do
     delete_test_users()
     Email.filter(:user_id => id).count.should == 0
   end
+
+  it "find all emails" do
+  end
+
+  it "add a telephone to the user" do
+  end
+
+  it "find all telephones" do
+  end
+
+
 
   it "destroy telephone on user destruction" do
     u = create_test_user()
@@ -168,9 +182,27 @@ describe User do
   it "add a profil" do
   end
 
-  it "set the profil" do
+  it "modify a profil" do
   end
 
-  it "change the current active profil" do
+  it "destroy a profil" do
+  end
+
+  it "add user to a classe" do
+  end
+
+  it "add user to a groupe eleve" do
+  end
+
+  it "add user to a groupe libre" do
+  end
+
+  it "add a relation to an eleve" do
+  end
+
+  it "modify a relation to an eleve" do
+  end
+
+  it "delete a relation to an eleve" do
   end
 end

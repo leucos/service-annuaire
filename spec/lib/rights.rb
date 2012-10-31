@@ -20,7 +20,7 @@ describe Rights do
     RoleUser.unrestrict_primary_key()
     RoleUser.create(:user_id => u.id, 
       :ressource_id => ressource.id, :ressource_service_id => ressource.service_id,
-      :role_id => ROL_TEST, :actif => true)
+      :role_id => ROL_TEST)
 
     return u
   end
@@ -53,19 +53,19 @@ describe Rights do
     delete_test_role()
   end
 
-  it "should return create rights for user on resource class if user has role on etab " do
-    Rights.get_rights(admin.id, SRV_CLASSE, cls_id).shoud == [ACT_CREATE_USER]
-  end
+  # it "should return create rights for user on resource class if user has role on etab " do
+  #   Rights.get_rights(admin.id, SRV_CLASSE, cls_id).shoud == [ACT_CREATE_USER]
+  # end
 
-  it "should handle merge similar rights" do
-    # On donne des droits sur un établissement et sur laclasse
+  # it "should handle merge similar rights" do
+  #   # On donne des droits sur un établissement et sur laclasse
     
-    Rights.get_rights(admin.id, SRV_ETAB, ressource_etab.id).should == [ACT_CREATE_USER]
-  end
+  #   Rights.get_rights(admin.id, SRV_ETAB, ressource_etab.id).should == [ACT_CREATE_USER]
+  # end
 
-  it "should return create rights on service user for laclasse admin" do
-    Rights.get_rights(admin.id, SRV_SERVICE, SRV_USER).should == [ACT_CREATE]
-  end
+  # it "should return create rights on service user for laclasse admin" do
+  #   Rights.get_rights(admin.id, SRV_SERVICE, SRV_USER).should == [ACT_CREATE]
+  # end
 
   it "cumulate rights from different role" do
     # On donne un role d'admin d'établissement
@@ -73,5 +73,8 @@ describe Rights do
     # On doit cumuler les role d'admin d'établissement et de groupe sur le groupe
 
   end
+
+  # todo : Tester que l'on puisse accéder aux fichiers d'un établissement mais pas à celui des classes
+  # notion de service_parent_id
   
 end

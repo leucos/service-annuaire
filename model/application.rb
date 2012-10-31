@@ -1,25 +1,25 @@
 #coding: utf-8
 #
-# model for 'param_etablissement' table
-# generated 2012-10-19 17:11:43 +0200 by model_generator.rb
+# model for 'application' table
+# generated 2012-10-31 10:03:57 +0100 by model_generator.rb
 #
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 # COLUMN_NAME                   | DATA_TYPE           | NULL? | KEY | DEFAULT | EXTRA
 # ------------------------------+---------------------+----------+----------+------------+--------------------
-# param_application_id              | int(11)             | false    | PRI      |            | 
-# etablissement_id              | int(11)             | false    | PRI      |            | 
-# valeur                        | varchar(2000)       | true     |          |            | 
+# id                            | char(8)             | false    | PRI      |            | 
+# libelle                       | varchar(255)        | true     |          |            | 
+# description                   | varchar(1024)       | true     |          |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
-class ParamEtablissement < Sequel::Model(:param_etablissement)
+class Application < Sequel::Model(:application)
 
   # Plugins
   plugin :validation_helpers
   plugin :json_serializer
 
   # Referential integrity
-  many_to_one :param_application
-  many_to_one :etablissement
+  one_to_many :application_etablissement
+  one_to_many :param_application
 
   # Not nullable cols and unicity validation
   def validate

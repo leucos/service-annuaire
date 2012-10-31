@@ -415,15 +415,15 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`param_application` (
   `application_id` CHAR(8) NOT NULL ,
   `role_id` CHAR(8) NULL ,
   PRIMARY KEY (`id`) ,
-  INDEX `fk_param_service_type_param1` (`type_param_id` ASC) ,
-  INDEX `fk_param_service_role1` (`role_id` ASC) ,
+  INDEX `fk_param_application_type_param1` (`type_param_id` ASC) ,
+  INDEX `fk_param_application_role1` (`role_id` ASC) ,
   INDEX `fk_param_application_application1` (`application_id` ASC) ,
-  CONSTRAINT `fk_param_service_type_param1`
+  CONSTRAINT `fk_param_application_type_param1`
     FOREIGN KEY (`type_param_id` )
     REFERENCES `annuaire`.`type_param` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  CONSTRAINT `fk_param_service_role1`
+  CONSTRAINT `fk_param_application_role1`
     FOREIGN KEY (`role_id` )
     REFERENCES `annuaire`.`role` (`id` )
     ON DELETE NO ACTION
@@ -529,9 +529,9 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`param_etablissement` (
   `param_application_id` INT NOT NULL ,
   `valeur` VARCHAR(2000) NULL ,
   PRIMARY KEY (`etablissement_id`, `param_application_id`) ,
-  INDEX `fk_param_service_has_etablissement_etablissement1` (`etablissement_id` ASC) ,
+  INDEX `fk_param_application_has_etablissement_etablissement1` (`etablissement_id` ASC) ,
   INDEX `fk_param_etablissement_param_application1` (`param_application_id` ASC) ,
-  CONSTRAINT `fk_param_service_has_etablissement_etablissement1`
+  CONSTRAINT `fk_param_application_has_etablissement_etablissement1`
     FOREIGN KEY (`etablissement_id` )
     REFERENCES `annuaire`.`etablissement` (`id` )
     ON DELETE NO ACTION
@@ -554,9 +554,9 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`param_user` (
   `param_application_id` INT NOT NULL ,
   `valeur` VARCHAR(2000) NULL ,
   PRIMARY KEY (`user_id`, `param_application_id`) ,
-  INDEX `fk_param_service_has_user_user1` (`user_id` ASC) ,
+  INDEX `fk_param_application_has_user_user1` (`user_id` ASC) ,
   INDEX `fk_param_user_param_application1` (`param_application_id` ASC) ,
-  CONSTRAINT `fk_param_service_has_user_user1`
+  CONSTRAINT `fk_param_application_has_user_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuaire`.`user` (`id` )
     ON DELETE NO ACTION
@@ -578,10 +578,9 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`role_user` (
   `user_id` CHAR(16) NOT NULL ,
   `ressource_service_id` CHAR(8) NOT NULL ,
   `ressource_id` VARCHAR(255) NOT NULL ,
-  `bloque` TINYINT(1)  NOT NULL DEFAULT 0 ,
-  `actif` TINYINT(1)  NULL DEFAULT 1 ,
   `role_id` CHAR(8) NOT NULL ,
-  PRIMARY KEY (`user_id`, `ressource_service_id`, `ressource_id`) ,
+  `bloque` TINYINT(1)  NOT NULL DEFAULT 0 ,
+  PRIMARY KEY (`user_id`, `ressource_service_id`, `ressource_id`, `role_id`) ,
   INDEX `fk_role_user_user1` (`user_id` ASC) ,
   INDEX `fk_role_user_ressource1` (`ressource_service_id` ASC, `ressource_id` ASC) ,
   INDEX `fk_role_user_role1` (`role_id` ASC) ,

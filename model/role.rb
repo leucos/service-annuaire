@@ -21,7 +21,7 @@ class Role < Sequel::Model(:role)
   # Referential integrity
   many_to_one :service
   one_to_many :activite_role
-  one_to_many :param_service
+  one_to_many :param_application
   one_to_many :role_user
 
   # Not nullable cols and unicity validation
@@ -32,7 +32,7 @@ class Role < Sequel::Model(:role)
 
   def before_destroy
     activite_role_dataset.destroy()
-    param_service_dataset.destroy()
+    param_application_dataset.destroy()
     role_user_dataset.destroy()
     super
   end

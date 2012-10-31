@@ -1,5 +1,9 @@
 # Liste des id constants dans la BDD
 
+# LETTRE DES IDENTIFIANT POUR L'ENT DU RHONE
+LETTRE_PROJET_LACLASSE = "V"
+CHIFFR_PROJET_LACLASSE = "6"
+
 #
 # TypeTelephone
 # 

@@ -14,7 +14,7 @@ def create_super_admin_and_ressource_laclasse()
   #Création du compte super admin
   u = User.create(:nom => "Super", :prenom => "Didier", :sexe => "M", :login => "root", :password => "root")
   RoleUser.unrestrict_primary_key()
-  RoleUser.create(:user_id => u.id, :ressource_id => r.id, :ressource_service_id => r.service_id, :role_id => ROL_TECH, :actif => true)
+  RoleUser.create(:user_id => u.id, :ressource_id => r.id, :ressource_service_id => r.service_id, :role_id => ROL_TECH)
 end
 
 def truncate_ressource()
@@ -52,8 +52,8 @@ def bootstrap_annuaire()
   #On ne peut pas faire un bete DB.tables.each car il faut respecter l'ordre des foreign keys
   # TODO : supprimer les ressources en faisant attention aux parents
   [
-  :last_uid, :activite_role, :role_user, :activite, :role, :param_service, :type_param, :ressource, :service, :email,
-  :telephone, :etablissement, :enseigne_regroupement, :regroupement,
+  :last_uid, :activite_role, :role_user, :activite, :role, :param_application, :type_param, :ressource, :service, :email,
+  :telephone, :etablissement, :enseigne_regroupement, :regroupement, :application_etablissement,
   :user, :type_telephone, :type_regroupement, :type_relation_eleve, :profil, :niveau, :relation_eleve
   ].each do |table|
     if table == :ressource

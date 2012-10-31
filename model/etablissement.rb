@@ -30,7 +30,7 @@ class Etablissement < Sequel::Model(:etablissement)
   plugin :ressource_link, :service_id => SRV_ETAB
 
   # Referential integrity
-  one_to_many :app_active
+  one_to_many :application_etablissement
   one_to_many :profil_user
   one_to_many :regroupement
   many_to_one :type_etablissement
