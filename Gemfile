@@ -6,7 +6,7 @@ gem 'sequel'
 gem 'mysql2'
 gem 'thin'
 gem 'bcrypt-ruby'
-gem 'grape', :github => "intridea/grape", :branch => "master"
+gem 'grape'
 gem 'i18n'
 gem 'rake'
 gem 'archive-tar-minitar'
