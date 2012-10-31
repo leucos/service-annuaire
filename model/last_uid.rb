@@ -1,3 +1,14 @@
+#coding: utf-8
+#
+# model for 'last_uid' table
+# generated 2012-10-31 10:03:57 +0100 by model_generator.rb
+#
+# ------------------------------+---------------------+----------+----------+------------+--------------------
+# COLUMN_NAME                   | DATA_TYPE           | NULL? | KEY | DEFAULT | EXTRA
+# ------------------------------+---------------------+----------+----------+------------+--------------------
+# last_uid                      | char(8)             | true     |          |            | 
+# ------------------------------+---------------------+----------+----------+------------+--------------------
+#
 # 
 # Génération des UID de la forme Vxx6iiii
 # 
@@ -5,24 +16,24 @@
 #  On commence par VAA60000 et on incrémente le nombre. Une fois à VAA69999, on passe à VAB60000
 #  et ainsi de suite.
 
-#  getNextUid sauvegarde automatiquement le nouvel uid généré dans la table last_uid
+#  get_next_uid sauvegarde automatiquement le nouvel uid généré dans la table last_uid
 #
 # Structure de données
 #    Table last_uid : enregistre le dernier UID généré et lors du next met tout de suite à jour
 #    (au sein d'une opération lock tables mysql) le nouvel uid généré. C'est un système qui rend possible
 #    les accès concurrentiel à la création d'uid. Un peu comme auto incremente mais avec des id non numeric
 #
-# Usage : @newuid = UidGenerator::getNextUid()
+# Usage : @newuid = LastUid.get_next_uid()
 # L'usage le plus fréquent est lors de la création d'un utilisateur 
-# (un before_create hook appel getNextUid : User.create()
+# un before_create hook appel get_next_uid() lors d'un User.create()
 #
-module UidGenerator
-  LETTRE_PROJET_LACLASSE = "V"
-  CHIFFR_PROJET_LACLASSE = "6"
-
+class LastUid < Sequel::Model(:last_uid)
   # Calcul l'uid suivant et le sauvegarde dans la table last_uid
   # afin de garantir l'unicité des id lors d'accès concurrentiels
-  def self.getNextUid ()
+  # Attention : Cette fonction gère l'unicité des uid dans l'ent.
+  # Il y en a environ 7 millions disponibles, c'est beaucoup mais pas trop.
+  # Vueillez à savoir ce que vous faites quand vous appelez cette fonction !!!
+  def self.get_next_uid ()
     #Très important on se met en mode transaction pour s'assurer que 2 mêmes
     #uid ne seront pas générés
     uid = nil
@@ -46,7 +57,7 @@ module UidGenerator
       lastuid = lastuid[:last_uid]
       
       # increment the id by 1 
-      uid = increment(lastuid)
+      uid = increment_uid(lastuid)
       # Sauvegarde du dernier UID générer
       DB[:last_uid].update(:last_uid => uid)
     end
@@ -57,7 +68,9 @@ module UidGenerator
     return uid
   end
 
-  def self.increment(lastuid)
+  # Fait l'incrementation suivant la méthode des plaques d'immatriculation
+  # sans rien sauvegarder dans la base de données
+  def self.increment_uid(lastuid)
     
     uid = nil
     alphabet = ('A'..'Z').to_a
@@ -99,5 +112,4 @@ module UidGenerator
     uid = LETTRE_PROJET_LACLASSE + curchr1 + curchr2 + CHIFFR_PROJET_LACLASSE + curnum
     return uid
   end
-
 end

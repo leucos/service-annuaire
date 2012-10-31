@@ -29,9 +29,9 @@ def create_test_eleve_with_parents()
 
   # Il faut au moins un etablissement
   e = Etablissement.first
-  u.add_profil({:user => u, :etablissement => e, :profil_id => PRF_ELV, :actif => true})
-  p1.add_profil({:user => p1, :etablissement => e, :profil_id => PRF_PAR, :actif => true})
-  p2.add_profil({:user => p2, :etablissement => e, :profil_id => PRF_PAR, :actif => true})
+  u.add_profil({:user => u, :etablissement => e, :profil_id => PRF_ELV})
+  p1.add_profil({:user => p1, :etablissement => e, :profil_id => PRF_PAR})
+  p2.add_profil({:user => p2, :etablissement => e, :profil_id => PRF_PAR})
 
   # "vrai" parent
   u.add_parent(p1)

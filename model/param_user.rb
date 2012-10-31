@@ -6,7 +6,7 @@
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 # COLUMN_NAME                   | DATA_TYPE           | NULL? | KEY | DEFAULT | EXTRA
 # ------------------------------+---------------------+----------+----------+------------+--------------------
-# param_service_id              | int(11)             | false    | PRI      |            | 
+# param_application_id              | int(11)             | false    | PRI      |            | 
 # user_id                       | char(16)            | false    | PRI      |            | 
 # valeur                        | varchar(2000)       | true     |          |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
@@ -18,7 +18,7 @@ class ParamUser < Sequel::Model(:param_user)
   plugin :json_serializer
 
   # Referential integrity
-  many_to_one :param_service
+  many_to_one :param_application
   many_to_one :user
 
   # Not nullable cols and unicity validation

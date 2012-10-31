@@ -115,39 +115,97 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
     "prenom": "Toto",
     "nom": "Titi",
     "login": "toto",
-    "emails": [
-      { "id": 12, "type": "academique", "email": "test@erasme.org" },
-      { "id": 13, "type": "personnel", "email": "quiche@gmail.com" }
+    "adresse_emails": [
+      { "id": 12, "adresse": "test@erasme.org", "principal": true, "academique" : false, "valide": true },
+      { "id": 13, "adresse": "test2@erasme.org", "principal": false, "academique" : false, "valide": true }
+    ],
+    telephones: [
+      {id: 1, numero: "0478963214", type_telephone_id: "MAIS"}
+      {id: 2, numero: "0678963214", type_telephone_id: "PORT"}
     ],
     "etablissements": [
-      { "id": "BBBn",
-        "nom": "St Didier",
-        "profils": [ "prof", "parent" ]
+      { 
+        id: "1",
+        "nom": "Collège privé St Didier",
+        "profils": [ "Enseignant", "Parent" ],
+        rights: [
+          {"READ" service_id: "USER"}
+          {"READ" service_id: "STORAGE", parent_service_id:"ETAB"}
+        ],
+        relations_eleve: [
+          {
+            user_id: "vaa60001", eleve_id: "vaa60002", 
+            type_relation_eleve_id: "PAR",
+            rights: [
+              {"READ" service_id: "STORAGE"},
+              {"READ" service_id: "NOTE"}
+            ]
+          }
+        ],
+        classes: [
+          {
+            id: 1, 
+            nom: "4emeC",
+            role: ["PROF", "PROF_PRINCIPAL"]
+            "matieres_enseignees": [ { "id": 2, "nom": "Anglais" } ]
+            rights: [
+              {"READ" service_id: "STORAGE"}
+            ]
+            blog: {
+              id: 2,
+              adresse: "classe.blogs.laclasse.com",
+              rights: [{"ADMIN", service_id: "BLOG"}]
+            }
+          }
+        ],
+        groupes_eleves: [
+          {
+            id: 1, 
+            nom: "4eme ANGLAIS",
+            "matieres_enseignees": [ { "id": 2, "nom": "Anglais" } ]
+            rights: [
+              {code:"READ", service_id: "STORAGE"}
+            ]
+            blog: {
+              id: 2,
+              adresse: "groupe.blogs.laclasse.com",
+              rights: [{"ADMIN", service_id: "BLOG"}]
+            }
+          }
+        ]
       },
       {
-        "id": "aaa",
-        "nom": "Maurice",
-        "profils": [ "parent" ]
+        "id": 2,
+        "nom": "Collège Public Maurice",
+        "profils": [ "Parent" ],
+        rights: [{"READ" service_id: "STORAGE"}]
+        classes: [
+          {
+            id: 3,
+            nom: "3emeA",
+            role: ["PARENT"],
+            rights: [
+              {"READ" service_id: "STORAGE"}
+              {"READ" service_id: "CAHIER"}
+            ]
+          }
+        ]
       }
     ],
-    "groupes": [
+    "groupes_libres": [
       {
-        "id": ,
-      "type": "classe",
-        "etablissement": "tyu",
-        "matieres": [ { "id": "", "nom": "Maths" } ]
-        "nom": "quper",
-        "profils": [ "admin", "prof_principale" ]
-      
-  }  ],
-    "ressources": [
-      {
-        "id": ,
-        "type": "calendrier",
-        "data": "1234",
-        "groupe": "23"
-      }
-    ]
+        "id": 5,
+        "nom": "Super groupe libre",
+        "rights": [
+          {code:"CREATE", service_id: "STORAGE"}
+          {code:"ADD_USER", service_id: "LIBRE"}
+        ]
+      }  
+    ],
+    "storage": {"id": 123},
+    "agenda": {id: 24},
+    "cahier_textes": {id:12}
+    "email": {id: "toto@laclasse.com"}
   }
   `
 
@@ -196,6 +254,8 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
 
   //Récupérer les niveaux pour cet établissement
   GET /etablissement/:id/classe/niveaux
+  [
+  ]
 
   //Ajout de profils utilisateur
   //Ajoute aussi le role en conséquence

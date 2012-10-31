@@ -37,8 +37,8 @@ class User < Sequel::Model(:user)
 
   # Referential integrity
   one_to_many :enseigne_regroupement
-  one_to_many :membre_regroupement
   one_to_many :role_user
+  one_to_many :profil_user
   one_to_many :telephone
   one_to_many :email
   # Liste de tous les élèves avec qui l'utilisateur est en relation
@@ -85,7 +85,7 @@ class User < Sequel::Model(:user)
 
   # Très important : Hook qui génère l'id unique du user avant de l'inserer dans la BDD
   def before_create
-    self.id = UidGenerator::getNextUid()
+    self.id = LastUid::get_next_uid()
     self.date_creation ||= Time.now
     super
   end
@@ -104,6 +104,9 @@ class User < Sequel::Model(:user)
     
     # Et les enseignements
     enseigne_regroupement_dataset.destroy()
+
+    # Enfin tous ses profils dans l'établissement
+    profil_user_dataset.destroy()
     super
   end
 
@@ -195,13 +198,13 @@ class User < Sequel::Model(:user)
 
   def add_profil(new_profil)
     np = new_profil
-
-    # ProfilUser sert juste a afficher le profil administratif de l'utilisateur
-    ProfilUser.find_or_create(:user => to_change.user, 
-        :etablissement => to_change.etablissement, :profil => new_profil)
-    #temp : Je ne sais pas si c'est la bonne chose à faire ?
     RoleUser.unrestrict_primary_key()
-    new_profil = RoleUser.find_or_create(:user => np[:user], :actif => np[:actif],
+    ProfilUser.unrestrict_primary_key()
+    # ProfilUser sert juste a afficher le profil administratif de l'utilisateur
+    ProfilUser.find_or_create(:user => self, 
+        :etablissement => np[:etablissement], :profil_id => np[:profil_id])
+    #temp : Je ne sais pas si c'est la bonne chose à faire ?
+    new_profil = RoleUser.find_or_create(:user => np[:user], 
         :ressource_id => np[:etablissement].id, :ressource_service_id => SRV_ETAB, 
         :role_id => Profil[np[:profil_id]].role_id)
     RoleUser.restrict_primary_key()
@@ -291,15 +294,16 @@ class User < Sequel::Model(:user)
   end
 
 private
-  def regroupements(type_id)
+  def regroupements(etablissement_id, type_id)
+    service_id = Regroupement.get_service_id(type_id)
     Regroupement.filter(:type_regroupement_id => type_id,
-      :etablissement_id => profil_actif.etablissement_id,
-      :membre_regroupement => MembreRegroupement.filter(:user => self))
+      :etablissement_id => etablissement_id,
+      :id => RoleUser.filter(:user => self, :ressource_service_id => service_id).select(:ressource_id))
   end
 
-  def enseigne_regroupements(type_id)
+  def enseigne_regroupements(etablissement_id, type_id)
     Regroupement.filter(:type_regroupement_id => type_id,
-      :etablissement_id => profil_actif.etablissement_id,
+      :etablissement_id => etablissement_id,
       :enseigne_regroupement => EnseigneRegroupement.filter(:user => self))
   end
 end

@@ -16,8 +16,7 @@ class TypeParam < Sequel::Model(:type_param)
   plugin :json_serializer
 
   # Referential integrity
-  one_to_many :param_app
-  one_to_many :param_service
+  one_to_many :param_application
 
   # Not nullable cols and unicity validation
   def validate
