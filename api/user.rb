@@ -51,7 +51,7 @@ class UserApi < Grape::API
   params do
     requires :login, type: String
   end
-  get "info/:login" do
+  get "profil/:login" do
     result = {}
     u = User[:login => params[:login]]
     if u
@@ -267,6 +267,17 @@ class UserApi < Grape::API
 
     parents
   end
+
+  get "/:id/relations" do 
+
+    id = params[:id]
+    if !id.nil? and !id.empty?
+      user = User[:id => id]
+    else
+      error!("Utilisateur non trouvé", 404)
+    end 
+    user.to_json
+  end 
 
 
 end

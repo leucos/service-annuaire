@@ -10,11 +10,9 @@ describe UserApi do
   delete_test_eleve_with_parents()
   delete_test_users()
 
-=begin
-
   should "return user profile when giving good login/password" do
-    create_test_user()
-    get('/user?login=test&password=test').status.should == 200
+    u = create_test_user()
+    get("/user?login=test&password=test").status.should == 200
     delete_test_users()
   end
 
@@ -70,9 +68,11 @@ describe UserApi do
   end
 
   should "return sso attributes" do
-    get("/user/sso_attributes/root").status.should == 200
+    u = create_test_user()
+    get("/user/sso_attributes/test").status.should == 200
     sso_attr = JSON.parse(last_response.body)
-    sso_attr["login"].should == "root"
+    sso_attr["login"].should == u.login
+    delete_test_users()
   end
 
   should "return sso attributes men" do
@@ -80,11 +80,12 @@ describe UserApi do
     sso_attr = JSON.parse(last_response.body)
   end
 
+
   should "respond to a query without parameters" do
     get("user/query/users").status.should == 200
     sso_attr = JSON.parse(last_response.body)
-    sso_attr["TotalModelRecords"].should == 201
-    sso_attr["TotalQueryResults"].should == 201
+    sso_attr["TotalModelRecords"].should == User.count
+    sso_attr["TotalQueryResults"].should == User.count
   end
 
   should "query can takes also columns as a URL parameter" do 
@@ -92,11 +93,9 @@ describe UserApi do
     cols = CGI::escape(columns.join(",")) 
     get("user/query/users?columns=#{cols}").status.should == 200
     sso_attr = JSON.parse(last_response.body)
-    sso_attr["TotalModelRecords"].should == 201
-    sso_attr["TotalQueryResults"].should == 201
-    puts sso_attr['Data'][0].inspect
-    
-    
+    sso_attr["TotalModelRecords"].should == User.count
+    sso_attr["TotalQueryResults"].should == User.count
+       
   end 
 
   should "query responds also to model instance methods" do
@@ -112,8 +111,16 @@ describe UserApi do
     sso_attr["TotalQueryResults"].should == 1
     user = sso_attr["Data"][0]
     user['email_principal'].should != nil 
-
   end
+
+  should "returns user relations" do 
+    u = create_test_user("testuser")
+    get("user/#{u.id}/relations").status.should == 200
+    user = JSON.parse(last_response.body)
+    delete_test_users("testuser")
+  end
+
+=begin
   should "filter the results using valid columns values" do 
     where  = {:sexe => "F", :nom => "sarkozy"}
     # associatif array, i dont know if this work for other language 
@@ -184,7 +191,6 @@ describe UserApi do
     result[0]["nom"].should == "bruni"
     result[0]["prenom"].should == "francois"
   end 
-=end
 
   should  "filter parent based also nom, prenom and eleve_id" do
     create_test_eleve_with_parents()
@@ -200,5 +206,6 @@ describe UserApi do
     result[0][:prenom].should == "roger"
 
     delete_test_eleve_with_parents()
-  end 
+  end
+=end 
 end

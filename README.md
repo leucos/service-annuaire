@@ -238,7 +238,6 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   `
 
 ## /libre (groupes libres)
-
   `
   POST /libre
   { "nom": "Test groupe" }
@@ -346,8 +345,8 @@ C'est un élément centrale de l'annuaire car il permet à un établissement de 
     "GED" : [{id: 1, code: ""...}, {id: 2, code: "..."}]
     "CAHIER_TXT" : [{id: 1, code: ""...}, {id: 2, code: "..."}]
   }
-## rights
 
+## rights
   //Droits sur une ressource précise
   GET /rights/:service_id/:ressource_id/:user_id
   [create_user, add_membre]
