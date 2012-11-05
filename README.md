@@ -84,7 +84,7 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   param : {adresse: "alivet@ac-lyon.fr", academique: true}
   res : {id: 1, adresse: "alivet@ac-lyon.fr", academique: true}
   PUT /user/:user_id/email/:email_id
-  {adresse: "test@lyon.fr"}
+  {adresse: "test@lyon.fr", type: "principal ou academique"}
   DELETE /user/:user_id/email/:email_id
 
   //Telephone

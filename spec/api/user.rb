@@ -136,8 +136,10 @@ describe UserApi do
 
   should "be able to modify the type of an existing relation between two users" do 
     u = create_test_user("testuser")
+    eleve = create_test_user()
     #good request
     put("user/#{u.id}/relation/VAA60000", :type_relation_id => "PAR").status.should == 200
+    get("user/#{u.id}/relation/VAA60000")
     #bad requests
     put("user/#{u.id}/relation/VAA60000", :type_relation_id => "").status.should == 400
     put("user/#{u.id}/relation/", :type_relation_id => "PAR").status.should == 405
@@ -155,16 +157,47 @@ describe UserApi do
   end
 
   should "returns the list  of user emails or empty if user doesnot have one"  do 
+    #create user and add emails
     u = create_test_user("testuser")
+    u.add_email("testuser@laclasse.com", false)
+    u.add_email("testuser2@laclasse.com", true)
+    
+    #send request
     get("user/#{u.id}/emails").status.should == 200
-    delete_test_users("testuser")
-    response = JSON.parse(last_response.body)
-    response.count.should == 0 
-    get("user/VAA60000/emails").status.should == 200
     response = JSON.parse(last_response.body)
     response.count.should == 2
+    
+    #emails are deleted authomatically when user is deleted
+    #u.delete_email("testuser@laclasse.com")
+    #u.delete_email("testuser2@laclasse.com")
+    delete_test_users("testuser") 
+  end 
+
+  should "adds an email to a specific user" do 
+    u = create_test_user("testuser")
+    post("user/#{u.id}/email").status.should == 400
+    post("user/VAaadfq/email", :adresse => "testuser@laclasse.com").status.should == 403
+    post("user/#{u.id}/email", :adresse => "testuser@laclasse.com").status.should == 201
+    u.email.first.adresse.should == "testuser@laclasse.com" 
+    delete_test_users("testuser")
+  end
+
+  should "modify an email of a user" do 
+    u = create_test_user("testuser")
+    u.add_email("testuser@laclasse.com")
+    id = u.email.first.id
+    put("user/#{u.id}/email/vddd", :adresse => "modifie@laclasse.com").status.should == 403
+    put("user/#{u.id}/email/#{id}", :adresse => "modifie@laclasse.com", :principal => false).status.should == 200
+    response = last_response.body 
+    delete_test_users("testuser")
     puts response
-    end 
+  end 
+
+  should "delete an email of a specific user" do 
+
+  end
+
+
 
 
 =begin

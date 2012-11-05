@@ -334,9 +334,13 @@ class UserApi < Grape::API
   delete "/:user_id/relation/:eleve_id" do 
     user_id = params["user_id"]
     eleve_id = params["eleve_id"]
+
     if User[:id => eleve_id].nil? or User[:id => user_id].nil? #adult or eleve donnot exist
       error!("ressource non trouvé", 403)
     end 
+
+    u = User[user_id]
+
     # if relation des not exist  
       #error! ("ressource non trouvé", 403)
     #else
@@ -345,7 +349,7 @@ class UserApi < Grape::API
     "ok"  
   end
 
-  desc  "recuperer la liste des emails"
+  desc "recuperer la liste des emails"
   get "/:user_id/emails" do 
     user_id = params["user_id"]
     u = User[:id => user_id]
@@ -359,7 +363,50 @@ class UserApi < Grape::API
     end 
   end
 
+  desc "ajouter un email à l'utilisateur"
+  post ":user_id/email" do
+    user_id = params["user_id"]
+    u = User[:id => user_id]
+    if u.nil? 
+      error!("ressource non trouvé", 403)
+    else
+      if params["adresse"].nil? or params["adresse"].empty? 
+        error!("mauvaise requete", 400) 
+      else 
+        adresse = params["adresse"] 
+      end 
+      if params["academique"].nil? or params["academique"].empty? 
+          academique = false 
+      else
+          academique = params["academique"] == "true" ? true : false 
+      end 
+      u.add_email(adresse, academique)
+      
+    end 
+  end
 
-
+# modifier l'adresse et le type de l'email
+  desc "modifier un email existant"
+  put ":user_id/email/:email_id" do
+    user_id = params["user_id"]
+    email_id = params["email_id"].to_i
+    u = User[:id => user_id]
+    if u.nil? or !u.email.map{|email| email.id}.include?(email_id)
+      error!("ressource non trouvé", 403)
+    else
+      adresse = params["adresse"]
+      if adresse.nil?
+        error!("mauvaise requete", 400)
+      else
+        academique = !params["academique"].nil?  and  params["academique"] == true ? true : false
+        principal = !params["principal"].nil?  and  params["principal"] == true ? true : false
+        email = Email[:id => email_id]
+        email.adresse = adresse
+        email.academique = academique
+        email.principal = principal 
+        email.save 
+      end 
+    end 
+  end 
 
 end
