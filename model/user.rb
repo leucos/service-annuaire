@@ -143,43 +143,10 @@ class User < Sequel::Model(:user)
     RelationEleve.filter({:eleve_id => self.id, :user_id => self.id}.sql_or).all
   end
 
+  # Renvoi le premier profil_user trouvé dans un établissement
+  # Pas super mais il faut réfléchir à cette notion de profil_actif
   def profil_actif
     role_user.select{|r| r.actif && r.ressource_service_id == SRV_ETAB}.first
-  end
-
-  #Trouve le rôle applicatif du profil courant pour l'application passé en paramètre
-  #Ce rôle peut être définit par défaut ou surcharger pour l'utilisateur
-  def role_application(application)
-    user_profil = profil_actif
-    if not user_profil.nil?
-      #On cherche d'abord si l'utilisateur n'a pas un rôle spécifique 
-      role_application = RoleUser.
-          filter(:role=>Role.filter(:app => application), :profil_user => user_profil).first 
-      if role_application.nil?
-        #Si ce n'est pas le cas on prend le rôle lié à son profil
-        role_application = RoleProfil.
-          filter(:role => Role.filter(:app => application), :profil_id => user_profil.profil_id).first
-      end
-    else
-       role_application = nil
-    end
-
-    #puts "role_application=#{role_application} application=#{application.id}, profil=#{user_profil.user_id}"
-    return role_application.nil? ? nil : role_application.role
-  end
-
-  def activites(application)
-    #On cherche a trouver les activités (action possible)
-    #d'un utilisateur pour une application donnée sur son profil courant
-    activite_code = []
-    role = role_application(application)
-    unless role.nil?
-      activite_models = Activite.filter(:activite_role => ActiviteRole.filter(:role => role))
-      activite_models.each do |a|
-        activite_code.push(a.code.to_sym)
-      end
-    end
-    return activite_code
   end
 
   #Change le profil de l'utilisateur
@@ -213,20 +180,6 @@ class User < Sequel::Model(:user)
     RoleUser.find_or_create(:user => self, 
         :ressource_id => etablissement_id, :ressource_service_id => SRV_ETAB, 
         :role_id => Profil[profil_id].role_id)
-  end
-
-  def switch_profil(profil)
-    current = profil_actif
-    if profil != current
-      current.actif = false
-      current.save
-
-      profil.actif = true
-      profil.save
-
-      #IMPORTANT CAR LES ASSOCIATIONS SONT MISE EN CACHE
-      refresh
-    end
   end
 
   def civilite
@@ -267,22 +220,17 @@ class User < Sequel::Model(:user)
     enseigne_regroupements('GRP').all
   end
 
-  def matiere_enseigne
+  def matiere_enseigne(etablissement_id)
     MatiereEnseigne.
       filter(:enseigne_regroupement => EnseigneRegroupement.
         filter(:user => self, :regroupement => Regroupement.
-          filter(:etablissement_id => profil_actif.etablissement_id))).all
+          filter(:etablissement_id => etablissement_id))).all
   end
 
   def matiere_enseigne(groupe_id)
     MatiereEnseigne.
       filter(:enseigne_regroupement => EnseigneRegroupement.
         filter(:user => self, :regroupement_id  => groupe_id)).all
-  end
-  def etablissement
-    return nil if profil_actif.nil?
-
-    profil_actif.etablissement
   end
 
   # Rajoute un email à un utilisateur et le met en principal si c'est le premier
@@ -314,6 +262,7 @@ class User < Sequel::Model(:user)
     end
     Telephone.create(:numero => numero, :user => self, :type_telephone_id => type_telephone_id)
   end
+
 private
   def regroupements(etablissement_id, type_id)
     service_id = Regroupement.get_service_id(type_id)
