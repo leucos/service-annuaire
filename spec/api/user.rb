@@ -146,6 +146,26 @@ describe UserApi do
     delete_test_users("testuser")
   end 
 
+  should "be able to delete an existing relation" do 
+    u = create_test_user("testuser")
+    delete("user/#{u.id}/relation/VAA60000").status.should == 200
+    delete_test_users("testuser")
+    response = last_response.body
+    puts response
+  end
+
+  should "returns the list  of user emails or empty if user doesnot have one"  do 
+    u = create_test_user("testuser")
+    get("user/#{u.id}/emails").status.should == 200
+    delete_test_users("testuser")
+    response = JSON.parse(last_response.body)
+    response.count.should == 0 
+    get("user/VAA60000/emails").status.should == 200
+    response = JSON.parse(last_response.body)
+    response.count.should == 2
+    puts response
+    end 
+
 
 =begin
   should "filter the results using valid columns values" do 

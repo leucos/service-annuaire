@@ -298,6 +298,11 @@ class User < Sequel::Model(:user)
     Email.create(:adresse => adresse, :user => self, :academique => academique, :principal => principal)
   end
 
+  def delete_email(adresse)
+    email = Email[:adresse => adresse , :user => self]
+    email.destroy  unless email.nil? 
+  end 
+
   def email_principal
     email = email_dataset.filter(:principal => true).first
     return email.nil? ? nil : email.adresse
@@ -330,4 +335,5 @@ private
       :etablissement_id => etablissement_id,
       :enseigne_regroupement => EnseigneRegroupement.filter(:user => self))
   end
+
 end

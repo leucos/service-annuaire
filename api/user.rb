@@ -327,8 +327,38 @@ class UserApi < Grape::API
   end
   
 
-  #//Suppression de la relation (1 par adulte)
-  #DEL /user/:user_id/relation/:eleve_id  
+  # @state[not finished]
+  #Suppression de la relation (1 par adulte)
+  #DEL /user/:user_id/relation/:eleve_id 
+  desc "suppression d'une relation adulte/eleve"
+  delete "/:user_id/relation/:eleve_id" do 
+    user_id = params["user_id"]
+    eleve_id = params["eleve_id"]
+    if User[:id => eleve_id].nil? or User[:id => user_id].nil? #adult or eleve donnot exist
+      error!("ressource non trouvé", 403)
+    end 
+    # if relation des not exist  
+      #error! ("ressource non trouvé", 403)
+    #else
+      #delete the relation 
+    #end 
+    "ok"  
+  end
+
+  desc  "recuperer la liste des emails"
+  get "/:user_id/emails" do 
+    user_id = params["user_id"]
+    u = User[:id => user_id]
+    if u.nil? 
+      error!("ressource non trouvé", 403)
+    else
+      emails = u.email
+      emails.map  do |email|
+        {:id => email.id, :adresse => email.adresse, :academique => email.academique, :principal => email.principal}
+      end 
+    end 
+  end
+
 
 
 
