@@ -226,14 +226,26 @@ describe User do
     delete_test_users()
   end
 
-  # it "add a profil" do
-  # end
+  it "add a profil" do
+    u = create_test_user()
+    u.add_profil(Etablissement.first.id, PRF_ELV)
+    u.profil_user.length.should == 1
+    delete_test_users()
+  end
 
   # it "modify a profil" do
   # end
 
   # it "destroy a profil" do
   # end
+
+  it ".profil_user renvois tous les profils de l'utilisateur" do
+    u = create_test_user()
+    u.add_profil(Etablissement.first.id, PRF_ENS)
+    u.add_profil(Etablissement.first.id, PRF_PAR)
+    u.profil_user.length.should == 2
+    delete_test_users()
+  end
 
   # it "add user to a classe" do
   # end
