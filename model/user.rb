@@ -201,21 +201,18 @@ class User < Sequel::Model(:user)
     end
   end
 
-  def add_profil(new_profil)
-    np = new_profil
+  # Ajoute un profil_user dans l'établissement
+  # Et rajoute aussi le role_user associé
+  def add_profil(etablissement_id, profil_id)
     RoleUser.unrestrict_primary_key()
     ProfilUser.unrestrict_primary_key()
     # ProfilUser sert juste a afficher le profil administratif de l'utilisateur
     ProfilUser.find_or_create(:user => self, 
-        :etablissement => np[:etablissement], :profil_id => np[:profil_id])
-    #temp : Je ne sais pas si c'est la bonne chose à faire ?
-    new_profil = RoleUser.find_or_create(:user => np[:user], 
-        :ressource_id => np[:etablissement].id, :ressource_service_id => SRV_ETAB, 
-        :role_id => Profil[np[:profil_id]].role_id)
-    RoleUser.restrict_primary_key()
-    if np[:actif]
-      switch_profil(new_profil)
-    end
+        :etablissement_id => etablissement_id, :profil_id => profil_id)
+    
+    RoleUser.find_or_create(:user => self, 
+        :ressource_id => etablissement_id, :ressource_service_id => SRV_ETAB, 
+        :role_id => Profil[profil_id].role_id)
   end
 
   def switch_profil(profil)

@@ -23,5 +23,7 @@ class RelationEleve < Sequel::Model(:relation_eleve)
   def validate
     super
     validates_presence [:type_relation_eleve_id]
+    # Il faut s'assurer que l'eleve_id qu'on rajoute n'a pas un profil autre que eleve dans un etablissement
+    # et que le user_id n'a pas de profil eleve dans un etablissement
   end
 end
