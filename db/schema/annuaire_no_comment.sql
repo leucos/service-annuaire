@@ -262,7 +262,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `annuaire`.`type_telephone` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`type_telephone` (
-  `id` CHAR(4) NOT NULL ,
+  `id` CHAR(8) NOT NULL ,
   `libelle` VARCHAR(45) NULL ,
   `description` VARCHAR(255) NULL ,
   PRIMARY KEY (`id`) )
@@ -277,19 +277,19 @@ DROP TABLE IF EXISTS `annuaire`.`telephone` ;
 CREATE  TABLE IF NOT EXISTS `annuaire`.`telephone` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `numero` CHAR(32) NOT NULL ,
-  `type_telephone_id` CHAR(4) NOT NULL ,
   `user_id` CHAR(16) NOT NULL ,
+  `type_telephone_id` CHAR(8) NOT NULL ,
   PRIMARY KEY (`id`) ,
-  INDEX `fk_telephone_type_telephone1` (`type_telephone_id` ASC) ,
   INDEX `fk_telephone_user1` (`user_id` ASC) ,
-  CONSTRAINT `fk_telephone_type_telephone1`
-    FOREIGN KEY (`type_telephone_id` )
-    REFERENCES `annuaire`.`type_telephone` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+  INDEX `fk_telephone_type_telephone1` (`type_telephone_id` ASC) ,
   CONSTRAINT `fk_telephone_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuaire`.`user` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_telephone_type_telephone1`
+    FOREIGN KEY (`type_telephone_id` )
+    REFERENCES `annuaire`.`type_telephone` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -466,7 +466,7 @@ DROP TABLE IF EXISTS `annuaire`.`email` ;
 CREATE  TABLE IF NOT EXISTS `annuaire`.`email` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `adresse` VARCHAR(255) NOT NULL ,
-  `principal` TINYINT(1)  NOT NULL DEFAULT 1 COMMENT 'adresse d\'envois par défaut' ,
+  `principal` TINYINT(1)  NOT NULL DEFAULT 0 COMMENT 'adresse d\'envois par défaut' ,
   `valide` TINYINT(1)  NOT NULL DEFAULT 0 COMMENT 'Si l\'email a été validé suite à un envois de mail (comme GitHub).' ,
   `academique` TINYINT(1)  NOT NULL DEFAULT 0 COMMENT 'Si c\'est un mail académique (pour le PEN)' ,
   `user_id` CHAR(16) NOT NULL ,

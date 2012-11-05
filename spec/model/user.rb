@@ -225,10 +225,12 @@ describe User do
     delete_test_users()
   end
 
-  it "add a profil" do
+  it "add a profil and a role_user" do
     u = create_test_user()
-    u.add_profil(Etablissement.first.id, PRF_ELV)
+    e_id = Etablissement.first.id
+    u.add_profil(e_id, PRF_ELV)
     u.profil_user.length.should == 1
+    u.role_user_dataset.filter(:ressource_id => e_id, :ressource_service_id => SRV_ETAB).count.should == 1
     delete_test_users()
   end
 
@@ -246,6 +248,22 @@ describe User do
     delete_test_users()
   end
 
+  it ".etablissements returns all etablissements where user has a role" do
+    u = create_test_user()
+    e1 = create_test_etablissement()
+    e2 = create_test_etablissement()
+
+    u.add_profil(e1.id, PRF_ENS)
+    u.add_profil(e2.id, PRF_PAR)
+    u.etablissements.count.should == 2
+
+    delete_test_users()
+    delete_test_etablissements()
+  end
+
+  it ".classes return returns all the classes where user has a role" do
+    
+  end
   # it "add user to a classe" do
   # end
 

@@ -22,6 +22,14 @@ def delete_test_user(login = "test")
   User.filter(:login => login).destroy()
 end
 
+def create_test_etablissement
+  Etablissement.create(:nom => "test", :type_etablissement => TypeEtablissement.first)
+end
+
+def delete_test_etablissements
+  Etablissement.filter(:nom => "test").destroy()
+end
+
 def create_test_eleve_with_parents()
   u = create_test_user("test1")
   u.id_sconet = 123456

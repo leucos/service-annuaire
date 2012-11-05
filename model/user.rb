@@ -206,8 +206,12 @@ class User < Sequel::Model(:user)
     self.relation_eleve_dataset.filter(:eleve_id => eleve_id).destroy()
   end
 
+  def etablissements
+    Etablissement.filter(:id => RoleUser.filter(:ressource_service_id => SRV_ETAB).select(:ressource_id))
+  end
+
   #Classe dans laquelle est actuellement (profil actif) l'élève
-  def classe
+  def classes(etablissement_id = nil)
     regroupements('CLS').first
   end
 

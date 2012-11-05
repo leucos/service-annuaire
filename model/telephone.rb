@@ -9,7 +9,7 @@
 # id                            | int(11)             | false    | PRI      |            | auto_increment
 # numero                        | char(32)            | false    |          |            | 
 # user_id                       | char(8)             | false    | MUL      |            | 
-# type_telephone_id             | char(4)             | false    | MUL      |            | 
+# type_telephone_id             | char(8)             | false    | MUL      |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
 class Telephone < Sequel::Model(:telephone)
