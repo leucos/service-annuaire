@@ -4,7 +4,6 @@ require_relative '../helper'
 describe User do
   #In case of something went wrong
   delete_test_users()
-  delete_test_users()
 
   it "knows what is a valid uid" do
     User.is_valid_id?("VAA60000").should.equal true

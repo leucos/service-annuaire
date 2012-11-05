@@ -114,14 +114,14 @@ describe UserApi do
   end
 
   should "returns user relations" do 
-    u = create_test_user("testuser")
+    u = create_test_user()
     get("user/#{u.id}/relations").status.should == 200
     user = JSON.parse(last_response.body)
-    delete_test_users("testuser")
+    delete_test_users()
   end
 =end
   should "be able to add new relations to users if sending good parameters and return bad request or resource not found otherwise" do 
-    u = create_test_user("testuser")
+    u = create_test_user()
     post("user/#{u.id}/relation", :eleve_id => "VAA60000", :type_relation_id => "PAR").status.should == 201
     response = JSON.parse(last_response.body)
     # bad request 
@@ -130,13 +130,13 @@ describe UserApi do
     #resource not found (non trouvé)
     post("user/VADD/relation", :eleve_id => "VAA60000", :type_relation_id => "PAR").status.should == 404 
 
-    delete_test_users("testuser")
+    delete_test_users()
     #puts response.inspect
   end
 
   should "be able to modify the type of an existing relation between two users" do 
-    u = create_test_user("testuser")
-    eleve = create_test_user()
+    u = create_test_user()
+    eleve = create_test_user("testeleve")
     #good request
     put("user/#{u.id}/relation/VAA60000", :type_relation_id => "PAR").status.should == 200
     get("user/#{u.id}/relation/VAA60000")
@@ -145,20 +145,20 @@ describe UserApi do
     put("user/#{u.id}/relation/", :type_relation_id => "PAR").status.should == 405
     put("user/vva/relation/VAA60000", :type_relation_id => "PAR").status.should == 403
 
-    delete_test_users("testuser")
+    delete_test_users()
   end 
 
   should "be able to delete an existing relation" do 
-    u = create_test_user("testuser")
+    u = create_test_user()
     delete("user/#{u.id}/relation/VAA60000").status.should == 200
-    delete_test_users("testuser")
+    delete_test_users()
     response = last_response.body
     puts response
   end
 
   should "returns the list  of user emails or empty if user doesnot have one"  do 
     #create user and add emails
-    u = create_test_user("testuser")
+    u = create_test_user()
     u.add_email("testuser@laclasse.com", false)
     u.add_email("testuser2@laclasse.com", true)
     
@@ -170,26 +170,26 @@ describe UserApi do
     #emails are deleted authomatically when user is deleted
     #u.delete_email("testuser@laclasse.com")
     #u.delete_email("testuser2@laclasse.com")
-    delete_test_users("testuser") 
+    delete_test_users() 
   end 
 
   should "adds an email to a specific user" do 
-    u = create_test_user("testuser")
+    u = create_test_user()
     post("user/#{u.id}/email").status.should == 400
     post("user/VAaadfq/email", :adresse => "testuser@laclasse.com").status.should == 403
     post("user/#{u.id}/email", :adresse => "testuser@laclasse.com").status.should == 201
     u.email.first.adresse.should == "testuser@laclasse.com" 
-    delete_test_users("testuser")
+    delete_test_users()
   end
 
   should "modify an email of a user" do 
-    u = create_test_user("testuser")
+    u = create_test_user()
     u.add_email("testuser@laclasse.com")
     id = u.email.first.id
     put("user/#{u.id}/email/vddd", :adresse => "modifie@laclasse.com").status.should == 403
     put("user/#{u.id}/email/#{id}", :adresse => "modifie@laclasse.com", :principal => false).status.should == 200
     response = last_response.body 
-    delete_test_users("testuser")
+    delete_test_users()
     puts response
   end 
 

@@ -5,17 +5,21 @@ require 'json'
 
 require_relative '../app'
 
-def create_test_user(user = "test")
-  User.create(:login => user, :password => user, :nom => user, :prenom => user)
+def create_test_user(login = "test")
+  User.create(:login => login, :password => 'test', :nom => 'test', :prenom => 'test')
 end
 
 def new_test_user(login = "test")
   User.new(:login => login, :password => 'test', :nom => 'test', :prenom => 'test')
 end
 
-def delete_test_users(user = "test")
-  User.filter(:nom => user, :prenom => user).destroy()
-  User.filter(:login => user).destroy()
+def delete_test_users()
+  User.filter(:nom => "test", :prenom => 'test').destroy()
+  User.filter(:login => "test").destroy()
+end
+
+def delete_test_user(login = "test")
+  User.filter(:login => login).destroy()
 end
 
 def create_test_eleve_with_parents()
