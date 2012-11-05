@@ -202,6 +202,10 @@ class User < Sequel::Model(:user)
     RelationEleve.create(:user_id => self.id, :eleve_id => enfant.id, :type_relation_eleve_id => type_relation_id)
   end
 
+  def delete_relation_eleve(eleve_id)
+    self.relation_eleve_dataset.filter(:eleve_id => eleve_id).destroy()
+  end
+
   #Classe dans laquelle est actuellement (profil actif) l'élève
   def classe
     regroupements('CLS').first
@@ -243,6 +247,11 @@ class User < Sequel::Model(:user)
     Email.create(:adresse => adresse, :user => self, :academique => academique, :principal => principal)
   end
 
+  def delete_email(adresse)
+    email = Email[:adresse => adresse , :user => self]
+    email.destroy  unless email.nil? 
+  end 
+
   def email_principal
     email = email_dataset.filter(:principal => true).first
     return email.nil? ? nil : email.adresse
@@ -276,4 +285,5 @@ private
       :etablissement_id => etablissement_id,
       :enseigne_regroupement => EnseigneRegroupement.filter(:user => self))
   end
+
 end

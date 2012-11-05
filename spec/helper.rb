@@ -5,17 +5,17 @@ require 'json'
 
 require_relative '../app'
 
-def create_test_user(login = "test")
-  User.create(:login => login, :password => 'test', :nom => 'test', :prenom => 'test')
+def create_test_user(user = "test")
+  User.create(:login => user, :password => user, :nom => user, :prenom => user)
 end
 
 def new_test_user(login = "test")
   User.new(:login => login, :password => 'test', :nom => 'test', :prenom => 'test')
 end
 
-def delete_test_users()
-  User.filter(:nom => "test", :prenom => 'test').destroy()
-  User.filter(:login => "test").destroy()
+def delete_test_users(user = "test")
+  User.filter(:nom => user, :prenom => user).destroy()
+  User.filter(:login => user).destroy()
 end
 
 def create_test_eleve_with_parents()
@@ -39,6 +39,11 @@ def create_test_eleve_with_parents()
   u.add_parent(p2, TYP_REL_RLGL)
   return u
 end
+
+def delete_test_eleve_with_parents
+  User.filter(:login => "test1").destroy
+  User.filter(:login => "test2").destroy
+end 
 
 def create_test_user_in_etab(etb_id, login)
   u = create_test_user(login)

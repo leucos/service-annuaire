@@ -51,8 +51,8 @@ class UserApi < Grape::API
   params do
     requires :login, type: String
   end
-  get "info/:login" do
-    result = {}
+  get "profil/:login" do
+    result = {} 
     u = User[:login => params[:login]]
     if u
       #result[:user] = u
@@ -268,5 +268,145 @@ class UserApi < Grape::API
     parents
   end
 
+  # Récupération des relations 
+  # returns the relations of a user 
+  # actually not complet 
+  get "/:id/relations" do 
+    id = params[:id]
+    if !id.nil? and !id.empty?
+      user = User[:id => id]
+    else
+      error!("Utilisateur non trouvé", 404)
+    end 
+    relation = !user.relation_adulte.empty? ? user.relation_adulte : user.relation_eleve
+  end
+
+  
+  # @state[not finished]
+  #Il ne peut y en avoir qu'une part adulte
+  #Cas d'un user qui devient parent d'élève {eleve_id: VAA60001, type_relation_id: "PAR"}
+  desc "Ajout d'une relation entre un adulte et un élève"  
+  post "/:user_id/relation" do
+    user_id = params["user_id"]
+    if User[:id => user_id].nil? 
+      error!("ressource non trouvé", 404)
+    end 
+    eleve_id = params["eleve_id"]
+    type_relation_id = params["type_relation_id"]
+
+    if !eleve_id.nil? and !eleve_id.empty?
+      if !type_relation_id.nil? and !type_relation_id.empty?
+        #User[:id => user_id].add_relation(eleve_id, type_relation_id) 
+        # returns {id: user_id ,relations: [{eleve_id, type_relation id}]}
+
+        {:user_id => user_id , :eleve_id => eleve_id , :type_relation_id => type_relation_id}
+      else
+        error!("mauvaise requete", 400)
+      end 
+    else
+      error!("mauvaise requete", 400) 
+    end 
+
+  end
+
+
+  # @state[not finished]
+  desc "Modification de la relation"
+  params do
+    requires :type_relation_id, type: String
+    requires :eleve_id, type:String 
+  end
+  put "/:user_id/relation/:eleve_id" do
+    user_id = params["user_id"]
+    if User[:id => user_id].nil?
+      error!("ressource non trouvé", 403)
+    end
+    eleve_id = params["eleve_id"]
+    type_relation_id = !params["type_relation_id"].empty? ? params["type_relation_id"] : error!("mauvaise requete", 400)
+    {:user_id => user_id, :eleve_id => eleve_id}
+  end
+  
+
+  # @state[not finished]
+  #Suppression de la relation (1 par adulte)
+  #DEL /user/:user_id/relation/:eleve_id 
+  desc "suppression d'une relation adulte/eleve"
+  delete "/:user_id/relation/:eleve_id" do 
+    user_id = params["user_id"]
+    eleve_id = params["eleve_id"]
+
+    if User[:id => eleve_id].nil? or User[:id => user_id].nil? #adult or eleve donnot exist
+      error!("ressource non trouvé", 403)
+    end 
+
+    u = User[user_id]
+
+    # if relation des not exist  
+      #error! ("ressource non trouvé", 403)
+    #else
+      #delete the relation 
+    #end 
+    "ok"  
+  end
+
+  desc "recuperer la liste des emails"
+  get "/:user_id/emails" do 
+    user_id = params["user_id"]
+    u = User[:id => user_id]
+    if u.nil? 
+      error!("ressource non trouvé", 403)
+    else
+      emails = u.email
+      emails.map  do |email|
+        {:id => email.id, :adresse => email.adresse, :academique => email.academique, :principal => email.principal}
+      end 
+    end 
+  end
+
+  desc "ajouter un email à l'utilisateur"
+  post ":user_id/email" do
+    user_id = params["user_id"]
+    u = User[:id => user_id]
+    if u.nil? 
+      error!("ressource non trouvé", 403)
+    else
+      if params["adresse"].nil? or params["adresse"].empty? 
+        error!("mauvaise requete", 400) 
+      else 
+        adresse = params["adresse"] 
+      end 
+      if params["academique"].nil? or params["academique"].empty? 
+          academique = false 
+      else
+          academique = params["academique"] == "true" ? true : false 
+      end 
+      u.add_email(adresse, academique)
+      
+    end 
+  end
+
+# modifier l'adresse et le type de l'email
+  desc "modifier un email existant"
+  put ":user_id/email/:email_id" do
+    user_id = params["user_id"]
+    email_id = params["email_id"].to_i
+    u = User[:id => user_id]
+    if u.nil? or !u.email.map{|email| email.id}.include?(email_id)
+      error!("ressource non trouvé", 403)
+    else
+      adresse = params["adresse"]
+      if adresse.nil?
+        error!("mauvaise requete", 400)
+      else
+        academique = !params["academique"].nil?  and  params["academique"] == true ? true : false
+        principal = !params["principal"].nil?  and  params["principal"] == true ? true : false
+        email = Email[:id => email_id]
+        email.adresse = adresse
+        email.academique = academique
+        email.principal = principal 
+        email.save 
+      end 
+    end 
+  end 
 
 end

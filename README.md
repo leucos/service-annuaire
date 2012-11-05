@@ -84,7 +84,7 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   param : {adresse: "alivet@ac-lyon.fr", academique: true}
   res : {id: 1, adresse: "alivet@ac-lyon.fr", academique: true}
   PUT /user/:user_id/email/:email_id
-  {adresse: "test@lyon.fr"}
+  {adresse: "test@lyon.fr", type: "principal ou academique"}
   DELETE /user/:user_id/email/:email_id
 
   //Telephone
@@ -298,7 +298,6 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   `
 
 ## /libre (groupes libres)
-
   `
   POST /libre
   { "nom": "Test groupe" }
@@ -406,8 +405,8 @@ C'est un élément centrale de l'annuaire car il permet à un établissement de 
     "GED" : [{id: 1, code: ""...}, {id: 2, code: "..."}]
     "CAHIER_TXT" : [{id: 1, code: ""...}, {id: 2, code: "..."}]
   }
-## rights
 
+## rights
   //Droits sur une ressource précise
   GET /rights/:service_id/:ressource_id/:user_id
   [create_user, add_membre]

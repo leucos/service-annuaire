@@ -9,12 +9,10 @@ describe UserApi do
   # In case something went wrong
   delete_test_eleve_with_parents()
   delete_test_users()
-
 =begin
-
   should "return user profile when giving good login/password" do
-    create_test_user()
-    get('/user?login=test&password=test').status.should == 200
+    u = create_test_user()
+    get("/user?login=test&password=test").status.should == 200
     delete_test_users()
   end
 
@@ -70,9 +68,11 @@ describe UserApi do
   end
 
   should "return sso attributes" do
-    get("/user/sso_attributes/root").status.should == 200
+    u = create_test_user()
+    get("/user/sso_attributes/test").status.should == 200
     sso_attr = JSON.parse(last_response.body)
-    sso_attr["login"].should == "root"
+    sso_attr["login"].should == u.login
+    delete_test_users()
   end
 
   should "return sso attributes men" do
@@ -80,11 +80,12 @@ describe UserApi do
     sso_attr = JSON.parse(last_response.body)
   end
 
+
   should "respond to a query without parameters" do
     get("user/query/users").status.should == 200
     sso_attr = JSON.parse(last_response.body)
-    sso_attr["TotalModelRecords"].should == 201
-    sso_attr["TotalQueryResults"].should == 201
+    sso_attr["TotalModelRecords"].should == User.count
+    sso_attr["TotalQueryResults"].should == User.count
   end
 
   should "query can takes also columns as a URL parameter" do 
@@ -92,11 +93,9 @@ describe UserApi do
     cols = CGI::escape(columns.join(",")) 
     get("user/query/users?columns=#{cols}").status.should == 200
     sso_attr = JSON.parse(last_response.body)
-    sso_attr["TotalModelRecords"].should == 201
-    sso_attr["TotalQueryResults"].should == 201
-    puts sso_attr['Data'][0].inspect
-    
-    
+    sso_attr["TotalModelRecords"].should == User.count
+    sso_attr["TotalQueryResults"].should == User.count
+       
   end 
 
   should "query responds also to model instance methods" do
@@ -112,8 +111,96 @@ describe UserApi do
     sso_attr["TotalQueryResults"].should == 1
     user = sso_attr["Data"][0]
     user['email_principal'].should != nil 
+  end
+
+  should "returns user relations" do 
+    u = create_test_user("testuser")
+    get("user/#{u.id}/relations").status.should == 200
+    user = JSON.parse(last_response.body)
+    delete_test_users("testuser")
+  end
+=end
+  should "be able to add new relations to users if sending good parameters and return bad request or resource not found otherwise" do 
+    u = create_test_user("testuser")
+    post("user/#{u.id}/relation", :eleve_id => "VAA60000", :type_relation_id => "PAR").status.should == 201
+    response = JSON.parse(last_response.body)
+    # bad request 
+    post("user/#{u.id}/relation", :type_relation_id => "PAR").status.should == 400
+
+    #resource not found (non trouvé)
+    post("user/VADD/relation", :eleve_id => "VAA60000", :type_relation_id => "PAR").status.should == 404 
+
+    delete_test_users("testuser")
+    #puts response.inspect
+  end
+
+  should "be able to modify the type of an existing relation between two users" do 
+    u = create_test_user("testuser")
+    eleve = create_test_user()
+    #good request
+    put("user/#{u.id}/relation/VAA60000", :type_relation_id => "PAR").status.should == 200
+    get("user/#{u.id}/relation/VAA60000")
+    #bad requests
+    put("user/#{u.id}/relation/VAA60000", :type_relation_id => "").status.should == 400
+    put("user/#{u.id}/relation/", :type_relation_id => "PAR").status.should == 405
+    put("user/vva/relation/VAA60000", :type_relation_id => "PAR").status.should == 403
+
+    delete_test_users("testuser")
+  end 
+
+  should "be able to delete an existing relation" do 
+    u = create_test_user("testuser")
+    delete("user/#{u.id}/relation/VAA60000").status.should == 200
+    delete_test_users("testuser")
+    response = last_response.body
+    puts response
+  end
+
+  should "returns the list  of user emails or empty if user doesnot have one"  do 
+    #create user and add emails
+    u = create_test_user("testuser")
+    u.add_email("testuser@laclasse.com", false)
+    u.add_email("testuser2@laclasse.com", true)
+    
+    #send request
+    get("user/#{u.id}/emails").status.should == 200
+    response = JSON.parse(last_response.body)
+    response.count.should == 2
+    
+    #emails are deleted authomatically when user is deleted
+    #u.delete_email("testuser@laclasse.com")
+    #u.delete_email("testuser2@laclasse.com")
+    delete_test_users("testuser") 
+  end 
+
+  should "adds an email to a specific user" do 
+    u = create_test_user("testuser")
+    post("user/#{u.id}/email").status.should == 400
+    post("user/VAaadfq/email", :adresse => "testuser@laclasse.com").status.should == 403
+    post("user/#{u.id}/email", :adresse => "testuser@laclasse.com").status.should == 201
+    u.email.first.adresse.should == "testuser@laclasse.com" 
+    delete_test_users("testuser")
+  end
+
+  should "modify an email of a user" do 
+    u = create_test_user("testuser")
+    u.add_email("testuser@laclasse.com")
+    id = u.email.first.id
+    put("user/#{u.id}/email/vddd", :adresse => "modifie@laclasse.com").status.should == 403
+    put("user/#{u.id}/email/#{id}", :adresse => "modifie@laclasse.com", :principal => false).status.should == 200
+    response = last_response.body 
+    delete_test_users("testuser")
+    puts response
+  end 
+
+  should "delete an email of a specific user" do 
 
   end
+
+
+
+
+=begin
   should "filter the results using valid columns values" do 
     where  = {:sexe => "F", :nom => "sarkozy"}
     # associatif array, i dont know if this work for other language 
@@ -184,7 +271,6 @@ describe UserApi do
     result[0]["nom"].should == "bruni"
     result[0]["prenom"].should == "francois"
   end 
-=end
 
   should  "filter parent based also nom, prenom and eleve_id" do
     create_test_eleve_with_parents()
@@ -200,5 +286,6 @@ describe UserApi do
     result[0][:prenom].should == "roger"
 
     delete_test_eleve_with_parents()
-  end 
+  end
+=end 
 end
