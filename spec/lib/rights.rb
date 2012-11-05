@@ -7,7 +7,7 @@ describe Rights do
     Role.unrestrict_primary_key()
     ActiviteRole.unrestrict_primary_key()
     Role.create(:id => ROL_TEST, :service_id => SRV_ETAB)
-    ActiviteRole.create(:service_id => SRV_ETAB, :role_id => ROL_TEST, :activite_id => ACT_CREATE_USER)
+    ActiviteRole.create(:service_id => SRV_USER, :role_id => ROL_TEST, :activite_id => ACT_CREATE)
   end
 
   def delete_test_role
@@ -16,6 +16,8 @@ describe Rights do
 
   def create_admin_etb(ressource = nil)
     u = create_test_user("test_admin")
+    # On créer un role de test sur l'ensemble de LACLASSE.com si la ressource
+    # n'est pas précisée
     ressource = Ressource[:service_id => SRV_LACLASSE] if ressource.nil?
     RoleUser.unrestrict_primary_key()
     RoleUser.create(:user_id => u.id, 
@@ -35,8 +37,8 @@ describe Rights do
     # On créer un deuxième etab
     e2 = Etablissement.create(:nom => "test", :type_etablissement => TypeEtablissement.first)
     admin = create_admin_etb(ressource_etab)
-    Rights.get_rights(admin.id, SRV_ETAB, ressource_etab.id).should == [ACT_CREATE_USER]
-    Rights.get_rights(admin.id, SRV_ETAB, e2.id).should == []
+    Rights.get_rights(admin.id, SRV_ETAB, ressource_etab.id, SRV_USER).should == [ACT_CREATE]
+    Rights.get_rights(admin.id, SRV_ETAB, e2.id, SRV_USER).should == []
     delete_test_ressources_tree()
     delete_test_role()
   end
@@ -47,8 +49,8 @@ describe Rights do
     # On créer un deuxième etab
     e2 = Etablissement.create(:nom => "test", :type_etablissement => TypeEtablissement.first)
     admin = create_admin_etb()
-    Rights.get_rights(admin.id, SRV_ETAB, ressource_etab.id).should == [ACT_CREATE_USER]
-    Rights.get_rights(admin.id, SRV_ETAB, e2.id).should == [ACT_CREATE_USER]
+    Rights.get_rights(admin.id, SRV_ETAB, ressource_etab.id, SRV_USER).should == [ACT_CREATE]
+    Rights.get_rights(admin.id, SRV_ETAB, e2.id, SRV_USER).should == [ACT_CREATE]
     delete_test_ressources_tree()
     delete_test_role()
   end
@@ -67,12 +69,12 @@ describe Rights do
   #   Rights.get_rights(admin.id, SRV_SERVICE, SRV_USER).should == [ACT_CREATE]
   # end
 
-  it "cumulate rights from different role" do
-    # On donne un role d'admin d'établissement
-    # Puis un role d'admin de groupe
-    # On doit cumuler les role d'admin d'établissement et de groupe sur le groupe
+  # it "cumulate rights from different role" do
+  #   # On donne un role d'admin d'établissement
+  #   # Puis un role d'admin de groupe
+  #   # On doit cumuler les role d'admin d'établissement et de groupe sur le groupe
 
-  end
+  # end
 
   # todo : Tester que l'on puisse accéder aux fichiers d'un établissement mais pas à celui des classes
   # notion de service_parent_id
