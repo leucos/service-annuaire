@@ -39,6 +39,7 @@ class User < Sequel::Model(:user)
   one_to_many :enseigne_regroupement
   one_to_many :role_user
   one_to_many :profil_user
+  one_to_many :param_user
   one_to_many :telephone
   one_to_many :email
   # Liste de tous les élèves avec qui l'utilisateur est en relation
@@ -107,6 +108,8 @@ class User < Sequel::Model(:user)
 
     # Enfin tous ses profils dans l'établissement
     profil_user_dataset.destroy()
+
+    param_user_dataset.destroy()
     super
   end
 
@@ -143,43 +146,10 @@ class User < Sequel::Model(:user)
     RelationEleve.filter({:eleve_id => self.id, :user_id => self.id}.sql_or).all
   end
 
+  # Renvoi le premier profil_user trouvé dans un établissement
+  # Pas super mais il faut réfléchir à cette notion de profil_actif
   def profil_actif
     role_user.select{|r| r.actif && r.ressource_service_id == SRV_ETAB}.first
-  end
-
-  #Trouve le rôle applicatif du profil courant pour l'application passé en paramètre
-  #Ce rôle peut être définit par défaut ou surcharger pour l'utilisateur
-  def role_application(application)
-    user_profil = profil_actif
-    if not user_profil.nil?
-      #On cherche d'abord si l'utilisateur n'a pas un rôle spécifique 
-      role_application = RoleUser.
-          filter(:role=>Role.filter(:app => application), :profil_user => user_profil).first 
-      if role_application.nil?
-        #Si ce n'est pas le cas on prend le rôle lié à son profil
-        role_application = RoleProfil.
-          filter(:role => Role.filter(:app => application), :profil_id => user_profil.profil_id).first
-      end
-    else
-       role_application = nil
-    end
-
-    #puts "role_application=#{role_application} application=#{application.id}, profil=#{user_profil.user_id}"
-    return role_application.nil? ? nil : role_application.role
-  end
-
-  def activites(application)
-    #On cherche a trouver les activités (action possible)
-    #d'un utilisateur pour une application donnée sur son profil courant
-    activite_code = []
-    role = role_application(application)
-    unless role.nil?
-      activite_models = Activite.filter(:activite_role => ActiviteRole.filter(:role => role))
-      activite_models.each do |a|
-        activite_code.push(a.code.to_sym)
-      end
-    end
-    return activite_code
   end
 
   #Change le profil de l'utilisateur
@@ -194,7 +164,7 @@ class User < Sequel::Model(:user)
         :role_id => new_profil.role_id)
 
       #On supprime les role définit spécialement pour cette utilisateur
-      RoleUser.filter(:profil_user => to_change).delete()
+      RoleUser.filter(:profil_user => to_change).destroy()
       to_change.destroy
       #IMPORTANT CAR LES ASSOCIATIONS SONT MISE EN CACHE
       refresh
@@ -204,29 +174,11 @@ class User < Sequel::Model(:user)
   # Ajoute un profil_user dans l'établissement
   # Et rajoute aussi le role_user associé
   def add_profil(etablissement_id, profil_id)
-    RoleUser.unrestrict_primary_key()
-    ProfilUser.unrestrict_primary_key()
     # ProfilUser sert juste a afficher le profil administratif de l'utilisateur
     ProfilUser.find_or_create(:user => self, 
         :etablissement_id => etablissement_id, :profil_id => profil_id)
     
-    RoleUser.find_or_create(:user => self, 
-        :ressource_id => etablissement_id, :ressource_service_id => SRV_ETAB, 
-        :role_id => Profil[profil_id].role_id)
-  end
-
-  def switch_profil(profil)
-    current = profil_actif
-    if profil != current
-      current.actif = false
-      current.save
-
-      profil.actif = true
-      profil.save
-
-      #IMPORTANT CAR LES ASSOCIATIONS SONT MISE EN CACHE
-      refresh
-    end
+    add_role_user(etablissement_id, SRV_ETAB, Profil[profil_id].role_id)
   end
 
   def civilite
@@ -240,12 +192,10 @@ class User < Sequel::Model(:user)
   end
 
   def add_parent(parent, type_relation_id=TYP_REL_PAR)
-    RelationEleve.unrestrict_primary_key()
     RelationEleve.create(:user_id => parent.id, :eleve_id => self.id, :type_relation_eleve_id => type_relation_id)
   end
 
   def add_enfant(enfant, type_relation_id=TYP_REL_PAR)
-    RelationEleve.unrestrict_primary_key()
     RelationEleve.create(:user_id => self.id, :eleve_id => enfant.id, :type_relation_eleve_id => type_relation_id)
   end
 
@@ -253,9 +203,18 @@ class User < Sequel::Model(:user)
     self.relation_eleve_dataset.filter(:eleve_id => eleve_id).destroy()
   end
 
-  #Classe dans laquelle est actuellement (profil actif) l'élève
-  def classe
-    regroupements('CLS').first
+  def etablissements
+    Etablissement.filter(:id => RoleUser.filter(:ressource_service_id => SRV_ETAB).select(:ressource_id))
+  end
+
+  # Ajoute un role sur une classe
+  def add_classe(classe_id, role_id)
+    add_role_user(classe_id, TYP_REG_CLS, role_id)
+  end
+
+  #toutes les classes dans lesquelles l'utilisateur à un rôle
+  def classes(etablissement_id = nil)
+    regroupements(etablissement_id, TYP_REG_CLS)
   end
 
   #Groupes auxquel l'élève est inscrit
@@ -271,22 +230,17 @@ class User < Sequel::Model(:user)
     enseigne_regroupements('GRP').all
   end
 
-  def matiere_enseigne
+  def matiere_enseigne(etablissement_id)
     MatiereEnseigne.
       filter(:enseigne_regroupement => EnseigneRegroupement.
         filter(:user => self, :regroupement => Regroupement.
-          filter(:etablissement_id => profil_actif.etablissement_id))).all
+          filter(:etablissement_id => etablissement_id))).all
   end
 
   def matiere_enseigne(groupe_id)
     MatiereEnseigne.
       filter(:enseigne_regroupement => EnseigneRegroupement.
         filter(:user => self, :regroupement_id  => groupe_id)).all
-  end
-  def etablissement
-    return nil if profil_actif.nil?
-
-    profil_actif.etablissement
   end
 
   # Rajoute un email à un utilisateur et le met en principal si c'est le premier
@@ -323,12 +277,40 @@ class User < Sequel::Model(:user)
     end
     Telephone.create(:numero => numero, :user => self, :type_telephone_id => type_telephone_id)
   end
+
+  def set_preference(preference_id, valeur)
+    param = ParamUser[:user => self, :param_application_id => preference_id]
+    if param
+      if valeur
+        param.update(:valeur => valeur)
+      else
+        param.destroy()
+      end
+    elsif valeur
+      ParamUser.create(:user => self, :param_application_id => preference_id, :valeur => valeur)
+    end
+  end
+
+  # Renvois les preferences d'un utilisateur sur une application
+  # les valeurs sont celles par défaut si l'utilisateur n'a rien précisé
+  def preferences(application_id)
+    ParamApplication.
+      join_table(:left, :param_user, {:param_application_id => :id, :user_id => self.id}).
+      filter(:application_id => application_id, :preference => true).
+      select(:code, :valeur_defaut, :valeur, :libelle, :description, :autres_valeurs, :type_param_id).all
+  end
+
 private
+  def add_role_user(ressource_id, service_id, role_id)
+    RoleUser.create(:user_id => self.id, :role_id => role_id,
+      :ressource_id => ressource_id, :ressource_service_id => service_id)
+  end
+
   def regroupements(etablissement_id, type_id)
-    service_id = Regroupement.get_service_id(type_id)
-    Regroupement.filter(:type_regroupement_id => type_id,
-      :etablissement_id => etablissement_id,
-      :id => RoleUser.filter(:user => self, :ressource_service_id => service_id).select(:ressource_id))
+    ds = Regroupement.filter(:type_regroupement_id => type_id,
+      :id => RoleUser.filter(:user => self, :ressource_service_id => type_id).select(:ressource_id))
+    ds.filter(:etablissement_id => etablissement_id) if etablissement_id
+    return ds.all
   end
 
   def enseigne_regroupements(etablissement_id, type_id)

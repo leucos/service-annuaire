@@ -418,8 +418,6 @@ module Alimentation
             #C'est peut-etre la première matière hors BCN
             last_id[:id] = 9999000 if last_id[:id] < 9999000
             new_id = last_id[:id] + 1
-            #Dangereux
-            MatiereEnseignee.unrestrict_primary_key
             m = MatiereEnseignee.create(:id => new_id, :libelle_long => mat,
               :libelle_edition => mat, :famille_matiere_id => 0)
             Ramaze::Log.info("Matière #{mat} inconnue nouvel id #{m.id}")

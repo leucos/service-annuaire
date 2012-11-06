@@ -92,9 +92,6 @@ module Alimentation
       #commencent par user et regroupement car ces deux tables sont référencées
       #partout ailleurs donc lors des create, on a besoin de spécifier les id
       diff.each do |table, action_list|
-        #Attention : la on fait un truc crainiosse mais on sait ce qu'on fait.
-        #A ne pas faire à la maison !
-        MODEL_MAP[table].unrestrict_primary_key()
         action_list.each do |action, hash_list|
           hash_list.each do |hash|
             if action == :update

@@ -17,12 +17,19 @@ class Application < Sequel::Model(:application)
   plugin :validation_helpers
   plugin :json_serializer
 
+  unrestrict_primary_key()
+
   # Referential integrity
   one_to_many :application_etablissement
   one_to_many :param_application
 
   # Not nullable cols and unicity validation
   def validate
+    super
+  end
+
+  def before_destroy
+    param_application_dataset.destroy()
     super
   end
 end

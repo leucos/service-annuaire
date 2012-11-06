@@ -106,7 +106,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `annuaire`.`type_regroupement` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`type_regroupement` (
-  `id` CHAR(4) NOT NULL ,
+  `id` CHAR(8) NOT NULL ,
   `libelle` VARCHAR(45) NULL ,
   `description` VARCHAR(255) NULL ,
   PRIMARY KEY (`id`) )
@@ -127,7 +127,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`regroupement` (
   `libelle_aaf` CHAR(8) NULL COMMENT 'En cas d\'alimentation automatique, un libelle de 8 caractères.' ,
   `niveau_id` INT NULL ,
   `etablissement_id` INT NOT NULL ,
-  `type_regroupement_id` CHAR(4) NOT NULL ,
+  `type_regroupement_id` CHAR(8) NOT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_regroupement_niveau1` (`niveau_id` ASC) ,
   INDEX `fk_regroupement_etablissement1` (`etablissement_id` ASC) ,
@@ -223,7 +223,7 @@ COMMENT = 'Table spécifique aux Professeur' ;
 DROP TABLE IF EXISTS `annuaire`.`type_relation_eleve` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`type_relation_eleve` (
-  `id` CHAR(4) NOT NULL ,
+  `id` CHAR(8) NOT NULL ,
   `libelle` VARCHAR(45) NULL ,
   `description` VARCHAR(255) NULL ,
   PRIMARY KEY (`id`) )
@@ -239,7 +239,7 @@ DROP TABLE IF EXISTS `annuaire`.`relation_eleve` ;
 CREATE  TABLE IF NOT EXISTS `annuaire`.`relation_eleve` (
   `user_id` CHAR(16) NOT NULL COMMENT 'Personne en relation avec l\'élève.' ,
   `eleve_id` CHAR(16) NOT NULL COMMENT 'Eleve avec lequel la personne est en relation.' ,
-  `type_relation_eleve_id` CHAR(4) NOT NULL ,
+  `type_relation_eleve_id` CHAR(8) NOT NULL ,
   PRIMARY KEY (`user_id`, `eleve_id`) ,
   INDEX `fk_user_has_user_user2` (`user_id` ASC) ,
   INDEX `fk_user_has_user_user1` (`eleve_id` ASC) ,
@@ -268,7 +268,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `annuaire`.`type_telephone` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`type_telephone` (
-  `id` CHAR(4) NOT NULL ,
+  `id` CHAR(8) NOT NULL ,
   `libelle` VARCHAR(45) NULL ,
   `description` VARCHAR(255) NULL ,
   PRIMARY KEY (`id`) )
@@ -283,19 +283,19 @@ DROP TABLE IF EXISTS `annuaire`.`telephone` ;
 CREATE  TABLE IF NOT EXISTS `annuaire`.`telephone` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `numero` CHAR(32) NOT NULL ,
-  `type_telephone_id` CHAR(4) NOT NULL ,
   `user_id` CHAR(16) NOT NULL ,
+  `type_telephone_id` CHAR(8) NOT NULL ,
   PRIMARY KEY (`id`) ,
-  INDEX `fk_telephone_type_telephone1` (`type_telephone_id` ASC) ,
   INDEX `fk_telephone_user1` (`user_id` ASC) ,
-  CONSTRAINT `fk_telephone_type_telephone1`
-    FOREIGN KEY (`type_telephone_id` )
-    REFERENCES `annuaire`.`type_telephone` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+  INDEX `fk_telephone_type_telephone1` (`type_telephone_id` ASC) ,
   CONSTRAINT `fk_telephone_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuaire`.`user` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_telephone_type_telephone1`
+    FOREIGN KEY (`type_telephone_id` )
+    REFERENCES `annuaire`.`type_telephone` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -343,7 +343,7 @@ COMMENT = 'Un rôle est lié a une application, son libellé permet de com' /* c
 DROP TABLE IF EXISTS `annuaire`.`profil` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`profil` (
-  `id` CHAR(4) NOT NULL COMMENT 'Identifiant à 4 caractère maximum.\n=code_men si code_men présent' ,
+  `id` CHAR(8) NOT NULL COMMENT 'Identifiant à 4 caractère maximum.\n=code_men si code_men présent' ,
   `libelle` VARCHAR(45) NULL ,
   `description` VARCHAR(1024) NULL ,
   `code_men` VARCHAR(45) NULL COMMENT 'Code du profil selon le référentiel de l\'éducation nationale.' ,
@@ -375,17 +375,6 @@ COMMENT = 'ensemble des roles d\'une application\n' ;
 
 
 -- -----------------------------------------------------
--- Table `annuaire`.`type_param`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuaire`.`type_param` ;
-
-CREATE  TABLE IF NOT EXISTS `annuaire`.`type_param` (
-  `id` CHAR(4) NOT NULL ,
-  PRIMARY KEY (`id`) )
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
 -- Table `annuaire`.`application`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `annuaire`.`application` ;
@@ -394,6 +383,17 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`application` (
   `id` CHAR(8) NOT NULL ,
   `libelle` VARCHAR(255) NULL ,
   `description` VARCHAR(1024) NULL ,
+  PRIMARY KEY (`id`) )
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `annuaire`.`type_param`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `annuaire`.`type_param` ;
+
+CREATE  TABLE IF NOT EXISTS `annuaire`.`type_param` (
+  `id` CHAR(8) NOT NULL ,
   PRIMARY KEY (`id`) )
 ENGINE = InnoDB;
 
@@ -411,26 +411,19 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`param_application` (
   `description` VARCHAR(1024) NULL ,
   `valeur_defaut` VARCHAR(2000) NULL ,
   `autres_valeurs` VARCHAR(2000) NULL COMMENT '\'Strings séparée par \\\";\\\". Choix multiples\'' ,
-  `type_param_id` CHAR(4) NOT NULL ,
   `application_id` CHAR(8) NOT NULL ,
-  `role_id` CHAR(8) NULL ,
+  `type_param_id` CHAR(8) NOT NULL ,
   PRIMARY KEY (`id`) ,
-  INDEX `fk_param_application_type_param1` (`type_param_id` ASC) ,
-  INDEX `fk_param_application_role1` (`role_id` ASC) ,
   INDEX `fk_param_application_application1` (`application_id` ASC) ,
-  CONSTRAINT `fk_param_application_type_param1`
-    FOREIGN KEY (`type_param_id` )
-    REFERENCES `annuaire`.`type_param` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_param_application_role1`
-    FOREIGN KEY (`role_id` )
-    REFERENCES `annuaire`.`role` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+  INDEX `fk_param_application_type_param1` (`type_param_id` ASC) ,
   CONSTRAINT `fk_param_application_application1`
     FOREIGN KEY (`application_id` )
     REFERENCES `annuaire`.`application` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_param_application_type_param1`
+    FOREIGN KEY (`type_param_id` )
+    REFERENCES `annuaire`.`type_param` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB, 
@@ -447,7 +440,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`fonction` (
   `libelle` VARCHAR(45) NULL ,
   `description` VARCHAR(1024) NULL ,
   `code_men` VARCHAR(45) NULL ,
-  `profil_id` CHAR(4) NOT NULL ,
+  `profil_id` CHAR(8) NOT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_fonction_profil1` (`profil_id` ASC) ,
   CONSTRAINT `fk_fonction_profil1`
@@ -608,18 +601,13 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `annuaire`.`profil_user` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`profil_user` (
-  `profil_id` CHAR(4) NOT NULL ,
+  `profil_id` CHAR(8) NOT NULL ,
   `user_id` CHAR(16) NOT NULL ,
   `etablissement_id` INT NOT NULL ,
   PRIMARY KEY (`profil_id`, `user_id`, `etablissement_id`) ,
   INDEX `fk_profil_has_user_user1` (`user_id` ASC) ,
-  INDEX `fk_profil_has_user_profil1` (`profil_id` ASC) ,
   INDEX `fk_profil_user_etablissement1` (`etablissement_id` ASC) ,
-  CONSTRAINT `fk_profil_has_user_profil1`
-    FOREIGN KEY (`profil_id` )
-    REFERENCES `annuaire`.`profil` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+  INDEX `fk_profil_user_profil1` (`profil_id` ASC) ,
   CONSTRAINT `fk_profil_has_user_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuaire`.`user` (`id` )
@@ -628,6 +616,11 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`profil_user` (
   CONSTRAINT `fk_profil_user_etablissement1`
     FOREIGN KEY (`etablissement_id` )
     REFERENCES `annuaire`.`etablissement` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_profil_user_profil1`
+    FOREIGN KEY (`profil_id` )
+    REFERENCES `annuaire`.`profil` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;

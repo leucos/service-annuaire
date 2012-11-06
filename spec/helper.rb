@@ -5,17 +5,44 @@ require 'json'
 
 require_relative '../app'
 
-def create_test_user(user = "test")
-  User.create(:login => user, :password => user, :nom => user, :prenom => user)
+def create_test_user(login = "test")
+  User.create(:login => login, :password => 'test', :nom => 'test', :prenom => 'test')
 end
 
 def new_test_user(login = "test")
   User.new(:login => login, :password => 'test', :nom => 'test', :prenom => 'test')
 end
 
-def delete_test_users(user = "test")
-  User.filter(:nom => user, :prenom => user).destroy()
-  User.filter(:login => user).destroy()
+def delete_test_users()
+  User.filter(:nom => "test", :prenom => 'test').destroy()
+  User.filter(:login => "test").destroy()
+end
+
+def delete_test_user(login = "test")
+  User.filter(:login => login).destroy()
+end
+
+def create_test_etablissement
+  Etablissement.create(:nom => "test", :type_etablissement => TypeEtablissement.first)
+end
+
+def delete_test_etablissements
+  Etablissement.filter(:nom => "test").destroy()
+end
+
+def create_test_application_with_param
+  a = Application.create(:id => "test")
+  ParamApplication.create(:code => "test_pref", :preference => true, 
+    :application => a, :type_param_id => TYP_PARAM_NUMBER)
+  ParamApplication.create(:code => "test_param", :preference => false, 
+    :application => a, :type_param_id => TYP_PARAM_NUMBER)
+  ParamApplication.create(:code => "test_pref2", :preference => true, 
+    :application => a, :type_param_id => TYP_PARAM_NUMBER)
+  return a
+end
+
+def delete_test_application
+  Application.filter(:id => "test").destroy()
 end
 
 def create_test_eleve_with_parents()

@@ -6,7 +6,7 @@
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 # COLUMN_NAME                   | DATA_TYPE           | NULL?    | KEY      | DEFAULT    | EXTRA
 # ------------------------------+---------------------+----------+----------+------------+--------------------
-# id                            | char(4)             | false    | PRI      |            | 
+# id                            | char(8)             | false    | PRI      |            | 
 # libelle                       | varchar(45)         | true     |          |            | 
 # description                   | varchar(1024)       | true     |          |            | 
 # code_men                      | varchar(45)         | true     |          |            | 
@@ -19,6 +19,8 @@ class Profil < Sequel::Model(:profil)
   # Plugins
   plugin :validation_helpers
   plugin :json_serializer
+
+  unrestrict_primary_key()
 
   # Referential integrity
   many_to_one :role

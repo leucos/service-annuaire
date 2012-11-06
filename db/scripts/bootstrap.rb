@@ -3,17 +3,13 @@
 require 'sequel'
 require_relative '../../config/database'
 require_relative '../../model/init'
-require_relative 'bcn_parser'
-
 
 def create_super_admin_and_ressource_laclasse()
   # laclasse est un ressource un peu spéciale car elle ne correspond pas a quelque chose en mémoire
   #Création de la ressource laclasse avec l'id externe 0 qui correspond à rien
-  Ressource.unrestrict_primary_key()
   r = Ressource.create(:id => 0, :service_id => SRV_LACLASSE)
   #Création du compte super admin
   u = User.create(:nom => "Super", :prenom => "Didier", :sexe => "M", :login => "root", :password => "root")
-  RoleUser.unrestrict_primary_key()
   RoleUser.create(:user_id => u.id, :ressource_id => r.id, :ressource_service_id => r.service_id, :role_id => ROL_TECH)
 end
 
@@ -70,13 +66,11 @@ def bootstrap_annuaire()
   Niveau.create(:libelle => "4EME")
   Niveau.create(:libelle => "3EME")
 
-  TypeTelephone.unrestrict_primary_key()
   TypeTelephone.create(:id => TYP_TEL_MAIS, :libelle => 'Maison')
   TypeTelephone.create(:id => TYP_TEL_PORT, :libelle => 'Portable')
   TypeTelephone.create(:id => TYP_TEL_TRAV, :libelle => 'Travail')
   TypeTelephone.create(:id => TYP_TEL_AUTR, :libelle => 'Autre')
 
-  TypeRelationEleve.unrestrict_primary_key()
   TypeRelationEleve.create(:id => TYP_REL_PAR, :libelle => 'Parent')
   # Si ENTEleveParents != ENTEleveAutoriteParentale ca veut dire qu'on a des parents sans autorité parentale
   TypeRelationEleve.create(:id => TYP_REL_NPAR, :libelle => 'Parent sans autorité parentale')
@@ -85,15 +79,11 @@ def bootstrap_annuaire()
   TypeRelationEleve.create(:id => TYP_REL_CORR, :libelle => 'Correspondant')
 
 
-  TypeRegroupement.unrestrict_primary_key()
   TypeRegroupement.create(:id => TYP_REG_CLS, :libelle => 'Classe')
   TypeRegroupement.create(:id => TYP_REG_GRP, :libelle => "Groupe d'élèves")
   TypeRegroupement.create(:id => TYP_REG_LBR, :libelle => "Groupe libre")
 
 
-  Service.unrestrict_primary_key()
-  ActiviteRole.unrestrict_primary_key()
-  Activite.unrestrict_primary_key()
   # le service de type service pour gérer les droits sur tout le service
   # ex : exemple, on veut savoir si un utilisateur peut créer des droits sur /user
   Service.create(:id => SRV_SERVICE, :libelle => "service", :description => "Service permettant de déclarer les service comme des ressources.", :api => true)
@@ -102,10 +92,8 @@ def bootstrap_annuaire()
   # service laclasse.com (les super admin y sont reliés)
   Service.create(:id => SRV_LACLASSE, :libelle => "Laclasse.com", :description => "Service auquel tout est rattaché", :url => "/", :api => true)
 
-  Role.unrestrict_primary_key()
   # Création des roles associés à ce service
   Role.create(:id => ROL_TECH, :libelle => "Administrateur technique", :service_id => SRV_LACLASSE)
-
 
   #
   # service /user
@@ -166,7 +154,6 @@ def bootstrap_annuaire()
   #Profils utilisateurs
   # Les codes nationaux sont pris de la FAQ de l'annuaire ENT du SDET
   # http://eduscol.education.fr/cid57076/l-annuaire-ent-second-degre-et-son-alimentation-automatique.html
-  Profil.unrestrict_primary_key()
   Profil.create(:id => 'ELV', :libelle => 'Elève', :code_national => 'National_1', :role_id => ROL_ELV_ETB)
   Profil.create(:id => 'ADM', :libelle => 'Administrateur Etablissement', :code_national => 'National_3', :role_id => ROL_ADM_ETB)
   Profil.create(:id => 'PAR', :libelle => 'Parent', :code_national => 'National_2', :role_id => ROL_PAR_ETB)
@@ -199,7 +186,6 @@ def bootstrap_annuaire()
   # DB[:role_profil].insert(:profil_id => 'ADM', :role_id => assist)
   # DB[:role_profil].insert(:profil_id => 'AED', :role_id => activ_cmpt)
 
-  # ActiviteRole.unrestrict_primary_key()
   # ActiviteRole.create(:activite_id => stat, :role_id => adm)
   # ActiviteRole.create(:activite_id => act, :role_id => adm)
   # ActiviteRole.create(:activite_id => gest, :role_id => adm)
@@ -249,10 +235,9 @@ def bootstrap_annuaire()
 
   # Ajouter des  parametres de test
   # d'abord on ajoute les param_type (text, num, bool)
-  TypeParam.unrestrict_primary_key()
-  TypeParam.create(:id => "text")
-  TypeParam.create(:id => "bool")
-  TypeParam.create(:id => "num")
+  TypeParam.create(:id => TYP_PARAM_TEXT)
+  TypeParam.create(:id => TYP_PARAM_BOOL)
+  TypeParam.create(:id => TYP_PARAM_NUMBER)
   # deuxiement on ajoute les parametre  de test
   # DB[:param_app].insert(:preference => 0, :libelle => "Ouverture / Fermenture de l'ENT", :description => "Restreindre l'accès à l'ENT aux parents et aux élèves. Cette restriction est utile avant la rentrée scolaire, pendant la période de constitution des classes et des groupes. Elle prend effet dès que vous l'avez activée et prend fin lorsque vous la désactivez.",
   #                       :code => "ent_ouvert", :valeur_defaut => "oui", :autres_valeurs => "non", :service_id => 1 , :type_param_id=>"bool")
@@ -267,7 +252,6 @@ def bootstrap_annuaire()
   prenom_list = ['jean', 'francois', 'raymond', 'pierre', 'jeanne', 'frédéric', 'lise', 'michel', 'daniel', 'élodie', 'brigitte', 'béatrice', 'youcef', 'sophie', 'andréas']
   nom_list = ['dupond', 'dupont', 'duchamp', 'deschamps', 'leroy', 'lacroix', 'sarkozy', 'zidane', 'bruni', 'hollande', 'levy', 'khadafi', 'chirac']
 
-  RelationEleve.unrestrict_primary_key()
   #On va créer pour chaque établissement 100 utilisateurs
   # 2.times do |nb|
   0.times do |nb|

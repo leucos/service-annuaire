@@ -17,6 +17,8 @@ class ActiviteRole < Sequel::Model(:activite_role)
   plugin :validation_helpers
   plugin :json_serializer
 
+  unrestrict_primary_key()
+
   # Referential integrity
   many_to_one :role
   many_to_one :service

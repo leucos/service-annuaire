@@ -10,7 +10,7 @@
 # libelle                       | varchar(45)         | true     |          |            | 
 # description                   | varchar(1024)       | true     |          |            | 
 # code_men                      | varchar(45)         | true     |          |            | 
-# profil_id                     | int(11)             | false    | MUL      |            | 
+# profil_id                     | char(8)             | false    | MUL      |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
 class Fonction < Sequel::Model(:fonction)

@@ -19,6 +19,8 @@ class MatiereEnseignee < Sequel::Model(:matiere_enseignee)
   plugin :validation_helpers
   plugin :json_serializer
 
+  unrestrict_primary_key()
+
   # Referential integrity
   many_to_one :famille_matiere
   one_to_many :enseigne_regroupement

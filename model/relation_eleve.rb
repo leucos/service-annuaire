@@ -8,7 +8,7 @@
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 # user_id                       | char(8)             | false    | PRI      |            | 
 # eleve_id                      | char(8)             | false    | PRI      |            | 
-# type_relation_eleve_id        | int(11)             | false    | MUL      |            | 
+# type_relation_eleve_id        | char(8)             | false    | MUL      |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
 class RelationEleve < Sequel::Model(:relation_eleve)
@@ -16,6 +16,8 @@ class RelationEleve < Sequel::Model(:relation_eleve)
   # Plugins
   plugin :validation_helpers
   plugin :json_serializer
+
+  unrestrict_primary_key()
 
   # Referential integrity
 
