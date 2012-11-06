@@ -21,6 +21,8 @@ class Ressource < Sequel::Model(:ressource)
   plugin :validation_helpers
   plugin :json_serializer
 
+  unrestrict_primary_key()
+
   # Referential integrity
   many_to_one :service
   # Todo : make it work and add children

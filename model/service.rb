@@ -22,6 +22,8 @@ class Service < Sequel::Model(:service)
   plugin :validation_helpers
   plugin :json_serializer
 
+  unrestrict_primary_key()
+
   # Referential integrity
   one_to_many :ressource
   one_to_many :role
@@ -47,7 +49,6 @@ class Service < Sequel::Model(:service)
   end
 
   def after_create
-    Ressource.unrestrict_primary_key()
     Ressource.create(:id => self.id, :service_id => SRV_SERVICE)
     super
   end

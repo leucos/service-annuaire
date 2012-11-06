@@ -17,6 +17,8 @@ class ProfilUser < Sequel::Model(:profil_user)
   plugin :validation_helpers
   plugin :json_serializer
 
+  unrestrict_primary_key()
+
   # Referential integrity
   many_to_one :profil
   many_to_one :user

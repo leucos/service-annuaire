@@ -4,8 +4,6 @@ require_relative '../helper'
 describe Rights do
   ROL_TEST = "TEST"
   def create_test_role()
-    Role.unrestrict_primary_key()
-    ActiviteRole.unrestrict_primary_key()
     Role.create(:id => ROL_TEST, :service_id => SRV_ETAB)
     ActiviteRole.create(:service_id => SRV_USER, :role_id => ROL_TEST, :activite_id => ACT_CREATE)
   end
@@ -19,7 +17,6 @@ describe Rights do
     # On créer un role de test sur l'ensemble de LACLASSE.com si la ressource
     # n'est pas précisée
     ressource = Ressource[:service_id => SRV_LACLASSE] if ressource.nil?
-    RoleUser.unrestrict_primary_key()
     RoleUser.create(:user_id => u.id, 
       :ressource_id => ressource.id, :ressource_service_id => ressource.service_id,
       :role_id => ROL_TEST)

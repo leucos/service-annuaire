@@ -26,7 +26,6 @@ module Sequel
           service_id = Service.class_map.rassoc(self.class)[0]
           # Rajoute l'instance en tant que ressource enfant de laclasse 
           # Il pourra ensuite être mis en tant qu'enfant d'un établissement pour donnée le droit à l'admin d'établissement de le modifier/supprimer par exemple
-          Ressource.unrestrict_primary_key()
           Ressource.create(:id => self.id, :service_id => service_id,
             :parent_id => Ressource[:service_id => SRV_LACLASSE].id, :parent_service_id => SRV_LACLASSE)
           super

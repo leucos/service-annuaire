@@ -261,11 +261,18 @@ describe User do
     delete_test_etablissements()
   end
 
-  it ".classes return returns all the classes where user has a role" do
+  it "add user to a classe" do
     
   end
-  # it "add user to a classe" do
-  # end
+
+  it ".classes returns all the classes where user has a role" do
+    u = create_test_user()
+    e1 = create_test_etablissement()
+    e2 = create_test_etablissement()
+
+    delete_test_users()
+    delete_test_etablissements()
+  end
 
   # it "add user to a groupe eleve" do
   # end

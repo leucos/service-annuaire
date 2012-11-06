@@ -18,6 +18,8 @@ class Role < Sequel::Model(:role)
   plugin :validation_helpers
   plugin :json_serializer
 
+  unrestrict_primary_key()
+
   # Referential integrity
   many_to_one :service
   one_to_many :activite_role

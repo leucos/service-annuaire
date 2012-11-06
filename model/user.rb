@@ -161,7 +161,7 @@ class User < Sequel::Model(:user)
         :role_id => new_profil.role_id)
 
       #On supprime les role définit spécialement pour cette utilisateur
-      RoleUser.filter(:profil_user => to_change).delete()
+      RoleUser.filter(:profil_user => to_change).destroy()
       to_change.destroy
       #IMPORTANT CAR LES ASSOCIATIONS SONT MISE EN CACHE
       refresh
@@ -171,15 +171,11 @@ class User < Sequel::Model(:user)
   # Ajoute un profil_user dans l'établissement
   # Et rajoute aussi le role_user associé
   def add_profil(etablissement_id, profil_id)
-    RoleUser.unrestrict_primary_key()
-    ProfilUser.unrestrict_primary_key()
     # ProfilUser sert juste a afficher le profil administratif de l'utilisateur
     ProfilUser.find_or_create(:user => self, 
         :etablissement_id => etablissement_id, :profil_id => profil_id)
     
-    RoleUser.find_or_create(:user => self, 
-        :ressource_id => etablissement_id, :ressource_service_id => SRV_ETAB, 
-        :role_id => Profil[profil_id].role_id)
+    add_role_user(etablissement_id, SRV_ETAB, Profil[profil_id].role_id)
   end
 
   def civilite
@@ -193,12 +189,10 @@ class User < Sequel::Model(:user)
   end
 
   def add_parent(parent, type_relation_id=TYP_REL_PAR)
-    RelationEleve.unrestrict_primary_key()
     RelationEleve.create(:user_id => parent.id, :eleve_id => self.id, :type_relation_eleve_id => type_relation_id)
   end
 
   def add_enfant(enfant, type_relation_id=TYP_REL_PAR)
-    RelationEleve.unrestrict_primary_key()
     RelationEleve.create(:user_id => self.id, :eleve_id => enfant.id, :type_relation_eleve_id => type_relation_id)
   end
 
@@ -210,9 +204,14 @@ class User < Sequel::Model(:user)
     Etablissement.filter(:id => RoleUser.filter(:ressource_service_id => SRV_ETAB).select(:ressource_id))
   end
 
-  #Classe dans laquelle est actuellement (profil actif) l'élève
+  # Ajoute un role sur une classe
+  def add_classe(classe_id, role_id)
+    add_role_user(classe_id, TYP_REG_CLS, role_id)
+  end
+
+  #toutes les classes dans lesquelles l'utilisateur à un rôle
   def classes(etablissement_id = nil)
-    regroupements('CLS').first
+    regroupements(etablissement_id, TYP_REG_CLS)
   end
 
   #Groupes auxquel l'élève est inscrit
@@ -277,11 +276,16 @@ class User < Sequel::Model(:user)
   end
 
 private
+  def add_role_user(ressource_id, service_id, role_id)
+    RoleUser.create(:user_id => self.id, :role_id => role_id,
+      :ressource_id => ressource_id, :ressource_service_id => service_id)
+  end
+
   def regroupements(etablissement_id, type_id)
-    service_id = Regroupement.get_service_id(type_id)
-    Regroupement.filter(:type_regroupement_id => type_id,
-      :etablissement_id => etablissement_id,
-      :id => RoleUser.filter(:user => self, :ressource_service_id => service_id).select(:ressource_id))
+    ds = Regroupement.filter(:type_regroupement_id => type_id,
+      :id => RoleUser.filter(:user => self, :ressource_service_id => type_id).select(:ressource_id))
+    ds.filter(:etablissement_id => etablissement_id) if etablissement_id
+    return ds.all
   end
 
   def enseigne_regroupements(etablissement_id, type_id)

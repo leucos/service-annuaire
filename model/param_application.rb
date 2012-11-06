@@ -13,7 +13,7 @@
 # description                   | varchar(1024)       | true     |          |            | 
 # valeur_defaut                 | varchar(2000)       | true     |          |            | 
 # autres_valeurs                | varchar(2000)       | true     |          |            | 
-# type_param_id                 | char(4)             | false    | MUL      |            | 
+# type_param_id                 | char(8)             | false    | MUL      |            | 
 # application_id                | char(8)             | false    | MUL      |            | 
 # role_id                       | char(8)             | true     | MUL      |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------

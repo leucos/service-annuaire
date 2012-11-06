@@ -17,6 +17,8 @@ class TypeRegroupement < Sequel::Model(:type_regroupement)
   plugin :validation_helpers
   plugin :json_serializer
 
+  unrestrict_primary_key()
+
   # Referential integrity
 
   # Not nullable cols

@@ -17,6 +17,8 @@ class TypeTelephone < Sequel::Model(:type_telephone)
   plugin :validation_helpers
   plugin :json_serializer
 
+  unrestrict_primary_key()
+  
   # Referential integrity
   one_to_many :telephone
 

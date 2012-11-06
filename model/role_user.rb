@@ -20,6 +20,8 @@ class RoleUser < Sequel::Model(:role_user)
   plugin :validation_helpers
   plugin :json_serializer
 
+  unrestrict_primary_key()
+
   # Referential integrity
   many_to_one :user
   many_to_one :ressource, :key=>[:ressource_service_id, :ressource_id]

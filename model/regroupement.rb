@@ -33,17 +33,6 @@ class Regroupement < Sequel::Model(:regroupement)
     ds.where(:service_id => [SRV_GROUPE, SRV_CLASSE, SRV_LIBRE])
   end
 
-  def self.get_service_id(type_regroupement_id)
-    case type_regroupement_id
-      when TYP_REG_CLS
-        return SERVICE_CLASSE
-      when TYP_REG_GRP
-        return SERVICE_GROUPE
-      when TYP_REG_LBR
-        return SERVICE_LIBRE
-    end
-  end
-
   # Not nullable cols
   def validate
     super
@@ -62,7 +51,6 @@ class Regroupement < Sequel::Model(:regroupement)
         service_id = SRV_LIBRE
     end
 
-    Ressource.unrestrict_primary_key()
     Ressource.create(:id => self.id, :service_id => service_id,
       :parent_id => etablissement_id, :parent_service_id => SRV_ETAB)
     super

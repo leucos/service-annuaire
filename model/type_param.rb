@@ -6,7 +6,7 @@
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 # COLUMN_NAME                   | DATA_TYPE           | NULL? | KEY | DEFAULT | EXTRA
 # ------------------------------+---------------------+----------+----------+------------+--------------------
-# id                            | char(4)             | false    | PRI      |            | 
+# id                            | char(8)             | false    | PRI      |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
 class TypeParam < Sequel::Model(:type_param)
@@ -14,6 +14,8 @@ class TypeParam < Sequel::Model(:type_param)
   # Plugins
   plugin :validation_helpers
   plugin :json_serializer
+
+  unrestrict_primary_key()
 
   # Referential integrity
   one_to_many :param_application
