@@ -262,19 +262,6 @@ describe User do
     delete_test_etablissements()
   end
 
-  it "add user to a classe" do
-    
-  end
-
-  it ".classes returns all the classes where user has a role" do
-    u = create_test_user()
-    e1 = create_test_etablissement()
-    e2 = create_test_etablissement()
-
-    delete_test_users()
-    delete_test_etablissements()
-  end
-
   it "set_preference to user" do
     a = create_test_application_with_param()
     u = create_test_user()
@@ -304,6 +291,31 @@ describe User do
   end
 
   it "destory preferences on user destruction" do
+    a = create_test_application_with_param()
+    u = create_test_user()
+    user_id = u.id
+    pref_id = a.param_application.first.id
+ 
+    u.set_preference(pref_id, 200)
+
+    delete_test_users()
+
+    ParamUser.filter(:user_id => user_id, :param_application_id => pref_id).count.should == 0
+
+    delete_test_application()
+  end
+
+  it "add user to a classe" do
+    
+  end
+
+  it ".classes returns all the classes where user has a role" do
+    u = create_test_user()
+    e1 = create_test_etablissement()
+    e2 = create_test_etablissement()
+
+    delete_test_users()
+    delete_test_etablissements()
   end
 
   # it "add user to a groupe eleve" do
