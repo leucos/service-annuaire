@@ -13,7 +13,7 @@
 # code_mef_aaf                  | int(11)             | true     |          |            | 
 # date_last_maj_aaf             | date                | true     |          |            | 
 # libelle_aaf                   | char(8)             | true     |          |            | 
-# type_regroupement_id          | int(11)             | false    | MUL      |            | 
+# type_regroupement_id          | char(8)             | false    | MUL      |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
 class Regroupement < Sequel::Model(:regroupement)

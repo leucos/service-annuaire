@@ -104,7 +104,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `annuaire`.`type_regroupement` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`type_regroupement` (
-  `id` CHAR(4) NOT NULL ,
+  `id` CHAR(8) NOT NULL ,
   `libelle` VARCHAR(45) NULL ,
   `description` VARCHAR(255) NULL ,
   PRIMARY KEY (`id`) )
@@ -124,7 +124,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`regroupement` (
   `libelle_aaf` CHAR(8) NULL COMMENT 'En cas d\'alimentation automatique, un libelle de 8 caractères.' ,
   `niveau_id` INT NULL ,
   `etablissement_id` INT NOT NULL ,
-  `type_regroupement_id` CHAR(4) NOT NULL ,
+  `type_regroupement_id` CHAR(8) NOT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_regroupement_niveau1` (`niveau_id` ASC) ,
   INDEX `fk_regroupement_etablissement1` (`etablissement_id` ASC) ,

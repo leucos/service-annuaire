@@ -24,9 +24,9 @@ TYP_REL_CORR = "CORR"
 #
 # TypeRegroupement
 #
-TYP_REG_CLS = "CLS"
-TYP_REG_GRP = "GRP"
-TYP_REG_LBR = "LBR"
+TYP_REG_CLS = "CLASSE"
+TYP_REG_GRP = "GROUPE"
+TYP_REG_LBR = "LIBRE"
 
 #
 # TypeEtablissement
