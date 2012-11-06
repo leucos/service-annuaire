@@ -386,6 +386,7 @@ class UserApi < Grape::API
   end
 
 # modifier l'adresse et le type de l'email
+# l'email doit apartenir à l'utilisateur user_id
   desc "modifier un email existant"
   put ":user_id/email/:email_id" do
     user_id = params["user_id"]
@@ -398,8 +399,8 @@ class UserApi < Grape::API
       if adresse.nil?
         error!("mauvaise requete", 400)
       else
-        academique = !params["academique"].nil?  and  params["academique"] == true ? true : false
-        principal = !params["principal"].nil?  and  params["principal"] == true ? true : false
+        academique = (!params["academique"].nil?  and  params["academique"] == "true") ? true : false
+        principal = (!params["principal"].nil?  and  params["principal"] == "true") ? true : false
         email = Email[:id => email_id]
         email.adresse = adresse
         email.academique = academique
@@ -407,6 +408,101 @@ class UserApi < Grape::API
         email.save 
       end 
     end 
+  end
+
+# supprimer un des email de l'utilisateur 
+  desc "supprimer un email" 
+  delete ":user_id/email/:email_id" do
+    user_id = params["user_id"]
+    email_id = params["email_id"].to_i
+    u = User[:id => user_id]
+    if u.nil? or !u.email.map{|email| email.id}.include?(email_id)
+      error!("ressource non trouvé", 403)
+    else
+      email = Email[:id => email_id]
+      email.destroy
+    end   
+  end
+
+  
+  #recuperer la liste des telephones qui appartien à un utilisateur 
+  desc "recuperer les telephones"
+  get ":user_id/telephones" do
+    user_id = params["user_id"]
+    u = User[:id => user_id]
+    if u.nil?
+      error!("ressource non trouvé", 403)
+    else
+      u.telephone.map{|tel| {id: tel.id, numero: tel.numero, type: tel.type_telephone_id} } 
+    end
   end 
+  
+  #ajouter un telephone
+  desc "ajouter un numero de telephone à l'utilisateur"
+  params do
+    requires :numero, type: String
+    optional :type_telephone_id, type: String
+  end
+  post ":user_id/telephone"do
+    user_id = params["user_id"]
+    if User[:id =>user_id].nil?
+      error!("ressource non trouvé", 403)
+    else 
+      numero = params["numero"]
+      u = User[:id =>user_id]
+      if !params["type_telephone_id"].nil? and ["MAIS", "PORT", "TRAV", "AUTR"].include?(params["type_telephone_id"])
+        type_telephone_id = params["type_telephone_id"]
+        u.add_telephone(numero, type_telephone_id )
+      else       
+        u.add_telephone(numero)
+      end    
+
+    end 
+  end
+
+  #modifier le telephone
+  desc "modifier un telephone" 
+  params do
+    optional :numero, type: String
+    optional :type_telephone_id, type: String
+  end
+  put ":user_id/telephone/:telephone_id"  do 
+    user_id = params["user_id"]
+    u = User[:id => user_id]
+    if u.nil?
+      error!("ressource non trouvé", 403)
+    elsif params["telephone_id"].nil? or params["telephone_id"].empty? 
+      error!("mouvaise requete", 400)
+    elsif !u.telephone.map{|tel| tel.id}.include?(params["telephone_id"].to_i)  
+      error!("ressource non trouvé", 403)
+    else
+      tel = Telephone[:id => params["telephone_id"].to_i]
+      if !params["numero"].nil? and !params["numero"].empty?
+        tel.set(:numero => params["numero"])
+      end
+      if !params["type_telephone_id"].nil? and ["MAIS", "PORT", "TRAV", "AUTR"].include?(params["type_telephone_id"])
+        tel.set(:type_telephone_id  => params["type_telephone_id"])
+      end 
+      tel.save
+    end 
+  end
+
+  #supprimer un telephone 
+  desc "suppression d'un telephone"
+  delete ":user_id/telephone/:telephone_id"  do
+    user_id = params["user_id"]
+    u = User[:id => user_id]
+    if u.nil?
+      error!("ressource non trouvé", 403)
+    elsif params["telephone_id"].nil? or params["telephone_id"].empty? 
+      error!("mouvaise requete", 400)
+    elsif !u.telephone.map{|tel| tel.id}.include?(params["telephone_id"].to_i)  
+      error!("ressource non trouvé", 403)
+    else
+      tel = Telephone[:id => params["telephone_id"].to_i]
+      tel.destroy
+    end
+  end 
+
 
 end

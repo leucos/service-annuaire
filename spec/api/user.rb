@@ -9,6 +9,7 @@ describe UserApi do
   # In case something went wrong
   delete_test_eleve_with_parents()
   delete_test_users()
+  delete_test_users("testuser")
 =begin
   should "return user profile when giving good login/password" do
     u = create_test_user()
@@ -187,15 +188,65 @@ describe UserApi do
     u.add_email("testuser@laclasse.com")
     id = u.email.first.id
     put("user/#{u.id}/email/vddd", :adresse => "modifie@laclasse.com").status.should == 403
-    put("user/#{u.id}/email/#{id}", :adresse => "modifie@laclasse.com", :principal => false).status.should == 200
+    put("user/#{u.id}/email/#{id}", :adresse => "modifie@laclasse.com", :principal => true, :academique => true ).status.should == 200
     response = last_response.body 
     delete_test_users("testuser")
     puts response
   end 
 
-  should "delete an email of a specific user" do 
-
+  should "delete an email of a specific user" do
+    u = create_test_user("testuser")
+    u.add_email("testuser@laclasse.com")
+    id = u.email.first.id
+    count = u.email.count 
+    delete("user/#{u.id}/email/vddd").status.should == 403
+    delete("user/#{u.id}/email/#{id}").status.should == 200
+    u.refresh()
+    u.email.count.should == (count-1)
+    delete_test_users("testuser")
   end
+
+  should "returns a list of user phone numbers" do 
+    u = create_test_user("testuser")
+    u.add_telephone("0404040404", TYP_TEL_MAIS)
+    u.add_telephone("0404040405", TYP_TEL_TRAV)
+    get("user/#{u.id}/telephones").status.should == 200
+    response = JSON.parse(last_response.body)
+    response.count.should  == 2 
+    delete_test_users("testuser") 
+  end
+
+  should "add a new telephone" do 
+    u = create_test_user("testuser")
+    post("user/#{u.id}/telephone").status.should == 400
+    post("user/#{u.id}/telephone", :numero => "0466666666").status.should == 201
+    delete_test_users("testuser") 
+  end 
+
+  should "be able to modify a telephone number or type" do
+    u = create_test_user("testuser")
+    u.add_telephone("0404040404", TYP_TEL_MAIS)
+    telephone_id = u.telephone.first.id 
+    put("user/#{u.id}/telephone/telephone_id").status.should == 403
+    put("user/#{u.id}/telephone/#{telephone_id}", :numero => "0466666666").status.should == 200
+    put("user/#{u.id}/telephone/#{telephone_id}", :type_telephone_id => TYP_TEL_TRAV).status.should == 200
+    u.refresh
+    u.telephone.first.numero.should == "0466666666"
+    u.telephone.first.type_telephone_id.should == TYP_TEL_TRAV
+    delete_test_users("testuser")  
+  end 
+
+  should "be able to delete a telephone number" do 
+    u = create_test_user("testuser")
+    u.add_telephone("0404040404", TYP_TEL_MAIS)
+    count = u.telephone.count
+    telephone_id = u.telephone.first.id
+    delete("user/#{u.id}/telephone/#{telephone_id}").status.should == 200
+    u.refresh 
+    u.telephone.count.should == count-1
+    #response.count.should  == 2 
+    delete_test_users("testuser") 
+  end 
 
 
 
