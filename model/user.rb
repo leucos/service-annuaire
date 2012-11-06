@@ -39,6 +39,7 @@ class User < Sequel::Model(:user)
   one_to_many :enseigne_regroupement
   one_to_many :role_user
   one_to_many :profil_user
+  one_to_many :param_user
   one_to_many :telephone
   one_to_many :email
   # Liste de tous les élèves avec qui l'utilisateur est en relation
@@ -107,6 +108,8 @@ class User < Sequel::Model(:user)
 
     # Enfin tous ses profils dans l'établissement
     profil_user_dataset.destroy()
+
+    param_user_dataset.destroy()
     super
   end
 
@@ -273,6 +276,28 @@ class User < Sequel::Model(:user)
       type_telephone_id = TYP_TEL_PORT
     end
     Telephone.create(:numero => numero, :user => self, :type_telephone_id => type_telephone_id)
+  end
+
+  def set_preference(preference_id, valeur)
+    param = ParamUser[:user => self, :param_application_id => preference_id]
+    if param
+      if valeur
+        param.update(:valeur => valeur)
+      else
+        param.destroy()
+      end
+    elsif valeur
+      ParamUser.create(:user => self, :param_application_id => preference_id, :valeur => valeur)
+    end
+  end
+
+  # Renvois les preferences d'un utilisateur sur une application
+  # les valeurs sont celles par défaut si l'utilisateur n'a rien précisé
+  def preferences(application_id)
+    ParamApplication.
+      join_table(:left, :param_user, {:param_application_id => :id, :user_id => self.id}).
+      filter(:application_id => application_id, :preference => true).
+      select(:code, :valeur_defaut, :valeur, :libelle, :description, :autres_valeurs, :type_param_id).all
   end
 
 private

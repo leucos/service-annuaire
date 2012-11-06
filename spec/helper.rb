@@ -30,6 +30,21 @@ def delete_test_etablissements
   Etablissement.filter(:nom => "test").destroy()
 end
 
+def create_test_application_with_param
+  a = Application.create(:id => "test")
+  ParamApplication.create(:code => "test_pref", :preference => true, 
+    :application => a, :type_param_id => TYP_PARAM_NUMBER)
+  ParamApplication.create(:code => "test_param", :preference => false, 
+    :application => a, :type_param_id => TYP_PARAM_NUMBER)
+  ParamApplication.create(:code => "test_pref2", :preference => true, 
+    :application => a, :type_param_id => TYP_PARAM_NUMBER)
+  return a
+end
+
+def delete_test_application
+  Application.filter(:id => "test").destroy()
+end
+
 def create_test_eleve_with_parents()
   u = create_test_user("test1")
   u.id_sconet = 123456

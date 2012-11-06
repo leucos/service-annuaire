@@ -413,16 +413,9 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`param_application` (
   `autres_valeurs` VARCHAR(2000) NULL COMMENT '\'Strings séparée par \\\";\\\". Choix multiples\'' ,
   `application_id` CHAR(8) NOT NULL ,
   `type_param_id` CHAR(8) NOT NULL ,
-  `role_id` CHAR(8) NULL COMMENT 'non null si paramètre spécifique à un role' ,
   PRIMARY KEY (`id`) ,
-  INDEX `fk_param_application_role1` (`role_id` ASC) ,
   INDEX `fk_param_application_application1` (`application_id` ASC) ,
   INDEX `fk_param_application_type_param1` (`type_param_id` ASC) ,
-  CONSTRAINT `fk_param_application_role1`
-    FOREIGN KEY (`role_id` )
-    REFERENCES `annuaire`.`role` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
   CONSTRAINT `fk_param_application_application1`
     FOREIGN KEY (`application_id` )
     REFERENCES `annuaire`.`application` (`id` )

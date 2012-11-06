@@ -15,7 +15,6 @@
 # autres_valeurs                | varchar(2000)       | true     |          |            | 
 # type_param_id                 | char(8)             | false    | MUL      |            | 
 # application_id                | char(8)             | false    | MUL      |            | 
-# role_id                       | char(8)             | true     | MUL      |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
 class ParamApplication < Sequel::Model(:param_application)
@@ -26,7 +25,6 @@ class ParamApplication < Sequel::Model(:param_application)
 
   # Referential integrity
   many_to_one :type_param
-  many_to_one :role
   many_to_one :application
   one_to_many :param_etablissement
   one_to_many :param_user
@@ -35,5 +33,11 @@ class ParamApplication < Sequel::Model(:param_application)
   def validate
     super
     validates_presence [:code, :preference, :type_param_id, :application_id]
+  end
+
+  def before_destroy
+    param_user_dataset.destroy()
+    param_etablissement_dataset.destroy()
+    super
   end
 end

@@ -4,6 +4,7 @@ require_relative '../helper'
 describe User do
   #In case of something went wrong
   delete_test_users()
+  delete_test_application()
 
   it "knows what is a valid uid" do
     User.is_valid_id?("VAA60000").should.equal true
@@ -272,6 +273,37 @@ describe User do
 
     delete_test_users()
     delete_test_etablissements()
+  end
+
+  it "set_preference to user" do
+    a = create_test_application_with_param()
+    u = create_test_user()
+    pref_id = a.param_application.first.id
+    
+    u.set_preference(pref_id, 200)
+    dataset = ParamUser.filter(:user => u, :param_application_id => pref_id)
+    dataset.count.should == 1
+    # When using nil, it destroy the preference
+    u.set_preference(pref_id, nil)
+    dataset.count.should == 0
+    
+    delete_test_users()
+    delete_test_application()
+  end
+
+  it "return all preferences on a application" do
+    a = create_test_application_with_param()
+    u = create_test_user()
+    pref_id = a.param_application.first.id
+ 
+    u.set_preference(pref_id, 200)
+    u.preferences(a.id).count.should == 2
+
+    delete_test_users()
+    delete_test_application()
+  end
+
+  it "destory preferences on user destruction" do
   end
 
   # it "add user to a groupe eleve" do
