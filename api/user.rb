@@ -470,11 +470,11 @@ class UserApi < Grape::API
     user_id = params["user_id"]
     u = User[:id => user_id]
     if u.nil?
-      error!("ressource non trouvé", 403)
+      error!("ressource non trouvé", 404)
     elsif params["telephone_id"].nil? or params["telephone_id"].empty? 
       error!("mouvaise requete", 400)
     elsif !u.telephone.map{|tel| tel.id}.include?(params["telephone_id"].to_i)  
-      error!("ressource non trouvé", 403)
+      error!("ressource non trouvé", 404)
     else
       tel = Telephone[:id => params["telephone_id"].to_i]
       if !params["numero"].nil? and !params["numero"].empty?
@@ -493,16 +493,75 @@ class UserApi < Grape::API
     user_id = params["user_id"]
     u = User[:id => user_id]
     if u.nil?
-      error!("ressource non trouvé", 403)
+      error!("ressource non trouvé", 404)
     elsif params["telephone_id"].nil? or params["telephone_id"].empty? 
       error!("mouvaise requete", 400)
     elsif !u.telephone.map{|tel| tel.id}.include?(params["telephone_id"].to_i)  
-      error!("ressource non trouvé", 403)
+      error!("ressource non trouvé", 404)
     else
       tel = Telephone[:id => params["telephone_id"].to_i]
       tel.destroy
     end
-  end 
+  end
 
+
+  #Récupère les préférences d'une application
+  desc "Récupère les préférences d'une application d'un utilisateur"
+  get ":user_id/application/:application_id/preferences" do 
+    user_id = params["user_id"]
+    application_id = params["application_id"]
+    application = Application[:id => application_id]
+    u = User[:id => user_id]
+    if u.nil? or application.nil?
+      error!("ressource non trouvé", 404)
+    else
+      u.preferences(application_id)
+    end 
+
+  end
+
+  #Modifie une préférence
+  desc "Modifier une(des) preferecne(s)"
+  put ":user_id/application/:application_id/preferences" do
+    user_id = params["user_id"]
+    application_id = params["application_id"]
+    application = Application[:id => application_id]
+    u = User[:id => user_id]
+    if u.nil? or application.nil?
+      error!("ressource non trouvé", 404)
+    else
+      preferences  = params.select {|key, value|  (key != "route_info" and key != "user_id" and key != "application_id")  }
+      puts preferences.inspect
+      # no preferences are sent
+      if preferences.count == 0 
+        error!("mouvaise requete", 403)
+      end
+      i = 0 
+      preferences.each do |code, value|
+        param_application = ParamApplication[:code => code]
+        if param_application.nil?
+          i+=1
+        end                     
+      end
+      # all preferences are not valid 
+      if preferences.count == i and i > 0
+        error!("mouvaise requete", 403)
+      end
+      preferences.each do |code, value|
+        param_application = ParamApplication[:code => code]
+        if !param_application.nil?
+           u.set_preference(param_application.id, value)
+        end                     
+      end
+
+    end
+  end
+
+  #Remettre la valeure par défaut pour toutes les préférences
+  desc "Remettre la valeure par défaut pour toutes les préférences"
+  delete ":user_id/application/:application_id/preferences" do 
+    "ok"
+
+  end
 
 end

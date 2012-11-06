@@ -120,7 +120,7 @@ describe UserApi do
     user = JSON.parse(last_response.body)
     delete_test_users("testuser")
   end
-=end
+
   should "be able to add new relations to users if sending good parameters and return bad request or resource not found otherwise" do 
     u = create_test_user("testuser")
     post("user/#{u.id}/relation", :eleve_id => "VAA60000", :type_relation_id => "PAR").status.should == 201
@@ -248,6 +248,27 @@ describe UserApi do
     delete_test_users("testuser") 
   end 
 
+=end
+
+  #Récupère les préférences d'une application
+  # should "return a list of user preferences for an application" do
+  #   u = create_test_user("testuser")
+  #   get("/user/#{u.id}/application/1/preferences").status.should == 200
+  #   delete_test_users("testuser")
+  # end 
+
+  #modifier ou Remettre la valeure par défaut de la préférence
+  should "modify preferences" do
+    u = create_test_user("testuser")
+    hash = {show_toolbar: true, show_css: false}
+    put("/user/#{u.id}/application/1/preferences",hash).status.should == 200 
+    delete_test_users("testuser") 
+  end 
+
+  #Remettre la valeure par défaut pour toutes les préférences
+  should "delete preferences" do
+    delete("/user/:user_id/application/application_id/preferences").status.should == 200
+  end 
 
 
 
@@ -272,7 +293,7 @@ describe UserApi do
     where  = {:sex => "F", :nom => "sarkozy"}
     # Bad Request
     get("user/query/users?where[sex]=F&where[nom]=sarkozy").status.should == 400
-  end
+  endalue
 
   should "reject the request if bad filter assocition name and column are sent " do 
     #bad association name
