@@ -218,9 +218,14 @@ class User < Sequel::Model(:user)
   end
 
   #Groupes auxquel l'élève est inscrit
-  def groupes(etablissement_id = nil)
+  def groupes_eleves(etablissement_id = nil)
     regroupements(etablissement_id, TYP_REG_GRP)
   end
+
+  def groupes_libres(etablissement_id = nil)
+    regroupements(etablissement_id, TYP_REG_LBR)
+  end
+
 
   def enseigne_classes
     enseigne_regroupements('CLS').all

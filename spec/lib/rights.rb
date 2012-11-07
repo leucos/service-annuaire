@@ -31,15 +31,26 @@ describe Rights do
     delete_test_role()
   end
 
-  # it "should return create rights for user on resource class if user has role on etab " do
-  #   Rights.get_rights(admin.id, SRV_CLASSE, cls_id).shoud == [ACT_CREATE_USER]
-  # end
+  it "should return create rights for user on resource class if user has role on etab " do
+    r = create_test_role()
+    e = create_test_etablissement()
+    admin = create_user_with_role(r.id, e.ressource)
+    classe = e.add_regroupement({:type_regroupement_id => TYP_REG_CLS})
+    Rights.get_rights(admin.id, SRV_CLASSE, classe.id).should == [ACT_DELETE]
+    delete_test_ressources_tree()
+    delete_test_role()
+  end
 
-  # it "should handle merge similar rights" do
-  #   # On donne des droits sur un établissement et sur laclasse
-    
-  #   Rights.get_rights(admin.id, SRV_ETAB, ressource_etab.id).should == [ACT_CREATE_USER]
-  # end
+  it "should handle merge similar rights" do
+    # On donne des droits sur un établissement et sur laclasse
+    r = create_test_role()
+    e = create_test_etablissement()
+    admin = create_user_with_role(r.id)
+    RoleUser.create(:user_id => admin.id, 
+      :ressource_id => e.ressource.id, :ressource_service_id => e.ressource.service_id,
+      :role_id => r.id)
+    Rights.get_rights(admin.id, SRV_ETAB, e.ressource.id, SRV_USER).should == [ACT_CREATE]
+  end
 
   # it "should return create rights on service user for laclasse admin" do
   #   Rights.get_rights(admin.id, SRV_SERVICE, SRV_USER).should == [ACT_CREATE]
