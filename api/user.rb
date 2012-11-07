@@ -2,7 +2,7 @@
 class UserApi < Grape::API
   format :json
 
-    helpers do
+  helpers do
     # return an array of columns 
     def model
       params['model'].capitalize
@@ -128,75 +128,6 @@ class UserApi < Grape::API
     end
   end
 
-  desc "Service spécifique au SSO"
-  get "/sso_attributes_men/:login" do
-    u = User[:login => params[:login]]
-    if !u.nil? and !u.profil_actif.nil?
-      attributes = {
-        "user" => u.id,
-        "UAI" => u.etablissement.code_uai,
-        "ENTPersonProfils" => u.profil_actif.profil.code_national,
-        "CodeNivFormation" => nil,
-        "NivFormation" => nil,
-        "NivFormationDiplome" => nil,
-        "Filiere" => nil,
-        "Specialite" => nil,
-        "Enseignement" => nil,
-        "Classe" => nil,
-        "Groupe" => nil,
-        "MatiereEnseignEtab" => nil
-      }
-
-      if u.profil_actif.profil_id == "ENS"
-        attributes["Classe"] = u.enseigne_classes.map{|c| c.libelle}.join(",")
-        attributes["Groupe"] = u.enseigne_groupes.map{|g| g.libelle}.join(",")
-        attributes["MatiereEnseignEtab"] = u.matiere_enseigne.map{|m| m.libelle_court}.join(",")
-      else
-        cls = u.classe
-        attributes["Classe"] = cls.nil? ? nil : cls.libelle
-        attributes["NivFormation"] = cls.nil? ? nil : cls.niveau.libelle
-        attributes["Groupe"] = u.groupes.map{|g| g.libelle}.join(",")
-      end
-
-      attributes
-    else
-      error!("Utilisateur non trouvé", 404)
-    end
-  end
-
-  desc "Service spécifique au SSO"
-  get "/sso_attributes/:login" do
-    u = User[:login => params[:login]]
-    if !u.nil? and !u.profil_actif.nil?
-      attributes = {
-        "login" => u.login,
-        "pass" => u.password,
-        "ENT_id" => u.id,
-        "uid" => u.id,
-        "LaclasseNom" => u.nom,
-        "LaclassePrenom" => u.prenom,
-        "LaclasseDateNais" => u.date_naissance,
-        "LaclasseSexe" => u.sexe,
-        "LaclasseAdresse" => u.adresse,
-        "LaclasseCivilite" => u.civilite,
-        "ENTPersonStructRattach" => u.etablissement.code_uai,
-        "ENTPersonStructRattachRNE" => u.etablissement.code_uai,
-        "ENTPersonProfils" => u.profil_actif.profil.code_national,
-        "LaclasseEmail" => u.email_principal,
-        "LaclasseEmailAca" => u.email_academique
-      }
-
-      cls = u.classe
-      attributes["ENTEleveClasses"] = cls.nil? ? nil : cls.libelle
-      attributes["LaclasseNomClasse"] = cls.nil? ? nil : cls.libelle
-      attributes["ENTEleveNivFormation"] = cls.nil? ? nil : cls.niveau.libelle
-
-      attributes
-    else
-      error!("Utilisateur non trouvé", 404)
-    end
-  end
-
   desc "a service to search users according to certiain informations"
   # look at tests to see some examples about parameters
   get "/query/users"  do
@@ -241,33 +172,6 @@ class UserApi < Grape::API
     response.as_json
   end
 
-  desc "Search parents of a student who has a specific sconet_id"
-  params do
-    requires :id_sconet, type: Integer 
-    optional :nom, type: String
-    optional :prenom, type: String
-  end
-  # returns empty array if parent(s) is(are) not found
-  get "/parent/eleve"  do
-    nom = params["nom"].nil? ?  "" : params["nom"]
-    prenom = params["prenom"].nil? ?  "" : params["prenom"]
-    eleve = User[:id_sconet => params["id_sconet"]]
-    parents = eleve.parents
-
-    parents.keep_if do |p|
-      keep_parent = true
-      if !nom.empty?
-        keep_parent = p.nom == nom
-      end
-      if !prenom.empty? and keep_parent
-        keep_parent = p.prenom == prenom
-      end
-      keep_parent
-    end
-
-    parents
-  end
-
   # Récupération des relations 
   # returns the relations of a user 
   # actually not complet 
@@ -278,7 +182,7 @@ class UserApi < Grape::API
     else
       error!("Utilisateur non trouvé", 404)
     end 
-    relation = !user.relation_adulte.empty? ? user.relation_adulte : user.relation_eleve
+    user.relations
   end
 
   
@@ -463,28 +367,24 @@ class UserApi < Grape::API
   #modifier le telephone
   desc "modifier un telephone" 
   params do
+    requires :telephone_id, type: Integer
     optional :numero, type: String
     optional :type_telephone_id, type: String
   end
   put ":user_id/telephone/:telephone_id"  do 
-    user_id = params["user_id"]
-    u = User[:id => user_id]
-    if u.nil?
-      error!("ressource non trouvé", 404)
-    elsif params["telephone_id"].nil? or params["telephone_id"].empty? 
-      error!("mouvaise requete", 400)
-    elsif !u.telephone.map{|tel| tel.id}.include?(params["telephone_id"].to_i)  
-      error!("ressource non trouvé", 404)
-    else
-      tel = Telephone[:id => params["telephone_id"].to_i]
-      if !params["numero"].nil? and !params["numero"].empty?
-        tel.set(:numero => params["numero"])
-      end
-      if !params["type_telephone_id"].nil? and ["MAIS", "PORT", "TRAV", "AUTR"].include?(params["type_telephone_id"])
-        tel.set(:type_telephone_id  => params["type_telephone_id"])
-      end 
-      tel.save
-    end 
+    u = User[params[:user_id]]
+    error!("ressource non trouvée", 404) if u.nil?
+    tel = u.telephone_dataset[params[:telephone_id]]  
+    error!("ressource non trouvée", 404) if tel.nil?
+    
+    tel.set(:numero => params[:numero]) if params[:numero]
+    tel.set(:type_telephone_id  => params[:type_telephone_id]) if params[:type_telephone_id]
+
+    begin
+      tel.save()
+    rescue => e
+      error!("Erreur lors de la sauvegarde : #{e.message}", 400)
+    end
   end
 
   #supprimer un telephone 

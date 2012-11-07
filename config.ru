@@ -18,6 +18,10 @@ map "/user" do
   run UserApi
 end
 
+map "/sso" do
+  run SsoApi
+end
+
 Ramaze.start(:root => Ramaze.options.roots, :started => true)
 
 run Ramaze

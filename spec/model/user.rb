@@ -332,4 +332,16 @@ describe User do
 
   # it "delete a relation to an eleve" do
   # end
+
+  it ".profil_actif return the first user profil" do
+    u = create_test_user()
+    e1 = create_test_etablissement()
+    
+    u.add_profil(e1.id, PRF_ELV)
+    
+    u.profil_actif.should.not == nil
+
+    delete_test_users()
+    delete_test_etablissements()
+  end
 end

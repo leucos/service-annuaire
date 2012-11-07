@@ -149,7 +149,7 @@ class User < Sequel::Model(:user)
   # Renvoi le premier profil_user trouvé dans un établissement
   # Pas super mais il faut réfléchir à cette notion de profil_actif
   def profil_actif
-    role_user.select{|r| r.actif && r.ressource_service_id == SRV_ETAB}.first
+    profil_user.first
   end
 
   #Change le profil de l'utilisateur
@@ -218,8 +218,8 @@ class User < Sequel::Model(:user)
   end
 
   #Groupes auxquel l'élève est inscrit
-  def groupes
-    regroupements('GRP').all
+  def groupes(etablissement_id = nil)
+    regroupements(etablissement_id, TYP_REG_GRP)
   end
 
   def enseigne_classes
