@@ -7,7 +7,11 @@ module API
       expose :email, :as => :adresse_emails
       expose(:name) {|user,options| [ user.prenom, user.nom ].join(' ')}
       #not too good etablissement
-      expose(:etablissements){|user,options| user.etablissements.map{|etab| {:id => etab.id, :nom =>  etab.nom, :profils => etab.profil_user.select{|profiluser| profiluser.user_id == user.id}}}} 
+      expose(:etablissements) do |user,options|
+        user.etablissements.map do |etab| 
+           {:id => etab.id, :nom =>  etab.nom, :profils => etab.profil_user_dataset.filter(:user_id => user.id)}
+        end
+      end
       expose :classes
       expose :telephone, :as => :telephones
       #expose :preferences
