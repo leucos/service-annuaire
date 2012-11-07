@@ -178,7 +178,7 @@ class User < Sequel::Model(:user)
     ProfilUser.find_or_create(:user => self, 
         :etablissement_id => etablissement_id, :profil_id => profil_id)
     
-    add_role_user(etablissement_id, SRV_ETAB, Profil[profil_id].role_id)
+    add_role(etablissement_id, SRV_ETAB, Profil[profil_id].role_id)
   end
 
   def civilite
@@ -209,7 +209,7 @@ class User < Sequel::Model(:user)
 
   # Ajoute un role sur une classe
   def add_classe(classe_id, role_id)
-    add_role_user(classe_id, TYP_REG_CLS, role_id)
+    add_role(classe_id, TYP_REG_CLS, role_id)
   end
 
   #toutes les classes dans lesquelles l'utilisateur à un rôle
@@ -321,12 +321,14 @@ class User < Sequel::Model(:user)
     return all_rights
   end
 
-private
-  def add_role_user(ressource_id, service_id, role_id)
+  def add_role(ressource_id, service_id, role_id)
     RoleUser.create(:user_id => self.id, :role_id => role_id,
       :ressource_id => ressource_id, :ressource_service_id => service_id)
   end
 
+
+private
+  
   def regroupements(etablissement_id, type_id)
     ds = Regroupement.filter(:type_regroupement_id => type_id,
       :id => RoleUser.filter(:user => self, :ressource_service_id => type_id).select(:ressource_id))

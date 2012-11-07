@@ -2,8 +2,9 @@ module Rights
   # Function qui récupère les droits sur une ressource de manière récursive
   # en remontant tous les ancètres
   def self.find_rights(user_id, ressource, initial_service_id, rights)
-    role_user = RoleUser[:user_id => user_id, :ressource_id => ressource.id, :ressource_service_id => ressource.service_id]
-    if role_user 
+    ds = RoleUser.filter(:user_id => user_id, 
+      :ressource_id => ressource.id, :ressource_service_id => ressource.service_id)
+    ds.each do |role_user|
       activites = ActiviteRole.filter(:role_id => role_user.role_id, :service_id => initial_service_id)
       activites.each do |act|
         #puts "rights=#{act[:activite_id]}"
