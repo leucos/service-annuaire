@@ -515,6 +515,7 @@ class UserApi < Grape::API
     if u.nil? or application.nil?
       error!("ressource non trouvé", 404)
     else
+      #puts u.preferences(application_id).inspect
       u.preferences(application_id)
     end 
 
@@ -531,7 +532,7 @@ class UserApi < Grape::API
       error!("ressource non trouvé", 404)
     else
       preferences  = params.select {|key, value|  (key != "route_info" and key != "user_id" and key != "application_id")  }
-      puts preferences.inspect
+      #puts preferences.inspect
       # no preferences are sent
       if preferences.count == 0 
         error!("mouvaise requete", 403)
@@ -549,8 +550,8 @@ class UserApi < Grape::API
       end
       preferences.each do |code, value|
         param_application = ParamApplication[:code => code]
-        if !param_application.nil?
-           u.set_preference(param_application.id, value)
+        if !param_application.nil? and param_application.application_id == application_id 
+          u.set_preference(param_application.id, value)
         end                     
       end
 
@@ -560,7 +561,21 @@ class UserApi < Grape::API
   #Remettre la valeure par défaut pour toutes les préférences
   desc "Remettre la valeure par défaut pour toutes les préférences"
   delete ":user_id/application/:application_id/preferences" do 
-    "ok"
+    user_id = params["user_id"]
+    application_id = params["application_id"]
+    application = Application[:id => application_id]
+    u = User[:id => user_id]
+    if u.nil? or application.nil?
+      error!("ressource non trouvé", 404)
+    else
+      preferences = ParamUser.filter(:user_id  => user_id).select(:param_application_id).all
+      preferences.each do |paramuser|
+        param_application = ParamApplication[:id => paramuser.param_application_id]
+        if !param_application.nil? and param_application.application_id == application_id 
+          u.set_preference(param_application.id, nil)
+        end                   
+      end 
+    end   
 
   end
 

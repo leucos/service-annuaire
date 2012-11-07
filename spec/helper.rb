@@ -41,6 +41,20 @@ def create_test_application_with_param
   return a
 end
 
+# input params = {"param_name" => true/false } true/false signifies preference or parameter
+def create_test_application_with_params(app_id, parameters)
+  a = Application.create(:id => app_id)
+  parameters.each do |key, value|
+    ParamApplication.create(:code => key, :preference => value, 
+      :application => a, :type_param_id => TYP_PARAM_NUMBER)
+  end
+  return a  
+end
+
+def delete_application(app_id)
+  Application.filter(:id => app_id).destroy()
+end 
+
 def delete_test_application
   Application.filter(:id => "test").destroy()
 end

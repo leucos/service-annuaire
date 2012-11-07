@@ -294,7 +294,7 @@ class User < Sequel::Model(:user)
   # Renvois les preferences d'un utilisateur sur une application
   # les valeurs sont celles par défaut si l'utilisateur n'a rien précisé
   def preferences(application_id)
-    ParamApplication.
+    DB[:param_application].
       join_table(:left, :param_user, {:param_application_id => :id, :user_id => self.id}).
       filter(:application_id => application_id, :preference => true).
       select(:code, :valeur_defaut, :valeur, :libelle, :description, :autres_valeurs, :type_param_id).all

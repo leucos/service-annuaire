@@ -9,7 +9,9 @@ describe UserApi do
   # In case something went wrong
   delete_test_eleve_with_parents()
   delete_test_users()
-  delete_test_users("testuser")
+  delete_test_user("testuser")
+  delete_test_application
+  delete_application("app2")
 =begin
   should "return user profile when giving good login/password" do
     u = create_test_user()
@@ -203,7 +205,7 @@ describe UserApi do
     delete("user/#{u.id}/email/#{id}").status.should == 200
     u.refresh()
     u.email.count.should == (count-1)
-    delete_test_users("testuser")
+    delete_test_user("testuser")
   end
 
   should "returns a list of user phone numbers" do 
@@ -213,14 +215,14 @@ describe UserApi do
     get("user/#{u.id}/telephones").status.should == 200
     response = JSON.parse(last_response.body)
     response.count.should  == 2 
-    delete_test_users("testuser") 
+    delete_test_user("testuser") 
   end
 
   should "add a new telephone" do 
     u = create_test_user("testuser")
     post("user/#{u.id}/telephone").status.should == 400
     post("user/#{u.id}/telephone", :numero => "0466666666").status.should == 201
-    delete_test_users("testuser") 
+    delete_test_user("testuser") 
   end 
 
   should "be able to modify a telephone number or type" do
@@ -233,7 +235,7 @@ describe UserApi do
     u.refresh
     u.telephone.first.numero.should == "0466666666"
     u.telephone.first.type_telephone_id.should == TYP_TEL_TRAV
-    delete_test_users("testuser")  
+    delete_test_user("testuser")  
   end 
 
   should "be able to delete a telephone number" do 
@@ -245,29 +247,57 @@ describe UserApi do
     u.refresh 
     u.telephone.count.should == count-1
     #response.count.should  == 2 
-    delete_test_users("testuser") 
+    delete_test_user("testuser") 
   end 
 
 =end
 
   #Récupère les préférences d'une application
-  # should "return a list of user preferences for an application" do
-  #   u = create_test_user("testuser")
-  #   get("/user/#{u.id}/application/1/preferences").status.should == 200
-  #   delete_test_users("testuser")
-  # end 
+  should "return a list of user preferences for an application" do
+    u = create_test_user("testuser")
+    app = create_test_application_with_param
+    hash = {test_pref: 1, test_pref2: 2, test_pref100: 4}
+    put("/user/#{u.id}/application/#{app.id}/preferences",hash)
+    get("/user/#{u.id}/application/#{app.id}/preferences").status.should == 200
+    response = JSON.parse(last_response.body)
+    delete_test_user("testuser")
+    delete_test_application  
+  end 
 
   #modifier ou Remettre la valeure par défaut de la préférence
   should "modify preferences" do
     u = create_test_user("testuser")
-    hash = {show_toolbar: true, show_css: false}
-    put("/user/#{u.id}/application/1/preferences",hash).status.should == 200 
-    delete_test_users("testuser") 
+    app = create_test_application_with_param
+    hash = {test_pref: 1, test_pref2: 2, test_pref100: 4}
+    put("/user/#{u.id}/application/#{app.id}/preferences",hash).status.should == 200
+    ParamUser[:user_id => u.id, :param_application => ParamApplication[:code => "test_pref"]].valeur.should == "1" 
+    ParamUser[:user_id => u.id, :param_application => ParamApplication[:code => "test_pref2"]].valeur.should == "2"
+    delete_test_user("testuser")
+    delete_test_application  
   end 
 
   #Remettre la valeure par défaut pour toutes les préférences
-  should "delete preferences" do
-    delete("/user/:user_id/application/application_id/preferences").status.should == 200
+  should "delete all user preferences" do
+    u = create_test_user("testuser")
+    #create first application and set user preferences
+    app = create_test_application_with_param
+    preferences  = {test_pref: 1, test_pref2: 2}
+    put("/user/#{u.id}/application/#{app.id}/preferences", preferences)
+
+    #create second application and set user preferences 
+    app2 = create_test_application_with_params("app2", {"preference1" => true, "param1" => false})
+    preferences = {preference1: 3}
+    put("/user/#{u.id}/application/#{app2.id}/preferences", preferences) 
+
+    #delete user preferences of first application 
+    delete("/user/#{u.id}/application/#{app.id}/preferences").status.should == 200
+    ParamUser[:user_id => u.id, :param_application => ParamApplication[:code => "test_pref"]].nil?.should == true 
+    ParamUser[:user_id => u.id, :param_application => ParamApplication[:code => "test_pref2"]].nil?.should == true
+    ParamUser[:user_id => u.id, :param_application => ParamApplication[:code => "preference1"]].nil?.should == false
+    delete_test_user("testuser")
+    delete_test_application
+    delete_application("app2")  
+
   end 
 
 
