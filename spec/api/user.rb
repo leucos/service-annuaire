@@ -1,3 +1,4 @@
+#coding: utf-8
 require_relative '../helper'
 
 describe UserApi do
@@ -70,51 +71,37 @@ describe UserApi do
     delete_test_users()
   end
 
-  should "return sso attributes" do
-    u = create_test_user()
-    get("/user/sso_attributes/test").status.should == 200
-    sso_attr = JSON.parse(last_response.body)
-    sso_attr["login"].should == u.login
-    delete_test_users()
-  end
-
-  should "return sso attributes men" do
-    get("/user/sso_attributes_men/root").status.should == 200
-    sso_attr = JSON.parse(last_response.body)
-  end
-
 
   should "respond to a query without parameters" do
     get("user/query/users").status.should == 200
-    sso_attr = JSON.parse(last_response.body)
-    sso_attr["TotalModelRecords"].should == User.count
-    sso_attr["TotalQueryResults"].should == User.count
+    response = JSON.parse(last_response.body)
+    response["TotalModelRecords"].should == User.count
+    response["TotalQueryResults"].should == User.count
   end
 
   should "query can takes also columns as a URL parameter" do 
     columns = ["nom", "prenom", "id", "id_sconet"]
     cols = CGI::escape(columns.join(",")) 
     get("user/query/users?columns=#{cols}").status.should == 200
-    sso_attr = JSON.parse(last_response.body)
-    sso_attr["TotalModelRecords"].should == User.count
-    sso_attr["TotalQueryResults"].should == User.count
-       
+    response = JSON.parse(last_response.body)
+    response["TotalModelRecords"].should == User.count
+    response["TotalQueryResults"].should == User.count    
   end 
 
-  should "query responds also to model instance methods" do
-    # email_acadmeique is instance method and not a columns
-    User.columns.include?(:email_principal).should == false
-    User.instance_methods.include?(:email_principal).should == true
-    columns = ["nom", "prenom", "id", "id_sconet", "email_principal"]
-    cols = CGI::escape(columns.join(",")) 
-    get("user/query/users?columns=#{cols}&where[id]=VAA60000").status.should == 200
-    JSON.create_id = nil
-    sso_attr = JSON.parse(last_response.body)
-    sso_attr["TotalModelRecords"].should == 201
-    sso_attr["TotalQueryResults"].should == 1
-    user = sso_attr["Data"][0]
-    user['email_principal'].should != nil 
-  end
+  # should "query responds also to model instance methods" do
+  #   # email_acadmeique is instance method and not a columns
+  #   User.columns.include?(:email_principal).should == false
+  #   User.instance_methods.include?(:email_principal).should == true
+  #   columns = ["nom", "prenom", "id", "id_sconet", "email_principal"]
+  #   cols = CGI::escape(columns.join(",")) 
+  #   get("user/query/users?columns=#{cols}&where[id]=VAA60000").status.should == 200
+  #   JSON.create_id = nil
+  #   sso_attr = JSON.parse(last_response.body)
+  #   sso_attr["TotalModelRecords"].should == 201
+  #   sso_attr["TotalQueryResults"].should == 1
+  #   user = sso_attr["Data"][0]
+  #   user['email_principal'].should != nil 
+  # end
 
   should "returns user relations" do 
     u = create_test_user()
@@ -156,7 +143,7 @@ describe UserApi do
     delete("user/#{u.id}/relation/VAA60000").status.should == 200
     delete_test_users()
     response = last_response.body
-    puts response
+    #puts response
   end
 
   should "returns the list  of user emails or empty if user doesnot have one"  do 
@@ -193,7 +180,7 @@ describe UserApi do
     put("user/#{u.id}/email/#{id}", :adresse => "modifie@laclasse.com", :principal => true, :academique => true ).status.should == 200
     response = last_response.body 
     delete_test_users()
-    puts response
+    #puts response
   end 
 
   should "delete an email of a specific user" do
@@ -224,14 +211,18 @@ describe UserApi do
     post("user/#{u.id}/telephone", :numero => "0466666666").status.should == 201
     delete_test_user("testuser") 
   end 
-
+=end
   should "be able to modify a telephone number or type" do
     u = create_test_user("testuser")
     u.add_telephone("0404040404", TYP_TEL_MAIS)
-    telephone_id = u.telephone.first.id 
-    put("user/#{u.id}/telephone/telephone_id").status.should == 403
+    telephone_id = u.telephone.first.id
+    put("user/#{u.id}/telephone", :numero => "0466666666").status.should == 405
+    put("user/#{u.id}/telephone/pasinteger", :numero => "0466666666").status.should == 400
     put("user/#{u.id}/telephone/#{telephone_id}", :numero => "0466666666").status.should == 200
+    put("user/#{u.id}/telephone/#{telephone_id}", :numero => "046666666").status.should == 400
+    put("user/#{u.id}/telephone/#{telephone_id}", :numero => "").status.should == 400
     put("user/#{u.id}/telephone/#{telephone_id}", :type_telephone_id => TYP_TEL_TRAV).status.should == 200
+    put("user/#{u.id}/telephone/#{telephone_id}", :type_telephone_id => "TYPE_INCONNU").status.should == 400
     u.refresh
     u.telephone.first.numero.should == "0466666666"
     u.telephone.first.type_telephone_id.should == TYP_TEL_TRAV
@@ -250,7 +241,6 @@ describe UserApi do
     delete_test_user("testuser") 
   end 
 
-=end
 
   #Récupère les préférences d'une application
   should "return a list of user preferences for an application" do
