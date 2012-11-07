@@ -1,4 +1,4 @@
-#coding: utf-8
+#encoding: utf-8
 require_relative '../helper'
 
 describe User do
@@ -32,7 +32,6 @@ describe User do
 
   it "doesn't allow duplicated logins" do
     u = create_test_user()
-    # Sunday bloody sundaaayyy
     u2 = new_test_user()
     u2.valid?.should == false
     delete_test_users()
@@ -252,15 +251,19 @@ describe User do
 
   it ".etablissements returns all etablissements where user has a role" do
     u = create_test_user()
+    role = create_test_role()
     e1 = create_test_etablissement()
     e2 = create_test_etablissement()
 
     u.add_profil(e1.id, PRF_ENS)
-    u.add_profil(e2.id, PRF_PAR)
+    RoleUser.create(:user_id => u.id, 
+      :ressource_id => e2.ressource.id, :ressource_service_id => e2.ressource.service_id,
+      :role_id => role.id)
     u.etablissements.count.should == 2
 
     delete_test_users()
     delete_test_etablissements()
+    delete_test_role()
   end
 
   it "set_preference to user" do
