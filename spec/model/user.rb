@@ -5,6 +5,7 @@ describe User do
   #In case of something went wrong
   delete_test_users()
   delete_test_application()
+  delete_test_role()
 
   it "knows what is a valid uid" do
     User.is_valid_id?("VAA60000").should.equal true
@@ -305,18 +306,18 @@ describe User do
     delete_test_application()
   end
 
-  it "add user to a classe" do
+  # it ".classes returns all the classes where user has a role" do
+  #   u = create_test_user()
+  #   e1 = create_test_etablissement()
+  #   e2 = create_test_etablissement()
+
+  #   delete_test_users()
+  #   delete_test_etablissements()
+  # end
+
+  # it "add user to a classe" do
     
-  end
-
-  it ".classes returns all the classes where user has a role" do
-    u = create_test_user()
-    e1 = create_test_etablissement()
-    e2 = create_test_etablissement()
-
-    delete_test_users()
-    delete_test_etablissements()
-  end
+  # end
 
   # it "add user to a groupe eleve" do
   # end
@@ -332,6 +333,32 @@ describe User do
 
   # it "delete a relation to an eleve" do
   # end
+
+  it ".rights renvois tous les droits qu'un role sur une ressource nous donne sur des services" do
+    role = create_test_role()
+    u = create_test_user()
+    e = create_test_etablissement()
+    e2 = create_test_etablissement()
+    # Avec ce role l'utilisateur à des droits sur l'établissement
+    RoleUser.create(:user_id => u.id, 
+      :ressource_id => e.ressource.id, :ressource_service_id => e.ressource.service_id,
+      :role_id => role.id)
+    rights_etab = u.rights(e.ressource)
+    rights_etab.count.should == 3
+    rights_etab.include?({:service_id => SRV_ETAB, :rights => [ACT_READ, ACT_UPDATE]}).should == true
+    rights_etab.include?({:service_id => SRV_USER, :rights => [ACT_CREATE]}).should == true
+    rights_etab.include?({:service_id => SRV_CLASSE, :rights => [ACT_DELETE]}).should == true
+    u.rights(e2.ressource).count.should == 0
+
+    # Et si on donne le même role mais directement sur laclasse.com ça devrait marcher pour tout
+    u2 = create_user_with_role(role.id)
+    u2.rights(e.ressource).count.should == 3
+    u2.rights(e2.ressource).count.should == 3
+
+    delete_test_users()
+    delete_test_etablissements()
+    delete_test_role()
+  end
 
   it ".profil_actif return the first user profil" do
     u = create_test_user()
