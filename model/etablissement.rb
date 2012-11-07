@@ -34,6 +34,7 @@ class Etablissement < Sequel::Model(:etablissement)
   one_to_many :profil_user
   one_to_many :regroupement
   many_to_one :type_etablissement
+  one_to_many :param_etablissement
 
   # Not nullable cols
   def validate
@@ -41,24 +42,45 @@ class Etablissement < Sequel::Model(:etablissement)
     validates_presence [:type_etablissement_id]
   end
 
+  def before_destroy
+    application_etablissement_dataset.destroy()
+    profil_user_dataset.destroy()
+    regroupement_dataset.destroy()
+    param_etablissement_dataset.destroy()
+    super
+  end
+
   # Check si l'id passé en paramètre correspond bien aux critères d'identifiant ENT
   def self.is_valid_id(id)
     id.class == String and id.length == 8 and id[7] =~ /[a-zA-Z]/
   end
+
+  def add_regroupement(regroupement_hash)
+    regroupement_hash[:etablissement_id] = self.id if regroupement_hash[:etablissement_id].nil?
+    Regroupement.create(regroupement_hash)
+  end
+
+  def add_application(application_id)
+    ApplicationEtablissement.create(:application_id => application_id, :etablissement => self)
+  end
+
+  def remove_application(application_id)
+    ApplicationEtablissement.filter(:application_id => application_id, :etablissement => self).destroy()
+  end
   
   # les classes dans l'etablissement 
   def classes
-    Regroupement.filter(:etablissement => self, :type_regroupement_id => 'CLS').all
+    Regroupement.filter(:etablissement => self, :type_regroupement_id => TYP_REG_CLS).all
   end
 
   # les groupes d'eleve  dans l'etablissement
   def groupes_eleves
-    Regroupement.filter(:etablissement => self, :type_regroupement_id => 'GRP').all
+    Regroupement.filter(:etablissement => self, :type_regroupement_id => TYP_REG_GRP).all
   end
 
   # les groupes libre dans l'etablissement 
   def groupes_libres
-    Regroupement.filter(:etablissement => self, :type_regroupement_id => 'LBR').all  
+    Regroupement.filter(:etablissement => self, :type_regroupement_id => TYP_REG_LBR).all  
   end 
 
   # Liste de tous les membres d'un établissement qui font parti de l'éducation nationale
@@ -75,9 +97,31 @@ class Etablissement < Sequel::Model(:etablissement)
 
   # retourn le type de l'Etablissement suivi par son nom
   def full_name
-    typeetab = TypeEtablissement.select(:nom).where(:id => type_etablissement_id).first
-    "#{typeetab.nom} #{nom}"
+    "#{type_etablissement.nom} #{nom}"
+  end
 
+  # temp : code trop similaire à User, mettre ça dans un librairie
+  # Set la valeur d'une préférence sur un établissement
+  # @param valeur, si nil alors détruit la préférence
+  def set_preference(preference_id, valeur)
+    param = ParamEtablissement[:etablissement => self, :param_application_id => preference_id]
+    if param
+      if valeur
+        param.update(:valeur => valeur)
+      else
+        param.destroy()
+      end
+    elsif valeur
+      ParamEtablissement.create(:etablissement => self, :param_application_id => preference_id, :valeur => valeur)
+    end
+  end
 
+  # Renvois les preferences d'un établissement sur une application
+  def preferences(application_id)
+    ParamApplication.
+      join_table(:left, :param_etablissement, {:param_application_id => :id, :etablissement_id => self.id}).
+      filter(:application_id => application_id, :preference => true).
+      select(:code, :valeur_defaut, :valeur, :libelle, :description, :autres_valeurs, :type_param_id).
+      all
   end
 end

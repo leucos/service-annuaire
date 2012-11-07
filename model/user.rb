@@ -278,6 +278,8 @@ class User < Sequel::Model(:user)
     Telephone.create(:numero => numero, :user => self, :type_telephone_id => type_telephone_id)
   end
 
+  # Set la valeur d'une préférence sur un utilisateur
+  # @param valeur, si nil alors détruit la préférence
   def set_preference(preference_id, valeur)
     param = ParamUser[:user => self, :param_application_id => preference_id]
     if param
@@ -297,7 +299,8 @@ class User < Sequel::Model(:user)
     DB[:param_application].
       join_table(:left, :param_user, {:param_application_id => :id, :user_id => self.id}).
       filter(:application_id => application_id, :preference => true).
-      select(:code, :valeur_defaut, :valeur, :libelle, :description, :autres_valeurs, :type_param_id).all
+      select(:code, :valeur_defaut, :valeur, :libelle, :description, :autres_valeurs, :type_param_id).
+      all
   end
 
 private

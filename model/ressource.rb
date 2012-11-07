@@ -27,7 +27,8 @@ class Ressource < Sequel::Model(:ressource)
   many_to_one :service
   # Todo : make it work and add children
   #many_to_one :parent, :key=>[:parent_service_id, :parent_id], :class => self
-  one_to_many :role_user, :key=>[:ressource_service_id, :ressource_id]
+  # Attention l'ordre est important
+  one_to_many :role_user, :key=>[:ressource_id, :ressource_service_id]
 
   # Not nullable cols and unicity validation
   def validate
@@ -39,7 +40,7 @@ class Ressource < Sequel::Model(:ressource)
     self.destroy_children()
 
     # On supprime tous les RoleUser liés à cette Ressource
-    # Merci au méthode rajoutée par Sequel
+    # Merci aux méthodes rajoutées par Sequel
     role_user_dataset.destroy()
     super
   end
