@@ -65,13 +65,23 @@ describe Etablissement do
   end
 
   it "add and remove application" do
-    
+    app = create_test_application_with_param()
+    e = create_test_etablissement()
+    e.add_application(app.id)
+    dataset = ApplicationEtablissement.filter(:etablissement => e)
+    dataset.count.should == 1
+    e.remove_application(app.id)
+    dataset.count.should == 0
+    delete_test_etablissements()
+    delete_test_application()
   end
 
   it "destroy application_etablissement on etablissement destruction" do
-  end
-
-  it "add a regroupement" do
-
+    app = create_test_application_with_param()
+    e = create_test_etablissement()
+    e.add_application(app.id)
+    delete_test_etablissements()
+    ApplicationEtablissement.filter(:etablissement => e).count.should == 0
+    delete_test_application()
   end
 end

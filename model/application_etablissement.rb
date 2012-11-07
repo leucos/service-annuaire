@@ -16,6 +16,8 @@ class ApplicationEtablissement < Sequel::Model(:application_etablissement)
   plugin :validation_helpers
   plugin :json_serializer
 
+  unrestrict_primary_key()
+
   # Referential integrity
   many_to_one :application
   many_to_one :etablissement
