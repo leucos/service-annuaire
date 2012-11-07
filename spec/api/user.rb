@@ -293,6 +293,7 @@ describe UserApi do
     u = create_test_user("testuser") 
     u.add_email("test@laclasse.com", false)
     u.add_email("email@laclasse.com", true)
+    u.add_profil(2, "ENS")
     get("/user/entity/#{u.id}").status.should == 200
     puts last_response.body
     delete_test_user("testuser")
