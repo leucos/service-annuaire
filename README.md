@@ -202,6 +202,11 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
         ]
       }  
     ],
+    "preferences":[
+      {
+
+      }
+    ]
     "storage": {"id": 123},
     "agenda": {id: 24},
     "cahier_textes": {id:12}

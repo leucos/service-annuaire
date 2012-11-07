@@ -24,7 +24,7 @@ module Rights
   # @param ressource_id : id de la ressource liée au service
   # @param initial_service_id : si pas précisé == service_id
   # sinon correspond au service sur lequel on veut connaitre les droits.
-  # ex: on veut savoir si une personne à la droit de créer des utilisateurs dans un établissement
+  # ex: on veut savoir si une personne a le droit de créer des utilisateurs dans un établissement
   # on fera get_rights("VAA60001", "ETAB", 0, "USER")
   def self.get_rights(user_id, service_id, ressource_id, initial_service_id = service_id)
     # Il est possible que la ressource n'existe pas

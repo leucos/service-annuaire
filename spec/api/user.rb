@@ -13,6 +13,7 @@ describe UserApi do
   delete_test_user("testuser")
   delete_test_application
   delete_application("app2")
+  delete_test_role
 =begin
   should "return user profile when giving good login/password" do
     u = create_test_user()
@@ -290,13 +291,23 @@ describe UserApi do
   end 
 
   should "expose cusotm entity attributes" do
+    
     u = create_test_user("testuser") 
     u.add_email("test@laclasse.com", false)
     u.add_email("email@laclasse.com", true)
     u.add_profil(2, "ENS")
+
+    e = create_test_etablissement()
+    role = create_test_role()
+    
+    RoleUser.create(:user_id => u.id, 
+      :ressource_id => e.ressource.id, :ressource_service_id => e.ressource.service_id,
+      :role_id => role.id)
+    #u.etablissements.count.should == 2
     get("/user/entity/#{u.id}").status.should == 200
     puts last_response.body
     delete_test_user("testuser")
+    delete_test_role
   end  
 
 
