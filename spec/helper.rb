@@ -59,6 +59,32 @@ def delete_test_application
   Application.filter(:id => "test").destroy()
 end
 
+ROL_TEST = "TEST"
+def create_test_role()
+  r = Role.create(:id => ROL_TEST, :service_id => SRV_ETAB)
+  ActiviteRole.create(:service_id => SRV_USER, :role_id => ROL_TEST, :activite_id => ACT_CREATE)
+  ActiviteRole.create(:service_id => SRV_ETAB, :role_id => ROL_TEST, :activite_id => ACT_UPDATE)
+  ActiviteRole.create(:service_id => SRV_ETAB, :role_id => ROL_TEST, :activite_id => ACT_READ)
+  ActiviteRole.create(:service_id => SRV_CLASSE, :role_id => ROL_TEST, :activite_id => ACT_DELETE)
+  return r
+end
+
+def delete_test_role
+  Role[ROL_TEST].destroy() if Role[ROL_TEST]
+end
+
+def create_user_with_role(role_id, ressource = nil)
+  u = create_test_user("test_admin")
+  # On créer un role de test sur l'ensemble de LACLASSE.com si la ressource
+  # n'est pas précisée
+  ressource = Ressource[:service_id => SRV_LACLASSE] if ressource.nil?
+  RoleUser.create(:user_id => u.id, 
+    :ressource_id => ressource.id, :ressource_service_id => ressource.service_id,
+    :role_id => role_id)
+
+  return u
+end
+
 def create_test_eleve_with_parents()
   u = create_test_user("test1")
   u.id_sconet = 123456

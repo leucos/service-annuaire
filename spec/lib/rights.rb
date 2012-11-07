@@ -2,38 +2,17 @@
 require_relative '../helper'
 
 describe Rights do
-  ROL_TEST = "TEST"
-  def create_test_role()
-    Role.create(:id => ROL_TEST, :service_id => SRV_ETAB)
-    ActiviteRole.create(:service_id => SRV_USER, :role_id => ROL_TEST, :activite_id => ACT_CREATE)
-  end
-
-  def delete_test_role
-    Role[ROL_TEST].destroy() if Role[ROL_TEST]
-  end
-
-  def create_admin_etb(ressource = nil)
-    u = create_test_user("test_admin")
-    # On créer un role de test sur l'ensemble de LACLASSE.com si la ressource
-    # n'est pas précisée
-    ressource = Ressource[:service_id => SRV_LACLASSE] if ressource.nil?
-    RoleUser.create(:user_id => u.id, 
-      :ressource_id => ressource.id, :ressource_service_id => ressource.service_id,
-      :role_id => ROL_TEST)
-
-    return u
-  end
-
   #in case something went wrong
   delete_test_ressources_tree()
   delete_test_role()
+  delete_test_users()
   
   it "return create_user rights for user in ressource etablissement if user has role on etab" do
-    create_test_role()
+    r = create_test_role()
     ressource_etab = create_test_ressources_tree()
     # On créer un deuxième etab
     e2 = Etablissement.create(:nom => "test", :type_etablissement => TypeEtablissement.first)
-    admin = create_admin_etb(ressource_etab)
+    admin = create_user_with_role(r.id, ressource_etab)
     Rights.get_rights(admin.id, SRV_ETAB, ressource_etab.id, SRV_USER).should == [ACT_CREATE]
     Rights.get_rights(admin.id, SRV_ETAB, e2.id, SRV_USER).should == []
     delete_test_ressources_tree()
@@ -41,11 +20,11 @@ describe Rights do
   end
 
   it "return create_user rights for user in ressource etablissement if user has role on laclasse" do
-    create_test_role()
+    r = create_test_role()
     ressource_etab = create_test_ressources_tree()
     # On créer un deuxième etab
     e2 = Etablissement.create(:nom => "test", :type_etablissement => TypeEtablissement.first)
-    admin = create_admin_etb()
+    admin = create_user_with_role(r.id)
     Rights.get_rights(admin.id, SRV_ETAB, ressource_etab.id, SRV_USER).should == [ACT_CREATE]
     Rights.get_rights(admin.id, SRV_ETAB, e2.id, SRV_USER).should == [ACT_CREATE]
     delete_test_ressources_tree()

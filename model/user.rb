@@ -303,6 +303,19 @@ class User < Sequel::Model(:user)
       all
   end
 
+  # renvois tous les droits qu'un role sur une ressource nous donne sur des services
+  def rights(ressource)
+    all_rights = []
+    # On appel get_rights avec la ressource sur tous les services
+    Service.each do |s|
+      rights_service = {:service_id => s.id}
+      rights_service[:rights] = Rights.get_rights(self.id, ressource.service_id, ressource.id, s.id)
+      all_rights.push(rights_service) if rights_service[:rights].length > 0
+    end
+
+    return all_rights
+  end
+
 private
   def add_role_user(ressource_id, service_id, role_id)
     RoleUser.create(:user_id => self.id, :role_id => role_id,
