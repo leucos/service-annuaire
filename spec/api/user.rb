@@ -297,8 +297,16 @@ describe UserApi do
     delete_test_user("testuser")
     delete_test_application
     delete_application("app2")  
-
   end 
+
+  should "expose cusotm entity attributes" do
+    u = create_test_user("testuser") 
+    u.add_email("test@laclasse.com", false)
+    u.add_email("email@laclasse.com", true)
+    get("/user/entity/#{u.id}").status.should == 200
+    puts last_response.body
+    delete_test_user("testuser")
+  end  
 
 
 

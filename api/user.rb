@@ -579,4 +579,17 @@ class UserApi < Grape::API
 
   end
 
+  # expose custom resource attribute
+  get "entity/:id" do
+
+    id = params[:id]
+    user = User[:id => id]
+    if user
+      present user, with: API::Entities::User
+    else
+     error!("ressource non trouvé", 404)
+    end 
+  end  
+
+
 end
