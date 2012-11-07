@@ -34,7 +34,6 @@ class Role < Sequel::Model(:role)
 
   def before_destroy
     activite_role_dataset.destroy()
-    param_application_dataset.destroy()
     role_user_dataset.destroy()
     super
   end
