@@ -31,9 +31,11 @@ module Rights
     # Il est possible que la ressource n'existe pas
     ressource = Ressource[:id => ressource_id, :service_id => service_id]
     #puts "ressource=#{ressource.parent}"
-    return [] if ressource.nil?
     rights = []
+    return rights if ressource.nil?
+
     find_rights(user_id, ressource, initial_service_id, rights)
+    
     return rights
   end
 end 

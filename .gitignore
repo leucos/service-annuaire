@@ -13,6 +13,7 @@ spec/reports
 test/tmp
 test/version_tmp
 tmp
+*.log
 
 # YARD artifacts
 .yardoc
@@ -24,3 +25,10 @@ config/database.rb
 
 #Mysql Workbench backup files
 *.bak
+
+#Temp spec files
+spec/fixtures/
+spec/lib/alimentation/alimentor.rb
+spec/lib/alimentation/db_sync.rb
+spec/lib/alimentation/diff_generator.rb
+spec/lib/alimentation/parser_xml_menesr.rb
