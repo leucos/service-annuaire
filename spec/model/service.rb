@@ -9,14 +9,4 @@ describe Service do
   #     Service.declare_service_class("PROUT", User)
   #   end
   # end
-
-  it "create and destroy a ressource on creation/deletion" do
-    s = Service.create(:id => "TEST", :api => true)
-    Ressource[:service_id => SRV_SERVICE, :id => s.id].should.not == nil
-    s.destroy()
-    Ressource[:service_id => SRV_SERVICE, :id => s.id].should == nil
-  end
-
-  #Au cas où ça s'est mal passé
-  Service["TEST"].destroy() if Service["TEST"]
 end

@@ -1,4 +1,3 @@
-#!ruby
 #encoding: utf-8
 require 'sequel'
 require_relative '../../config/database'
@@ -83,10 +82,6 @@ def bootstrap_annuaire()
   TypeRegroupement.create(:id => TYP_REG_GRP, :libelle => "Groupe d'élèves")
   TypeRegroupement.create(:id => TYP_REG_LBR, :libelle => "Groupe libre")
 
-
-  # le service de type service pour gérer les droits sur tout le service
-  # ex : exemple, on veut savoir si un utilisateur peut créer des droits sur /user
-  Service.create(:id => SRV_SERVICE, :libelle => "service", :description => "Service permettant de déclarer les service comme des ressources.", :api => true)
 
   #Tout d'abord, on créer des services (api)
   # service laclasse.com (les super admin y sont reliés)

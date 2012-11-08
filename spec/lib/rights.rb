@@ -50,18 +50,44 @@ describe Rights do
       :ressource_id => e.ressource.id, :ressource_service_id => e.ressource.service_id,
       :role_id => r.id)
     Rights.get_rights(admin.id, SRV_ETAB, e.ressource.id, SRV_USER).should == [ACT_CREATE]
+    delete_test_ressources_tree()
+    delete_test_role()
   end
 
-  # it "should return create rights on service user for laclasse admin" do
-  #   Rights.get_rights(admin.id, SRV_SERVICE, SRV_USER).should == [ACT_CREATE]
-  # end
+  it "should return create rights on service user for laclasse admin" do
+    r = create_test_role()
+    admin = create_user_with_role(r.id)
+    laclasse_id = Ressource[:service_id => SRV_LACLASSE].id
+    Rights.get_rights(admin.id, SRV_LACLASSE, laclasse_id, SRV_USER).should == [ACT_CREATE]
+    delete_test_role()
+    delete_test_users()
+  end
 
-  # it "cumulate rights from different role" do
-  #   # On donne un role d'admin d'établissement
-  #   # Puis un role d'admin de groupe
-  #   # On doit cumuler les role d'admin d'établissement et de groupe sur le groupe
+  it "cumulate rights from different role" do
+    r = create_test_role()
+    e = create_test_etablissement()
+    # On donne un role sur l'établissement
+    admin = create_user_with_role(r.id, e.ressource)
+    r = Role.find_or_create(:id => "TEST2", :service_id => SRV_CLASSE)
+    ActiviteRole.find_or_create(:service_id => SRV_CLASSE, :role_id => r.id, :activite_id => ACT_UPDATE)
+    classe = e.add_regroupement({:type_regroupement_id => TYP_REG_CLS})
+    # Puis un role sur la classe
+    admin.add_role(classe.id, SRV_CLASSE, r.id)
 
-  # end
+    # On doit cumuler les role de l'établissement et du groupe
+    Rights.get_rights(admin.id, SRV_CLASSE, classe.id).sort.should == [ACT_DELETE, ACT_UPDATE]
+    
+    # Maintenant si j'enlève le role sur la classe et que je le rajoute sur l'établissement
+    RoleUser.filter(:ressource_id => classe.id, :ressource_service_id => SRV_CLASSE).destroy()
+    admin.add_role(e.id, SRV_ETAB, r.id)
+    
+    # Ca doit faire pareil
+    Rights.get_rights(admin.id, SRV_CLASSE, classe.id).sort.should == [ACT_DELETE, ACT_UPDATE]
+
+    r.destroy()
+    delete_test_ressources_tree()
+    delete_test_role()
+  end
 
   # todo : Tester que l'on puisse accéder aux fichiers d'un établissement mais pas à celui des classes
   # notion de service_parent_id

@@ -256,9 +256,7 @@ describe User do
     e2 = create_test_etablissement()
 
     u.add_profil(e1.id, PRF_ENS)
-    RoleUser.create(:user_id => u.id, 
-      :ressource_id => e2.ressource.id, :ressource_service_id => e2.ressource.service_id,
-      :role_id => role.id)
+    u.add_role(e2.ressource.id, e2.ressource.service_id, role.id)
     u.etablissements.count.should == 2
 
     delete_test_users()
