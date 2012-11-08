@@ -297,6 +297,10 @@ describe UserApi do
     u.add_email("email@laclasse.com", true)
     u.add_profil(2, "ENS")
 
+    app = create_test_application_with_param
+    preferences  = {test_pref: 1}
+    put("/user/#{u.id}/application/#{app.id}/preferences", preferences)
+
     e = create_test_etablissement()
     role = create_test_role()
     
@@ -308,6 +312,7 @@ describe UserApi do
     puts last_response.body
     delete_test_user("testuser")
     delete_test_role
+    delete_test_application
   end  
 
 
