@@ -204,6 +204,9 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
     ],
     "preferences":[
       {
+          "code" : "app_code"
+          "valeur": "value"
+          "valeur_defaut": "default"
 
       }
     ]
