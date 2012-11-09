@@ -7,7 +7,7 @@ describe Etablissement do
   delete_test_users()
   it "create and destroy a ressource on creation/deletion" do
     e = Etablissement.create(:type_etablissement => TypeEtablissement.first)
-    Ressource[:service_id => SRV_ETAB, :id => e.id].should.not == nil
+    Ressource[:service_id => SRV_ETAB, :id => e.id].should_not == nil
     e.destroy()
     Ressource[:service_id => SRV_ETAB, :id => e.id].should == nil
   end

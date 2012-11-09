@@ -55,6 +55,21 @@ class Etablissement < Sequel::Model(:etablissement)
     id.class == String and id.length == 8 and id[7] =~ /[a-zA-Z]/
   end
 
+  def add_classe(hash)
+    hash[:type_regroupement_id] = TYP_REG_CLS
+    add_regroupement(hash)
+  end
+
+  def add_groupe_eleve(hash)
+    hash[:type_regroupement_id] = TYP_REG_GRP
+    add_regroupement(hash)
+  end
+
+  def add_groupe_libre(hash)
+    hash[:type_regroupement_id] = TYP_REG_LBR
+    add_regroupement(hash)
+  end
+
   def add_regroupement(regroupement_hash)
     regroupement_hash[:etablissement_id] = self.id if regroupement_hash[:etablissement_id].nil?
     Regroupement.create(regroupement_hash)

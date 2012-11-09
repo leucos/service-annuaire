@@ -113,6 +113,46 @@ class User < Sequel::Model(:user)
     super
   end
 
+  # Code très très criticable pour gérer la génération d'uid
+  # sur plusieurs process car vu qu'on a un id d'utilisateur non
+  # auto incrementé, la génération de l'uid ne gère pas les accès concurrents
+  # avant j'avais mis un "LOCK TABLE" pour assurer que personne pouvait y toucher
+  # mais ça enlevait la possibilité de faire un rollback en cas d'erreur ou de test.
+  # J'ai donc choisi un solution "optimiste" qui consiste à ne pas mettre de lock et
+  # catcher l'erreur. Si il s'agit d'une erreur de duplication de primary key,
+  # on retente de créer l'utilisateur en esperant que tout se passe bien cette fois.
+  # Cette solution à 2 gros défauts :
+  # - Elle se base sur le message d'erreur qui est spécifique MySQL pour détecter l'erreur,
+  # ce qui est vraiment pas top mais au pire l'exception répercutée...
+  # - Elle tente de recréer l'utilisateur ce qui fait que si le processus de generation d'uid est
+  # defectueux pour je ne sais quelle raison, on rentre dans une boucle infinie...
+  # Si tout va bien, on ne rentrera jamais dans ce code de toute manière, c'est juste au cas ou.
+  # Dernière remarque : pour tester ce code, ouvrir 2 ramaze console et taper cela dans la première:
+  # 1000.times do |i| User.create(:nom => "test", :prenom => "test", :login => "test#{i}") end
+  # et cela dans la deuxième :
+  # 1000.times do |i| User.create(:nom => "test", :prenom => "test", :login => "test#{i+1000}") end
+  # Executer le code en même temps et vous devrez avoir ce genre d'erreur (tout dépend de votre matériel)
+  def around_create
+    begin
+      super
+    rescue Sequel::DatabaseError => e
+      # Solution pas terrible car spécifique à MySql mais je vois
+      # pas comment autrement
+      raise e if e.message.index(/Duplicate entry '.*' for key 'PRIMARY'/).nil?
+
+      Ramaze::log.error(e.message)
+      # On récupère le hash de l'objet en cours de construction
+      hash = self.values
+      # Et on enlève l'id et la date de création qui seront
+      # rajouté par la suite
+      hash.delete(:id)
+      hash.delete(:date_creation)
+      # On retente la création de l'objet
+      # Attention, ça peut boucler indéfiniment cette histoire...
+      User.create(hash)
+    end
+  end
+
   # Not nullable cols
   def validate
     super
@@ -332,7 +372,7 @@ private
   def regroupements(etablissement_id, type_id)
     ds = Regroupement.filter(:type_regroupement_id => type_id,
       :id => RoleUser.filter(:user => self, :ressource_service_id => type_id).select(:ressource_id))
-    ds.filter(:etablissement_id => etablissement_id) if etablissement_id
+    ds = ds.filter(:etablissement_id => etablissement_id) if etablissement_id
     return ds.all
   end
 

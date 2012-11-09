@@ -2,7 +2,7 @@
 require_relative '../helper'
 
 describe UserApi do
-  extend Rack::Test::Methods
+  include Rack::Test::Methods
 
   def app
     Rack::Builder.parse_file("config.ru").first
@@ -14,73 +14,57 @@ describe UserApi do
   delete_test_application
   delete_application("app2")
   delete_test_role
-=begin
-  should "return user profile when giving good login/password" do
-    u = create_test_user()
-    get("/user?login=test&password=test").status.should == 200
-    delete_test_users()
-  end
 
-  should "return http 403 when giving wrong login/password" do
-    # There is no test user
-    get('/user?login=test&password=test').status.should == 403 
-  end
-
-  should "return user profile when given the good id" do
+  it "return user profile when given the good id" do
     u = create_test_user()
     get("/user/#{u.id}").status.should == 200
     JSON.parse(last_response.body)[:login].should == 'test'
-    delete_test_users()
   end
 
-  should "return user profile on user creation" do
+  it "return user profile on user creation" do
     post('/user', :login => 'test', :password => 'test', :nom => 'test', :prenom => 'test').status.should == 201
     User.filter(:login => "test").count.should == 1
-    delete_test_users()
   end
 
-  should "accept optionnal parameters on user creation" do
+  it "accept optionnal parameters on user creation" do
     post('/user', :login => 'test', :password => 'test', 
       :nom => 'test', :prenom => 'test', :sexe => 'F').status.should == 201
     User.filter(:login => "test").count.should == 1
     JSON.parse(last_response.body)[:sexe].should == 'F'
-    delete_test_users()
   end
 
-  should "fail on user creation when given non regexp compliant arguments" do
+  it "fail on user creation when given non regexp compliant arguments" do
     post('/user', :login => 'test', :password => 'test', 
       :nom => 'test', :prenom => 'test', :sexe => 'S').status.should == 400
     post('/user', :login => 1234, :password => 'test', 
       :nom => 'test', :prenom => 'test').status.should == 400
   end
 
-  should "fail on user creation when given wrong arguments" do
+  it "fail on user creation when given wrong arguments" do
     post('/user', :login => 'test').status.should == 400
   end
 
-  should "modify user" do
+  it "modify user" do
     u = create_test_user()
     put("/user/#{u.id}", :prenom => 'titi').status.should == 200
     u = User.filter(:login => 'test').first
     u.prenom.should == 'titi'
-    delete_test_users()
   end
 
-  should "not accept bad parameters" do
+  it "not accept bad parameters" do
     u = create_test_user()
     put("/user/#{u.id}", :truc => 'titi').status.should == 400
-    delete_test_users()
   end
 
 
-  should "respond to a query without parameters" do
+  it "respond to a query without parameters" do
     get("user/query/users").status.should == 200
     response = JSON.parse(last_response.body)
     response["TotalModelRecords"].should == User.count
     response["TotalQueryResults"].should == User.count
   end
 
-  should "query can takes also columns as a URL parameter" do 
+  it "query can takes also columns as a URL parameter" do 
     columns = ["nom", "prenom", "id", "id_sconet"]
     cols = CGI::escape(columns.join(",")) 
     get("user/query/users?columns=#{cols}").status.should == 200
@@ -89,7 +73,7 @@ describe UserApi do
     response["TotalQueryResults"].should == User.count    
   end 
 
-  # should "query responds also to model instance methods" do
+  # it "query responds also to model instance methods" do
   #   # email_acadmeique is instance method and not a columns
   #   User.columns.include?(:email_principal).should == false
   #   User.instance_methods.include?(:email_principal).should == true
@@ -104,14 +88,14 @@ describe UserApi do
   #   user['email_principal'].should != nil 
   # end
 
-  should "returns user relations" do 
+  it "returns user relations" do 
     u = create_test_user()
     get("user/#{u.id}/relations").status.should == 200
     user = JSON.parse(last_response.body)
     delete_test_users()
   end
 
-  should "be able to add new relations to users if sending good parameters and return bad request or resource not found otherwise" do 
+  it "be able to add new relations to users if sending good parameters and return bad request or resource not found otherwise" do 
     u = create_test_user()
     post("user/#{u.id}/relation", :eleve_id => "VAA60000", :type_relation_id => "PAR").status.should == 201
     response = JSON.parse(last_response.body)
@@ -120,34 +104,31 @@ describe UserApi do
 
     #resource not found (non trouvé)
     post("user/VADD/relation", :eleve_id => "VAA60000", :type_relation_id => "PAR").status.should == 404 
-
-    delete_test_users()
     #puts response.inspect
   end
 
-  should "be able to modify the type of an existing relation between two users" do 
+  it "be able to modify the type of an existing relation between two users" do 
     u = create_test_user()
     eleve = create_test_user("testeleve")
     #good request
-    put("user/#{u.id}/relation/VAA60000", :type_relation_id => "PAR").status.should == 200
-    get("user/#{u.id}/relation/VAA60000")
+    put("user/#{u.id}/relation/#{eleve.id}", :type_relation_id => "PAR").status.should == 200
+    get("user/#{u.id}/relation/#{eleve.id}")
     #bad requests
-    put("user/#{u.id}/relation/VAA60000", :type_relation_id => "").status.should == 400
+    put("user/#{u.id}/relation/#{eleve.id}", :type_relation_id => "").status.should == 400
     put("user/#{u.id}/relation/", :type_relation_id => "PAR").status.should == 405
-    put("user/vva/relation/VAA60000", :type_relation_id => "PAR").status.should == 403
-
-    delete_test_users()
+    put("user/vva/relation/#{eleve.id}", :type_relation_id => "PAR").status.should == 403
   end 
 
-  should "be able to delete an existing relation" do 
+  it "be able to delete an existing relation" do 
     u = create_test_user()
-    delete("user/#{u.id}/relation/VAA60000").status.should == 200
-    delete_test_users()
+    eleve = create_test_user("testeleve")
+    put("user/#{u.id}/relation/#{eleve.id}", :type_relation_id => "PAR")
+    delete("user/#{u.id}/relation/#{eleve.id}").status.should == 200
     response = last_response.body
     #puts response
   end
 
-  should "returns the list  of user emails or empty if user doesnot have one"  do 
+  it "returns the list  of user emails or empty if user doesnot have one"  do 
     #create user and add emails
     u = create_test_user()
     u.add_email("testuser@laclasse.com", false)
@@ -164,7 +145,7 @@ describe UserApi do
     delete_test_users() 
   end 
 
-  should "adds an email to a specific user" do 
+  it "adds an email to a specific user" do 
     u = create_test_user()
     post("user/#{u.id}/email").status.should == 400
     post("user/VAaadfq/email", :adresse => "testuser@laclasse.com").status.should == 403
@@ -173,7 +154,7 @@ describe UserApi do
     delete_test_users()
   end
 
-  should "modify an email of a user" do 
+  it "modify an email of a user" do 
     u = create_test_user()
     u.add_email("testuser@laclasse.com")
     id = u.email.first.id
@@ -184,7 +165,7 @@ describe UserApi do
     #puts response
   end 
 
-  should "delete an email of a specific user" do
+  it "delete an email of a specific user" do
     u = create_test_user("testuser")
     u.add_email("testuser@laclasse.com")
     id = u.email.first.id
@@ -196,7 +177,7 @@ describe UserApi do
     delete_test_user("testuser")
   end
 
-  should "returns a list of user phone numbers" do 
+  it "returns a list of user phone numbers" do 
     u = create_test_user("testuser")
     u.add_telephone("0404040404", TYP_TEL_MAIS)
     u.add_telephone("0404040405", TYP_TEL_TRAV)
@@ -206,14 +187,14 @@ describe UserApi do
     delete_test_user("testuser") 
   end
 
-  should "add a new telephone" do 
+  it "add a new telephone" do 
     u = create_test_user("testuser")
     post("user/#{u.id}/telephone").status.should == 400
     post("user/#{u.id}/telephone", :numero => "0466666666").status.should == 201
     delete_test_user("testuser") 
   end 
-=end
-  should "be able to modify a telephone number or type" do
+
+  it "be able to modify a telephone number or type" do
     u = create_test_user("testuser")
     u.add_telephone("0404040404", TYP_TEL_MAIS)
     telephone_id = u.telephone.first.id
@@ -230,7 +211,7 @@ describe UserApi do
     delete_test_user("testuser")  
   end 
 
-  should "be able to delete a telephone number" do 
+  it "be able to delete a telephone number" do 
     u = create_test_user("testuser")
     u.add_telephone("0404040404", TYP_TEL_MAIS)
     count = u.telephone.count
@@ -244,7 +225,7 @@ describe UserApi do
 
 
   #Récupère les préférences d'une application
-  should "return a list of user preferences for an application" do
+  it "return a list of user preferences for an application" do
     u = create_test_user("testuser")
     app = create_test_application_with_param
     hash = {test_pref: 1, test_pref2: 2, test_pref100: 4}
@@ -256,7 +237,7 @@ describe UserApi do
   end 
 
   #modifier ou Remettre la valeure par défaut de la préférence
-  should "modify preferences" do
+  it "modify preferences" do
     u = create_test_user("testuser")
     app = create_test_application_with_param
     hash = {test_pref: 1, test_pref2: 2, test_pref100: 4}
@@ -268,7 +249,7 @@ describe UserApi do
   end 
 
   #Remettre la valeure par défaut pour toutes les préférences
-  should "delete all user preferences" do
+  it "delete all user preferences" do
     u = create_test_user("testuser")
     #create first application and set user preferences
     app = create_test_application_with_param
@@ -290,7 +271,7 @@ describe UserApi do
     delete_application("app2")  
   end 
 
-  should "expose cusotm entity attributes" do
+  it "expose cusotm entity attributes" do
     
     u = create_test_user("testuser") 
     u.add_email("test@laclasse.com", false)
@@ -305,7 +286,7 @@ describe UserApi do
       :role_id => role.id)
     #u.etablissements.count.should == 2
     get("/user/entity/#{u.id}").status.should == 200
-    puts last_response.body
+    #puts last_response.body
     delete_test_user("testuser")
     delete_test_role
   end  
@@ -313,7 +294,7 @@ describe UserApi do
 
 
 =begin
-  should "filter the results using valid columns values" do 
+  it "filter the results using valid columns values" do 
     where  = {:sexe => "F", :nom => "sarkozy"}
     # associatif array, i dont know if this work for other language 
     get("user/query/users?where[sexe]=F&where[nom]=sarkozy")
@@ -322,45 +303,45 @@ describe UserApi do
     sso_attr["TotalQueryResults"].should == 10
   end
 
-  should "be able to respond to associations" do 
+  it "be able to respond to associations" do 
     get("user/query/users?where[sexe]=F&where[nom]=sarkozy&where[profil_user.etablissement_id]=2&where[profil_user.profil_id]=ELV").status.should == 200
     sso_attr = JSON.parse(last_response.body)
     sso_attr["TotalModelRecords"].should == 201
     sso_attr["TotalQueryResults"].should == 1
   end 
 
-  should "reject the request if bad filter columns names are sent " do 
+  it "reject the request if bad filter columns names are sent " do 
     where  = {:sex => "F", :nom => "sarkozy"}
     # Bad Request
     get("user/query/users?where[sex]=F&where[nom]=sarkozy").status.should == 400
   endalue
 
-  should "reject the request if bad filter assocition name and column are sent " do 
+  it "reject the request if bad filter assocition name and column are sent " do 
     #bad association name
     get("user/query/users?where[sexe]=F&where[nom]=sarkozy&where[profil_user.etablissement_id]=2&where[profil.profil_id]=ELV").status.should == 400
     #bad column name 
     get("user/query/users?where[sexe]=F&where[nom]=sarkozy&where[profil_user.etablissement_id]=2&where[profil_user.profile]=ELV").status.should == 400
   end
 
-  should "be able return a page of result" do 
+  it "be able return a page of result" do 
     get("user/query/users?where[sexe]=F&start=100&length=10").status.should == 200
     result = JSON.parse(last_response.body)
     result["TotalQueryResults"].should == 105
     result["Data"].count.should == 5
   end
 
-  should "be able to sort results according to certain column" do 
+  it "be able to sort results according to certain column" do 
     get("user/query/users?where[sexe]=F&start=0&length=10&sortcol=nom&sortdir=asc").status.should == 200
   end  
   
-  should "be able to do a simple search on nom column" do
+  it "be able to do a simple search on nom column" do
     #search = sarko must return all records that nom contains sarko
     get("user/query/users?where[sexe]=F&start=0&length=10&search=sarko").status.should == 200
     result = JSON.parse(last_response.body)
     result["TotalQueryResults"].should == 10
   end
 
-  should "be able to do a serach with a space separated string" do
+  it "be able to do a serach with a space separated string" do
     # this search must returns a record that has sarko as a (lastname or firstname ) and tooto as (lastname or firstname ) or other records that contain sarko or tooto 
     search = "sarko jeanne" 
     escaped_string = CGI::escape(search)  
@@ -369,7 +350,7 @@ describe UserApi do
     result["TotalQueryResults"].should == 19
   end
 
-  should "find parent besed on eleve_id"  do 
+  it "find parent besed on eleve_id"  do 
     # student with sconet_id has 2 parents
     get("user/parent/eleve?sconet_id=123456").status.should == 200
     result = JSON.parse(last_response.body)

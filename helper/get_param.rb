@@ -34,7 +34,7 @@ module Ramaze
               when 'usel'
                 parametre.valeur  
             end 
-            Ramaze::Log.debug("#{value}")
+            #Ramaze::Log.debug("#{value}")
             return value
         end
       end

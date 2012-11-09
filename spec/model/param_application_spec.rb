@@ -1,3 +1,5 @@
+#encoding: utf-8
+
 #coding: utf-8
 require_relative '../helper'
 
@@ -26,5 +28,15 @@ describe ParamApplication do
     delete_test_users()
     delete_test_application()
     delete_test_etablissements()
+  end
+
+  it "stocke les valeurs et autres valeurs sous un format json définit par type_param" do
+    # Si c'est un number, on a min/max/increment
+    # Si c'est une chaine on a min/max
+    # Si c'est un boolean on rien ?
+    # Si c'est multivalué on a un tableau avec les valeurs
+  end
+
+  it "on dispose d'api permettant d'accéder au min/max/increment/values etc." do
   end
 end

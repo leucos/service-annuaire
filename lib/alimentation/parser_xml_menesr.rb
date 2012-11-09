@@ -1,3 +1,5 @@
+#encoding: utf-8
+
 #!ruby
 #coding: utf-8
 
@@ -173,7 +175,6 @@ module Alimentation
       begin
         parsed_user[:date_naissance] = Date.parse(date_naissance)
       rescue
-        Ramaze::Log.info("Date de naissance manquante ou invalide pour l'utilisateur #{parsed_user.inspect}")
         if categorie == CATEGORIE_ELEVE
           raise MissingDataError.new("Date de naissance manquante pour #{prenom} #{nom} ##{id_jointure}")
         end

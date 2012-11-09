@@ -1,9 +1,18 @@
 #coding: utf-8
-require 'ramaze'
-require 'ramaze/spec/bacon'
-require 'json'
+require 'rspec'
+require 'rack/test'
 
 require_relative '../app'
+
+
+# On lance tous les tests dans une transaction ce qui fait
+# que l'on a pas a supprimer quoique ce soit, sequel le fait pour nous :)
+RSpec.configure do |c|
+  c.around(:each) do |example|
+    DB.transaction(:rollback=>:always){example.run}
+  end
+end
+
 
 def create_test_user(login = "test")
   User.create(:login => login, :password => 'test', :nom => 'test', :prenom => 'test')

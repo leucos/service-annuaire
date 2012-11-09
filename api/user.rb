@@ -1,3 +1,5 @@
+#encoding: utf-8
+
 #coding: utf-8
 class UserApi < Grape::API
   format :json
@@ -21,21 +23,6 @@ class UserApi < Grape::API
     def symbolize_array(arr)
       arr.map{|v| v.is_a?(String) ? v.to_sym : v}
     end 
-  end
-
-
-  desc "Renvois le profil utilisateur si on passe le bon login/password"
-  params do
-    requires :login, type: String, regexp: /^[a-z]/i, desc: "Doit commencer par une lettre"
-    requires :password, type: String
-  end
-  get do
-    u = User[:login => params[:login]]
-    if u and u.password == params[:password]
-      u
-    else
-      error!("Forbidden", 403)
-    end
   end
 
   desc "Renvois le profil utilisateur si on donne le bon id. Nécessite une authentification."

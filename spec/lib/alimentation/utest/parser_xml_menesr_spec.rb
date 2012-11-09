@@ -1,3 +1,5 @@
+#encoding: utf-8
+
 #coding: utf-8
 require_relative '../../../helper'
 
@@ -177,7 +179,7 @@ describe Alimentation::ParserXmlMenesr do
   it "parse well an eleve user" do
     p = ParserTest.new
     eleve = p.parse_user(get_eleve_xml(), CATEGORIE_ELEVE)
-    eleve.should.not == nil
+    eleve.should_not == nil
     eleve[:prenom].should == "Michèle"
     eleve[:sexe].should == 'F'
     eleve[:nom].should == 'RODRIGUEZ'
@@ -186,48 +188,48 @@ describe Alimentation::ParserXmlMenesr do
 
   it "Generate a WrongDataError if no identifier" do
     p = ParserTest.new
-    should.raise Alimentation::WrongDataError do
+    expect{
       eleve = p.parse_user(get_eleve_xml({:no_identifier => true}), CATEGORIE_ELEVE)
-    end
+    }.to raise_error(Alimentation::WrongDataError)
   end
 
   it "Generate a WrongDataError if wrong identifier" do
     p = ParserTest.new
-    should.raise Alimentation::WrongDataError do
+    expect{
       eleve = p.parse_user(get_eleve_xml({:wrong_identifier => true}), CATEGORIE_ELEVE)
-    end
+    }.to raise_error(Alimentation::WrongDataError)
   end
 
   it "Generate a MissingDataError if no id_jointure_aaf" do
     p = ParserTest.new
-    should.raise Alimentation::MissingDataError do
+    expect{
       eleve = p.parse_user(get_eleve_xml({:no_id_jointure => true}), CATEGORIE_ELEVE)
-    end
+    }.to raise_error(Alimentation::MissingDataError)
   end
 
   it "Generate WrongDataError with wrong categorie" do
     p = ParserTest.new
-    should.raise Alimentation::WrongDataError do
+    expect{
       eleve = p.parse_user(get_eleve_xml(), CATEGORIE_PEN)
-    end
+    }.to raise_error(Alimentation::WrongDataError)
   end
 
   it "Generate a MissingDataError if no date naissance given for an eleve" do
     p = ParserTest.new
-    should.raise Alimentation::MissingDataError do
+    expect{
       eleve = p.parse_user(get_eleve_xml({:no_date_naiss => true}), CATEGORIE_ELEVE)
-    end
+    }.to raise_error(Alimentation::MissingDataError)
     # Pas de problème pour les parents
     p = p.parse_user(get_rel_eleve_xml(), CATEGORIE_REL_ELEVE) 
   end
 
   it "Generate a MissingDataError if no ENTPersonStructRattach on parse_eleve" do
     p = ParserTest.new
-    should.raise Alimentation::MissingDataError do
+    expect{
       node = get_eleve_xml({:no_struct_rattach => true})
       eleve = p.parse_user(node, CATEGORIE_ELEVE)
       p.parse_eleve(node, eleve)
-    end
+    }.to raise_error(Alimentation::MissingDataError)
   end
 
   it "Has all the relation_eleve for an eleve" do
@@ -257,9 +259,9 @@ describe Alimentation::ParserXmlMenesr do
     p = ParserTest.new
     node = get_eleve_xml({:corr_is_parent => true})
     eleve = p.parse_user(node, CATEGORIE_ELEVE)
-    should.raise Alimentation::WrongDataError do
+    expect{
       p.parse_eleve(node, eleve)
-    end
+    }.to raise_error(Alimentation::WrongDataError)
   end
 
   it "Handle Responsable financier relation" do
@@ -293,9 +295,9 @@ describe Alimentation::ParserXmlMenesr do
     p = ParserTest.new
     node = get_eleve_xml({:two_classes => true})
     eleve = p.parse_user(node, CATEGORIE_ELEVE)
-    should.raise Alimentation::WrongDataError do
+    expect{
       p.parse_regroupement(node, "ENTEleveClasses", "CLS", eleve)
-    end
+    }.to raise_error(Alimentation::WrongDataError)
   end
 
   it "Parse well multiple_attr_etb" do

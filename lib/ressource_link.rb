@@ -14,7 +14,6 @@ module Sequel
         service_id = hash[:service_id]
         Service.declare_service_class(service_id, model)
 
-        # Retrieve Service ID from 
         model.one_to_one :ressource, :key => :id do |ds|
           ds.where(:service_id => service_id)
         end

@@ -14,6 +14,6 @@ gem 'nokogiri'
 
 group :development do
   gem 'rack-test'
-  gem 'bacon'
+  gem 'rspec'
   gem 'simplecov'
 end

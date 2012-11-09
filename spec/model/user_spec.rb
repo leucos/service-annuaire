@@ -2,18 +2,26 @@
 require_relative '../helper'
 
 describe User do
-  #In case of something went wrong
-  delete_test_users()
-  delete_test_application()
-  delete_test_role()
+  before(:all) do
+    #In case of something went wrong
+    delete_test_users()
+    delete_test_application()
+    delete_test_role()
+
+    @app = create_test_application_with_param()
+  end
+
+  after(:all) do
+    delete_test_application()
+  end
 
   it "knows what is a valid uid" do
-    User.is_valid_id?("VAA60000").should.equal true
-    User.is_valid_id?("VGX61569").should.equal true
-    User.is_valid_id?("VAA6000").should.equal false
-    User.is_valid_id?("VAA70000").should.equal false
-    User.is_valid_id?("WAA60000").should.equal false
-    User.is_valid_id?(12360000).should.equal false
+    User.is_valid_id?("VAA60000").should == true
+    User.is_valid_id?("VGX61569").should == true
+    User.is_valid_id?("VAA6000").should == false
+    User.is_valid_id?("VAA70000").should == false
+    User.is_valid_id?("WAA60000").should == false
+    User.is_valid_id?(12360000).should == false
   end
 
   it "gives the good next id to user even after a destroy" do
@@ -27,14 +35,12 @@ describe User do
     awaited_next_id = LastUid.increment_uid(awaited_next_id)
     u = create_test_user()
     u.id.should == awaited_next_id
-    delete_test_users()
   end
 
   it "doesn't allow duplicated logins" do
     u = create_test_user()
     u2 = new_test_user()
     u2.valid?.should == false
-    delete_test_users()
   end
 
   it "doesn't allow bad code_postal" do
@@ -51,7 +57,7 @@ describe User do
   it "Hashes passwords on creation" do
     u = new_test_user()
     # Attention a bien utiliser to_s sinon le test est validé
-    u.password.to_s.should != "test"
+    u.password.to_s.should_not == "test"
     u.password.should == "test"
     # is_password? est un sinonyme de ==
     u.password.is_password?("test").should == true
@@ -61,7 +67,7 @@ describe User do
   it "store hashed passwords" do
     create_test_user()
     u = User.filter(:login => 'test').first
-    u.password.to_s.should != "test"
+    u.password.to_s.should_not == "test"
     u.password.should == "test"
     delete_test_users()
   end
@@ -69,7 +75,7 @@ describe User do
   it "handle password modification" do
     u = new_test_user()
     u.password = "toto"
-    u.password.to_s.should != "toto"
+    u.password.to_s.should_not == "toto"
     u.password.should == "toto"
   end
 
@@ -96,7 +102,7 @@ describe User do
 
   it "create and destroy a ressource on creation/deletion" do
     u = create_test_user()
-    Ressource[:service_id => SRV_USER, :id => u.id].should.not == nil
+    Ressource[:service_id => SRV_USER, :id => u.id].should_not == nil
     delete_test_users()
     Ressource[:service_id => SRV_USER, :id => u.id].should == nil
   end
@@ -112,13 +118,14 @@ describe User do
     u = create_test_user()
     u.add_email("test@laclasse.com")
     u.email_principal.should == "test@laclasse.com"
+    email_principal = Email.filter(:user_id => u.id, :principal => true).first
     # Test qu'on ne peut pas avoir 2 email principaux
-    should.raise Sequel::ValidationFailed do
+    expect {
       e = Email.create(:adresse => "autre_test@laclasse.com", :user => u, :principal => true)
-    end
+    }.to raise_error(Sequel::ValidationFailed)
+
     Email.filter(:user => u).destroy()
     u.email_principal.should == nil
-    delete_test_users()
   end
 
   it "find academique email" do
@@ -128,7 +135,6 @@ describe User do
     u.email_academique.should == "test@ac-lyon.fr"
     Email.filter(:user => u, :academique => true).destroy()
     u.email_academique.should == nil
-    delete_test_users()
   end
 
   it "destroy email on user destruction" do
@@ -145,7 +151,6 @@ describe User do
     u.add_email("test@ac-lyon.fr", true)
     u.add_email("test@yahoo.com")
     u.email.count.should == 3
-    delete_test_users()
   end
 
   it "add a telephone to the user" do
@@ -153,7 +158,6 @@ describe User do
     u.add_telephone("0478431245")
     Telephone.filter(:user => u).count.should == 1
     Telephone.filter(:user => u).first.type_telephone_id.should == TYP_TEL_MAIS
-    delete_test_users()
   end
 
   it "find all telephones" do
@@ -166,7 +170,6 @@ describe User do
     u.telephone.count.should == 3
     u.telephone[1].type_telephone_id.should == TYP_TEL_PORT
     u.telephone[2].type_telephone_id.should == TYP_TEL_TRAV
-    delete_test_users()
   end
 
   it "destroy telephone on user destruction" do
@@ -201,8 +204,6 @@ describe User do
     correspondant = u.relation_adulte[2]
     correspondant.relation_eleve.length.should == 1
     correspondant.enfants.length.should == 0
-
-    delete_test_users()
   end
 
   it ".relations return all relation_eleve" do
@@ -215,15 +216,12 @@ describe User do
     u.relations.length.should == 2
     p1.relations.length.should == 1
     p2.relations.length.should == 1
-
-    delete_test_users()
   end
 
   it ".ressource return associated ressource" do
     u = create_test_user()
     u.ressource.id.should == u.id
     u.ressource.service_id.should == SRV_USER
-    delete_test_users()
   end
 
   it "add a profil and a role_user" do
@@ -232,7 +230,6 @@ describe User do
     u.add_profil(e_id, PRF_ELV)
     u.profil_user.length.should == 1
     u.role_user_dataset.filter(:ressource_id => e_id, :ressource_service_id => SRV_ETAB).count.should == 1
-    delete_test_users()
   end
 
   # it "modify a profil" do
@@ -246,7 +243,6 @@ describe User do
     u.add_profil(Etablissement.first.id, PRF_ENS)
     u.add_profil(Etablissement.first.id, PRF_PAR)
     u.profil_user.length.should == 2
-    delete_test_users()
   end
 
   it ".etablissements returns all etablissements where user has a role" do
@@ -258,16 +254,11 @@ describe User do
     u.add_profil(e1.id, PRF_ENS)
     u.add_role(e2.ressource.id, e2.ressource.service_id, role.id)
     u.etablissements.count.should == 2
-
-    delete_test_users()
-    delete_test_etablissements()
-    delete_test_role()
   end
 
   it "set_preference to user" do
-    a = create_test_application_with_param()
     u = create_test_user()
-    pref_id = a.param_application.first.id
+    pref_id = @app.param_application.first.id
     
     u.set_preference(pref_id, 200)
     dataset = ParamUser.filter(:user => u, :param_application_id => pref_id)
@@ -275,50 +266,56 @@ describe User do
     # When using nil, it destroy the preference
     u.set_preference(pref_id, nil)
     dataset.count.should == 0
-    
-    delete_test_users()
-    delete_test_application()
   end
 
   it "return all preferences on a application" do
-    a = create_test_application_with_param()
     u = create_test_user()
-    pref_id = a.param_application.first.id
+    pref_id = @app.param_application.first.id
  
     u.set_preference(pref_id, 200)
-    u.preferences(a.id).count.should == 2
-
-    delete_test_users()
-    delete_test_application()
+    u.preferences(@app.id).count.should == 2
   end
 
   it "destory preferences on user destruction" do
-    a = create_test_application_with_param()
     u = create_test_user()
     user_id = u.id
-    pref_id = a.param_application.first.id
+    pref_id = @app.param_application.first.id
  
     u.set_preference(pref_id, 200)
 
     delete_test_users()
 
     ParamUser.filter(:user_id => user_id, :param_application_id => pref_id).count.should == 0
-
-    delete_test_application()
   end
 
-  # it ".classes returns all the classes where user has a role" do
-  #   u = create_test_user()
-  #   e1 = create_test_etablissement()
-  #   e2 = create_test_etablissement()
+  it "add user to a classe" do
+    #delete_test_users()
+    u = create_test_user()
+    e1 = create_test_etablissement()
+    r = create_test_role()
+    c = e1.add_classe({})
+    u.add_classe(c.id, r.id)
 
-  #   delete_test_users()
-  #   delete_test_etablissements()
-  # end
+    RoleUser[:user => u, :ressource => c.ressource, :role => r].should_not == nil
+  end
 
-  # it "add user to a classe" do
-    
-  # end
+  it ".classes returns all the classes where user has a role" do
+    u = create_test_user()
+    e1 = create_test_etablissement()
+    e2 = create_test_etablissement()
+    c1 = e1.add_classe({})
+    c2 = e2.add_classe({})
+    c3 = e2.add_classe({})
+    r = create_test_role()
+    u.add_classe(c1.id, r.id)
+    u.add_classe(c2.id, r.id)
+    u.add_classe(c3.id, r.id)
+
+    u.classes.count.should == 3
+    u.classes(e1.id).count.should == 1
+    u.classes(e2.id).count.should == 2
+  end
+
 
   # it "add user to a groupe eleve" do
   # end
@@ -355,10 +352,6 @@ describe User do
     u2 = create_user_with_role(role.id)
     u2.rights(e.ressource).count.should == 3
     u2.rights(e2.ressource).count.should == 3
-
-    delete_test_users()
-    delete_test_etablissements()
-    delete_test_role()
   end
 
   it ".profil_actif return the first user profil" do
@@ -367,9 +360,6 @@ describe User do
     
     u.add_profil(e1.id, PRF_ELV)
     
-    u.profil_actif.should.not == nil
-
-    delete_test_users()
-    delete_test_etablissements()
+    u.profil_actif.should_not == nil
   end
 end

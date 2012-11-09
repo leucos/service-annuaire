@@ -556,11 +556,11 @@ DROP TABLE IF EXISTS `annuaire`.`role_user` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`role_user` (
   `user_id` CHAR(16) NOT NULL ,
-  `ressource_service_id` CHAR(8) NOT NULL ,
   `ressource_id` VARCHAR(255) NOT NULL ,
+  `ressource_service_id` CHAR(8) NOT NULL ,
   `role_id` CHAR(8) NOT NULL ,
   `bloque` TINYINT(1)  NOT NULL DEFAULT 0 ,
-  PRIMARY KEY (`user_id`, `ressource_service_id`, `ressource_id`, `role_id`) ,
+  PRIMARY KEY (`user_id`, `ressource_id`, `ressource_service_id`, `role_id`) ,
   INDEX `fk_role_user_user1` (`user_id` ASC) ,
   INDEX `fk_role_user_ressource1` (`ressource_service_id` ASC, `ressource_id` ASC) ,
   INDEX `fk_role_user_role1` (`role_id` ASC) ,

@@ -76,7 +76,6 @@ class PagedQuery
 
     def fetch_records
       records = @model.filter(@where)
-      Ramaze::Log.debug(records)
 
       if sort_direction == 'asc'
         records = records.order(sort_column)
@@ -105,7 +104,6 @@ class PagedQuery
     end
 
     def sort_column
-      Ramaze::Log.info("Using #{@columns[@sortcolumn]} as sort key")
       @columns[@sortcolumn]
     end
 
