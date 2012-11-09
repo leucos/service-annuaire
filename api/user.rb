@@ -1,6 +1,6 @@
 #encoding: utf-8
-
 #coding: utf-8
+require 'rest-client'
 class UserApi < Grape::API
   format :json
 
@@ -29,13 +29,24 @@ class UserApi < Grape::API
       # En cherchant d'abord dans l'en-tête
       # Puis dans les cookies
       # Puis enfin dans les paramètres GET/POST
-
+      session = params[:session]
+      get_request = RestClient::Request.new(:url => "http://localhost:9292/api/authsession/#{session}", :method => :get)
+      #puts get_request.inspect
+      response = get_request.execute
+      r = JSON.parse(response)
+      puts r.inspect
+      if r["user"]
+        rights = Rights.get_rights(r[:key], ressource.service_id, ressource.id, service_id)
+        puts rights.inspect
+      else
+        error!("Pas les droits", 403)
+      end 
       # Une fois qu'on a la session, on doit récupérer l'utilisateur lié à cette session
       # Soit via l'api d'authentification ou directement en utilisant Redis 
       # (attention a bien mettre à jour le time to live)
 
-      rights = Rights.get_rights(user, ressource.service_id, ressource.id, service_id)
-      error!("Pas les droits", 403) unless rights.include?(activites)
+      #rights = Rights.get_rights()
+      #error!("Pas les droits", 403) unless rights.include?(activites)
     end
   end
 
@@ -47,7 +58,6 @@ class UserApi < Grape::API
     user = User[params[:id]]
     error!("Utilisateur non trouvé", 404) if user.nil?
     authorize_activites!([ACT_READ, ACT_UPDATE], user.ressource)
-    
     present user, with: API::Entities::User
   end
 
