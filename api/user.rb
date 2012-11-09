@@ -22,7 +22,21 @@ class UserApi < Grape::API
     end
     def symbolize_array(arr)
       arr.map{|v| v.is_a?(String) ? v.to_sym : v}
-    end 
+    end
+
+    def authorize_activites!(activites, ressource, service_id = ressource.service_id)
+      # Récupère la sessions
+      # En cherchant d'abord dans l'en-tête
+      # Puis dans les cookies
+      # Puis enfin dans les paramètres GET/POST
+
+      # Une fois qu'on a la session, on doit récupérer l'utilisateur lié à cette session
+      # Soit via l'api d'authentification ou directement en utilisant Redis 
+      # (attention a bien mettre à jour le time to live)
+
+      rights = Rights.get_rights(user, ressource.service_id, ressource.id, service_id)
+      error!("Pas les droits", 403) unless rights.include?(activites)
+    end
   end
 
   desc "Renvois le profil utilisateur si on donne le bon id. Nécessite une authentification."
@@ -30,7 +44,11 @@ class UserApi < Grape::API
     requires :id, type: String
   end
   get "/:id" do
-    User[params[:id]]
+    user = User[params[:id]]
+    error!("Utilisateur non trouvé", 404) if user.nil?
+    authorize_activites!([ACT_READ, ACT_UPDATE], user.ressource)
+    
+    present user, with: API::Entities::User
   end
 
   # TODO : merger ce code avec /:id => nécessite modif SSO
