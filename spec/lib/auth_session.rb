@@ -11,7 +11,7 @@ describe AuthSession do
   it "create a session based on user id" do
     AuthSession.new(user_id)
     session  = AuthSession.get(user_id)
-    AuthSession.get(@session).should == user_id
+    AuthSession.get(session).should == user_id
   end
 
   it "delete an existing session" do
