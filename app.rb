@@ -19,13 +19,15 @@ require 'nokogiri'
 #require 'sequelhook'
 
 require __DIR__('config/init')
-
+require __DIR__('api_config')
+require __DIR__('lib/auth_session')
 # Initialize controllers and models
 require __DIR__('lib/init')
 require __DIR__('model/init')
 #require __DIR__('config/abilities')
 require __DIR__('helper/init')
 require __DIR__('api/init')
+
 
 #Rack::RouteExceptions.route(Exception,  MainController.r(:my_error_handler))
 
