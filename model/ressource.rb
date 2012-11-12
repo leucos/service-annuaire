@@ -30,6 +30,10 @@ class Ressource < Sequel::Model(:ressource)
   # Attention l'ordre est important
   one_to_many :role_user, :key=>[:ressource_id, :ressource_service_id]
 
+  def self.laclasse
+    self[:service_id => SRV_LACLASSE]
+  end
+
   # Not nullable cols and unicity validation
   def validate
     super

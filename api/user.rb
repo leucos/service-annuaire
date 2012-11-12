@@ -29,7 +29,7 @@ class UserApi < Grape::API
       # En cherchant d'abord dans l'en-tête
       # Puis dans les cookies
       # Puis enfin dans les paramètres GET/POST
-      session = ! cookies[:session].nil? ? cookies[:session] : params[:session]
+      session = !cookies[:session].nil? ? cookies[:session] : params[:session]
       if  session.nil?
         error!("Pas de droits", 403)
       end 
@@ -37,11 +37,10 @@ class UserApi < Grape::API
       user_id = AuthSession.get(session)
       if !user_id.nil?
         rights = Rights.get_rights(user_id, ressource.service_id, ressource.id, service_id)
+        puts rights.inspect
         authorized = false
-        activites.each do |act|
-          if rights.include?(act)
-            authorized = true
-          end  
+        if rights.include?(activites)
+          authorized = true
         end
         error!("Pas de droits", 403) if !authorized  
       else
@@ -63,7 +62,7 @@ class UserApi < Grape::API
   get "/:id" do
     user = User[params[:id]]
     error!("Utilisateur non trouvé", 404) if user.nil?
-    authorize_activites!([ACT_READ, ACT_CREATE], user.ressource)
+    authorize_activites!(ACT_READ, user.ressource)
     present user, with: API::Entities::User
   end
 
@@ -106,12 +105,15 @@ class UserApi < Grape::API
   end
   post do
     p = params
+    authorize_activites!(ACT_CREATE, Ressource.laclasse, SRV_USER)
     begin
       u = User.new()
       params.each do |k,v|
         if k != "route_info"
           begin
-            u.set(k.to_sym => v)
+            if u.respond_to?(k.to_sym)
+               u.set(k.to_sym => v)
+            end 
           rescue
             error!("Validation failed", 400)
           end
