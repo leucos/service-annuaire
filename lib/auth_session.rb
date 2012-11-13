@@ -6,6 +6,12 @@ class AuthSession
   @@redis = Redis.new(AuthConfig::REDIS_CONFIG)
    #Ramaze::Cache.options.session = Ramaze::Cache::Redis.using(AuthConfig::REDIS_CONFIG) 
     
+  # Créer les clés pour les sessions enregistrées
+  def self.init
+    AuthConfig::STORED_SESSION.each do |k, v|
+      set(k, v)
+    end
+  end
 
   def self.set(key,value, ttl= nil)
   	@@redis.set(key, value)
