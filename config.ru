@@ -22,7 +22,7 @@ map "/sso" do
   run SsoApi
 end
 
-map "/api" do 
+map "/auth" do 
 	run AuthApi 
 end 
 

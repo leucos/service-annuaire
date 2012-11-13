@@ -11,16 +11,11 @@ Ramaze.options.roots = [__DIR__]
 
 require 'sequel'
 require 'grape'
-require 'ramaze/helper/user'
 require 'i18n'
 require 'date'
 require 'nokogiri'
-#require 'ramaze/helper/sixcan'
-#require 'sequelhook'
 
 require __DIR__('config/init')
-require __DIR__('api_config')
-require __DIR__('lib/auth_session')
 # Initialize controllers and models
 require __DIR__('lib/init')
 require __DIR__('model/init')

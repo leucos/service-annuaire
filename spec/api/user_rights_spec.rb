@@ -20,16 +20,14 @@ describe UserApi do
     role = create_test_role()
     u = create_user_with_role(role.id)
     # create session and authorized person
-    post("/api/authsession", :id => u.id)
+    post("/auth", :id => u.id)
     session = JSON.parse(last_response.body)["key"]
-    puts session
+    #puts session
     # good session
     get("/user/#{u.id}?session=#{session}").status.should == 200
     response = JSON.parse(last_response.body)
 
     #fake session
     get("/user/#{u.id}?session=12345").status.should == 403
-    delete_test_role()
-    delete_test_user("test_admin")
   end
 end

@@ -19,7 +19,7 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   //Activation avec code
   //Gestion des rattachement à un autre fournisseur d'identité
   //Api pour savoir si un login est dispo ?
-  //api pour tester si un mot de passe correspond au critère de validation des mots de passes ?
+  //api pour tester si un mot de passe correspond au critère de validation des mots de passes ?cd 
 
   // open bar, sans cookie
   * GET /user?login=test&password=test

@@ -15,19 +15,18 @@ describe AuthApi do
   session = ""
 
   it "create a session based on user id " do
-    post('/api/authsession',:id => id ).status.should == 201
+    post('/auth',:id => id ).status.should == 201
     JSON.parse(last_response.body)["key"].empty?.should_not == true
     session = JSON.parse(last_response.body)["key"]
   end
 
   it "return the user id attached to an existing session" do
-   get("/api/authsession/#{session}").status.should == 200
+   get("/auth/#{session}").status.should == 200
    JSON.parse(last_response.body)["user"].should == "5"
   end
 
   it "be able to destroy a created session" do 
-    delete("/api/authsession/#{session}").status.should == 200
-    get("/api/authsession/#{session}").status.should == 404
+    delete("/auth/#{session}").status.should == 200
+    get("/auth/#{session}").status.should == 404
   end  
-
 end

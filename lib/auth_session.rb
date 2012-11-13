@@ -3,8 +3,8 @@ require 'ramaze'
 require 'redis'
 
 class AuthSession
-  @@redis = Redis.new(ApiConfig::REDIS_CONFIG)
-   #Ramaze::Cache.options.session = Ramaze::Cache::Redis.using(ApiConfig::REDIS_CONFIG) 
+  @@redis = Redis.new(AuthConfig::REDIS_CONFIG)
+   #Ramaze::Cache.options.session = Ramaze::Cache::Redis.using(AuthConfig::REDIS_CONFIG) 
     
 
   def self.set(key,value, ttl= nil)
