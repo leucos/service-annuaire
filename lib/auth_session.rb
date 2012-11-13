@@ -1,8 +1,10 @@
 require 'securerandom'
-require 'ramaze'
 require 'redis'
 
 class AuthSession
+  class UnauthorizedDeletion < StandardError
+  end
+
   @@redis = Redis.new(AuthConfig::REDIS_CONFIG)
    #Ramaze::Cache.options.session = Ramaze::Cache::Redis.using(AuthConfig::REDIS_CONFIG) 
     
@@ -13,18 +15,20 @@ class AuthSession
     end
   end
 
-  def self.set(key,value, ttl= nil)
-  	@@redis.set(key, value)
-    @@redis.expire(key, ttl) if ttl
-  end
-
-
   def self.get(key)
   	@@redis.get(key)
   end
 
+  def self.time_to_live(key)
+    @@redis.ttl(key)
+  end
+
   # deletes the value and the key
+  # raise UnauthorizedDeletion si il s'agit d'une session stockée
   def self.delete(key)
+    raise UnauthorizedDeletion.new if AuthConfig::STORED_SESSION[key]
+    raise UnauthorizedDeletion.new if AuthConfig::STORED_SESSION.rassoc(key)
+
     value = @@redis.get(key)
     if value
   	  @@redis.del(key)
@@ -36,13 +40,16 @@ class AuthSession
   	@@redis.exists(key)
   end
 
-  def self.new(user_id)
-    if self.exist?(user_id) # user has already a session
-      self.delete(user_id)
-    end  
-  	key = SecureRandom.urlsafe_base64 
-  	@@redis.set(key, user_id)
-  	@@redis.set(user_id, key)
+  # Génère un id de session unique et l'associe à un id d'utlisateur
+  # Met un time to live à 1H
+  # todo : empêcher la création de session pour des utilisateurs inexistant ?
+  def self.create(user_id)
+    # Ne change pas la session si elle est statique
+    stored_session = AuthConfig::STORED_SESSION[user_id]
+    return stored_session if stored_session
+
+  	key = SecureRandom.urlsafe_base64
+  	set(key, user_id, 3600)
   	return key
   end
 
@@ -52,18 +59,10 @@ class AuthSession
     @@redis.expire(value, time_in_seconds)
   end
 
-  def self.time_to_live(key)
-    @@redis.ttl(key)
+  #Créer aussi une entrée avec comme clé la valeur
+  def self.set(key, value, ttl= nil)
+    @@redis.set(key, value)
+    @@redis.set(value, key)
+    expire(key, ttl) if ttl
   end
-
-  def self.incr_time_to_live(key, ttl)
-    if @@redis.exists(key) and @@redis.ttl(key) != -1
-      value = @@redis.get(key)
-      # add one hour 
-      @@redis.expire(value, @@redis.ttl(value)+ttl)
-      @@redis.expire(key, @@redis.ttl(key)+ttl)
-    else 
-      false 
-    end  
-  end  
 end 

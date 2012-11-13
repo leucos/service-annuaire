@@ -20,7 +20,7 @@ describe UserApi do
     role = create_test_role()
     u = create_user_with_role(role.id)
     # create session and authorized person
-    post("/auth", :id => u.id)
+    post("/auth", :user_id => u.id)
     session = JSON.parse(last_response.body)["key"]
     #puts session
     # good session

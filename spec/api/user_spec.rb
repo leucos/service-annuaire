@@ -7,6 +7,13 @@ describe UserApi do
   def app
     Rack::Builder.parse_file("config.ru").first
   end
+
+  before :all do
+    # On récupère la session liée au premier utilisateur
+    # qui est un super admin et donc à tous les droits
+    
+  end
+
   # In case something went wrong
   delete_test_eleve_with_parents()
   delete_test_users()

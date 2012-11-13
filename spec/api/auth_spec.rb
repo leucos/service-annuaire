@@ -1,3 +1,5 @@
+#encoding: utf-8
+
 require_relative '../helper'
 
 
@@ -15,7 +17,7 @@ describe AuthApi do
   session = ""
 
   it "create a session based on user id " do
-    post('/auth',:id => id ).status.should == 201
+    post('/auth',:user_id => id ).status.should == 201
     JSON.parse(last_response.body)["key"].empty?.should_not == true
     session = JSON.parse(last_response.body)["key"]
   end
@@ -28,5 +30,10 @@ describe AuthApi do
   it "be able to destroy a created session" do 
     delete("/auth/#{session}").status.should == 200
     get("/auth/#{session}").status.should == 404
-  end  
+  end
+
+  it "impossible de supprimer des session stockés" do
+    session_id = AuthConfig::STORED_SESSION.first[1]
+    delete("/auth/#{session_id}").status.should == 403
+  end
 end
