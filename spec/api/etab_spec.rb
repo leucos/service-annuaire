@@ -41,4 +41,8 @@ describe EtabApi do
     delete_test_etablissements
   end 
 
+  it "assign a role to someone " do
+     
+  end
+
 end

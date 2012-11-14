@@ -131,7 +131,8 @@ class EtabApi < Grape::API
       role = Role[:id => params[:role_id]]
       error!("ressource non trouvee", 404) if role.nil?
       #authorize_activites!(ACT_CREATE, etab.ressource, SER_USER)
- 
+
+
     end
 
     #################
@@ -141,7 +142,7 @@ class EtabApi < Grape::API
       requires :id, type: Integer 
       requires :user_id, type: Integer 
     end  
-    put "/:id/role_user/:user_id" 
+    put "/:id/role_user/:user_id" do
     end 
 
     #################
