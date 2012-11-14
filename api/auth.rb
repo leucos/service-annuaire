@@ -7,7 +7,7 @@ class AuthApi < Grape::API
   # POST /auth
   # { id: "vaa60001" }
   # res 200:
-  # { "id": "ERQASvfBG", "user": "vaa60001" }
+  # { "id": "ERQASvfBG", "user_id": "VAA60001" }
   # res 401:
   # { "code": 0, "message": "authorization invalid"}
   desc "create a new session"
@@ -18,12 +18,12 @@ class AuthApi < Grape::API
     # user can have only one session
     # todo : check that user exists ?
     key = AuthSession.create(params[:user_id])
-    {"key" => key, "user" => params[:user_id]}    
+    {:session_key => key, :user_id => params[:user_id]}    
   end
 
   # GET /auth/:session_key
   # res 200:
-  # { "key": "ERQASvfBG", "user": "vaa60001" }
+  # { "session_key": "ERQASvfBG", "user_id": "VAA60001" }
   # res: 40x:
   # { "code": 12, "message": "blahcl" }
   desc "get session info"
@@ -34,7 +34,7 @@ class AuthApi < Grape::API
     value = AuthSession.get(params[:session_key])
     error!("ResourceNotFound", 404) if value.nil?
     
-    {"key" => params[:session_key], "user" => value}
+    {:session_key => params[:session_key], :user_id => value}
   end
 
 

@@ -13,7 +13,6 @@ RSpec.configure do |c|
   end
 end
 
-
 def create_test_user(login = "test")
   User.create(:login => login, :password => 'test', :nom => 'test', :prenom => 'test')
 end
@@ -71,10 +70,10 @@ end
 ROL_TEST = "TEST"
 def create_test_role()
   r = Role.create(:id => ROL_TEST, :service_id => SRV_ETAB)
-  ActiviteRole.create(:service_id => SRV_USER, :role_id => ROL_TEST, :activite_id => ACT_CREATE)
-  ActiviteRole.create(:service_id => SRV_ETAB, :role_id => ROL_TEST, :activite_id => ACT_UPDATE)
-  ActiviteRole.create(:service_id => SRV_ETAB, :role_id => ROL_TEST, :activite_id => ACT_READ)
-  ActiviteRole.create(:service_id => SRV_CLASSE, :role_id => ROL_TEST, :activite_id => ACT_DELETE)
+  r.add_activite(SRV_USER, ACT_CREATE)
+  r.add_activite(SRV_ETAB, ACT_UPDATE)
+  r.add_activite(SRV_ETAB, ACT_READ)
+  r.add_activite(SRV_CLASSE, ACT_DELETE)
   return r
 end
 

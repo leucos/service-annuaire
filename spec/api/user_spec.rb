@@ -11,21 +11,15 @@ describe UserApi do
   before :all do
     # On récupère la session liée au premier utilisateur
     # qui est un super admin et donc à tous les droits
-    
+    clear_cookies()
+    @session_key = AuthConfig::STORED_SESSION.first[1]
+    set_cookie("session_key=#{@session_key}") 
   end
-
-  # In case something went wrong
-  delete_test_eleve_with_parents()
-  delete_test_users()
-  delete_test_user("testuser")
-  delete_test_application
-  delete_application("app2")
-  delete_test_role
 
   it "return user profile when given the good id" do
     u = create_test_user()
     get("/user/#{u.id}").status.should == 200
-    JSON.parse(last_response.body)[:login].should == 'test'
+    JSON.parse(last_response.body)["login"].should == 'test'
   end
 
   it "return user profile on user creation" do
@@ -62,38 +56,6 @@ describe UserApi do
     u = create_test_user()
     put("/user/#{u.id}", :truc => 'titi').status.should == 400
   end
-
-
-  it "respond to a query without parameters" do
-    get("user/query/users").status.should == 200
-    response = JSON.parse(last_response.body)
-    response["TotalModelRecords"].should == User.count
-    response["TotalQueryResults"].should == User.count
-  end
-
-  it "query can takes also columns as a URL parameter" do 
-    columns = ["nom", "prenom", "id", "id_sconet"]
-    cols = CGI::escape(columns.join(",")) 
-    get("user/query/users?columns=#{cols}").status.should == 200
-    response = JSON.parse(last_response.body)
-    response["TotalModelRecords"].should == User.count
-    response["TotalQueryResults"].should == User.count    
-  end 
-
-  # it "query responds also to model instance methods" do
-  #   # email_acadmeique is instance method and not a columns
-  #   User.columns.include?(:email_principal).should == false
-  #   User.instance_methods.include?(:email_principal).should == true
-  #   columns = ["nom", "prenom", "id", "id_sconet", "email_principal"]
-  #   cols = CGI::escape(columns.join(",")) 
-  #   get("user/query/users?columns=#{cols}&where[id]=VAA60000").status.should == 200
-  #   JSON.create_id = nil
-  #   sso_attr = JSON.parse(last_response.body)
-  #   sso_attr["TotalModelRecords"].should == 201
-  #   sso_attr["TotalQueryResults"].should == 1
-  #   user = sso_attr["Data"][0]
-  #   user['email_principal'].should != nil 
-  # end
 
   it "returns user relations" do 
     u = create_test_user()
@@ -145,12 +107,7 @@ describe UserApi do
     get("user/#{u.id}/emails").status.should == 200
     response = JSON.parse(last_response.body)
     response.count.should == 2
-    
-    #emails are deleted authomatically when user is deleted
-    #u.delete_email("testuser@laclasse.com")
-    #u.delete_email("testuser2@laclasse.com")
-    delete_test_users() 
-  end 
+  end
 
   it "adds an email to a specific user" do 
     u = create_test_user()
@@ -158,7 +115,6 @@ describe UserApi do
     post("user/VAaadfq/email", :adresse => "testuser@laclasse.com").status.should == 403
     post("user/#{u.id}/email", :adresse => "testuser@laclasse.com").status.should == 201
     u.email.first.adresse.should == "testuser@laclasse.com" 
-    delete_test_users()
   end
 
   it "modify an email of a user" do 
@@ -167,8 +123,7 @@ describe UserApi do
     id = u.email.first.id
     put("user/#{u.id}/email/vddd", :adresse => "modifie@laclasse.com").status.should == 403
     put("user/#{u.id}/email/#{id}", :adresse => "modifie@laclasse.com", :principal => true, :academique => true ).status.should == 200
-    response = last_response.body 
-    delete_test_users()
+    response = last_response.body
     #puts response
   end 
 
@@ -181,7 +136,6 @@ describe UserApi do
     delete("user/#{u.id}/email/#{id}").status.should == 200
     u.refresh()
     u.email.count.should == (count-1)
-    delete_test_user("testuser")
   end
 
   it "returns a list of user phone numbers" do 
@@ -191,14 +145,12 @@ describe UserApi do
     get("user/#{u.id}/telephones").status.should == 200
     response = JSON.parse(last_response.body)
     response.count.should  == 2 
-    delete_test_user("testuser") 
   end
 
   it "add a new telephone" do 
     u = create_test_user("testuser")
     post("user/#{u.id}/telephone").status.should == 400
     post("user/#{u.id}/telephone", :numero => "0466666666").status.should == 201
-    delete_test_user("testuser") 
   end 
 
   it "be able to modify a telephone number or type" do
@@ -215,7 +167,6 @@ describe UserApi do
     u.refresh
     u.telephone.first.numero.should == "0466666666"
     u.telephone.first.type_telephone_id.should == TYP_TEL_TRAV
-    delete_test_user("testuser")  
   end 
 
   it "be able to delete a telephone number" do 
@@ -227,8 +178,7 @@ describe UserApi do
     u.refresh 
     u.telephone.count.should == count-1
     #response.count.should  == 2 
-    delete_test_user("testuser") 
-  end 
+  end
 
 
   #Récupère les préférences d'une application
@@ -239,8 +189,6 @@ describe UserApi do
     put("/user/#{u.id}/application/#{app.id}/preferences",hash)
     get("/user/#{u.id}/application/#{app.id}/preferences").status.should == 200
     response = JSON.parse(last_response.body)
-    delete_test_user("testuser")
-    delete_test_application  
   end 
 
   #modifier ou Remettre la valeure par défaut de la préférence
@@ -251,8 +199,6 @@ describe UserApi do
     put("/user/#{u.id}/application/#{app.id}/preferences",hash).status.should == 200
     ParamUser[:user_id => u.id, :param_application => ParamApplication[:code => "test_pref"]].valeur.should == "1" 
     ParamUser[:user_id => u.id, :param_application => ParamApplication[:code => "test_pref2"]].valeur.should == "2"
-    delete_test_user("testuser")
-    delete_test_application  
   end 
 
   #Remettre la valeure par défaut pour toutes les préférences
@@ -273,13 +219,9 @@ describe UserApi do
     ParamUser[:user_id => u.id, :param_application => ParamApplication[:code => "test_pref"]].nil?.should == true 
     ParamUser[:user_id => u.id, :param_application => ParamApplication[:code => "test_pref2"]].nil?.should == true
     ParamUser[:user_id => u.id, :param_application => ParamApplication[:code => "preference1"]].nil?.should == false
-    delete_test_user("testuser")
-    delete_test_application
-    delete_application("app2")  
   end 
 
   it "expose cusotm entity attributes" do
-    
     u = create_test_user("testuser") 
     u.add_email("test@laclasse.com", false)
     u.add_email("email@laclasse.com", true)
@@ -297,15 +239,40 @@ describe UserApi do
       :role_id => role.id)
     #u.etablissements.count.should == 2
     get("/user/entity/#{u.id}").status.should == 200
-    #puts last_response.body
-    delete_test_user("testuser")
-    delete_test_role
-    delete_test_application
   end  
 
+  it "respond to a query without parameters" do
+    get("user/query/users").status.should == 200
+    response = JSON.parse(last_response.body)
+    response["TotalModelRecords"].should == User.count
+    response["TotalQueryResults"].should == User.count
+  end
 
+  it "query can takes also columns as a URL parameter" do 
+    columns = ["nom", "prenom", "id", "id_sconet"]
+    cols = CGI::escape(columns.join(",")) 
+    get("user/query/users?columns=#{cols}").status.should == 200
+    response = JSON.parse(last_response.body)
+    response["TotalModelRecords"].should == User.count
+    response["TotalQueryResults"].should == User.count    
+  end 
 
 =begin
+  it "query responds also to model instance methods" do
+    # email_acadmeique is instance method and not a columns
+    User.columns.include?(:email_principal).should == false
+    User.instance_methods.include?(:email_principal).should == true
+    columns = ["nom", "prenom", "id", "id_sconet", "email_principal"]
+    cols = CGI::escape(columns.join(",")) 
+    get("user/query/users?columns=#{cols}&where[id]=VAA60000").status.should == 200
+    JSON.create_id = nil
+    sso_attr = JSON.parse(last_response.body)
+    sso_attr["TotalModelRecords"].should == 201
+    sso_attr["TotalQueryResults"].should == 1
+    user = sso_attr["Data"][0]
+    user['email_principal'].should != nil 
+  end
+
   it "filter the results using valid columns values" do 
     where  = {:sexe => "F", :nom => "sarkozy"}
     # associatif array, i dont know if this work for other language 
@@ -361,36 +328,5 @@ describe UserApi do
     result = JSON.parse(last_response.body)
     result["TotalQueryResults"].should == 19
   end
-
-  it "find parent besed on eleve_id"  do 
-    # student with sconet_id has 2 parents
-    get("user/parent/eleve?sconet_id=123456").status.should == 200
-    result = JSON.parse(last_response.body)
-    result.count.should == 2 
-  end
-
-  should  "filter parent based also nom, prenom and eleve_id" do 
-    get("user/parent/eleve?nom=bruni&prenom=francois&sconet_id=123456").status.should == 200
-    result = JSON.parse(last_response.body)
-    result.count.should == 1
-    result[0]["nom"].should == "bruni"
-    result[0]["prenom"].should == "francois"
-  end 
-
-  should  "filter parent based also nom, prenom and eleve_id" do
-    create_test_eleve_with_parents()
-
-    get("user/parent/eleve?id_sconet=123456").status.should == 200
-    result = JSON.parse(last_response.body)
-    result.count.should == 2
-
-    get("user/parent/eleve?id_sconet=123456&prenom=roger").status.should == 200
-    result = JSON.parse(last_response.body)
-    result.count.should == 1
-    result[0][:nom].should == "test"
-    result[0][:prenom].should == "roger"
-
-    delete_test_eleve_with_parents()
-  end
-=end 
+=end
 end
