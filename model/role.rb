@@ -37,4 +37,8 @@ class Role < Sequel::Model(:role)
     role_user_dataset.destroy()
     super
   end
+
+  def add_activite(service_id, activite_id)
+    ActiviteRole.create(:service_id => service_id, :role_id => self.id, :activite_id => activite_id)
+  end
 end

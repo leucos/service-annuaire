@@ -26,13 +26,13 @@ describe AuthApi do
 
   it "create a session based on user id " do
     post('/auth',:user_id => @user_id ).status.should == 201
-    JSON.parse(last_response.body)["key"].empty?.should_not == true
-    session = JSON.parse(last_response.body)["key"]
+    session = JSON.parse(last_response.body)["session_key"]
+    session.empty?.should_not == true
   end
 
   it "return the user id attached to an existing session" do
-   get("/auth/#{session}").status.should == 200
-   JSON.parse(last_response.body)["user"].should == @user_id
+    get("/auth/#{session}").status.should == 200
+    JSON.parse(last_response.body)["user_id"].should == @user_id
   end
 
   it "be able to destroy a created session" do 

@@ -82,13 +82,22 @@ def bootstrap_annuaire()
   TypeRegroupement.create(:id => TYP_REG_GRP, :libelle => "Groupe d'élèves")
   TypeRegroupement.create(:id => TYP_REG_LBR, :libelle => "Groupe libre")
 
+  # Création des activités
+  Activite.create(:id => ACT_CREATE)
+  Activite.create(:id => ACT_READ)
+  Activite.create(:id => ACT_UPDATE)
+  Activite.create(:id => ACT_DELETE)
 
   #Tout d'abord, on créer des services (api)
   # service laclasse.com (les super admin y sont reliés)
   Service.create(:id => SRV_LACLASSE, :libelle => "Laclasse.com", :description => "Service auquel tout est rattaché", :url => "/", :api => true)
 
   # Création des roles associés à ce service
-  Role.create(:id => ROL_TECH, :libelle => "Administrateur technique", :service_id => SRV_LACLASSE)
+  role_tech = Role.create(:id => ROL_TECH, :libelle => "Administrateur technique", :service_id => SRV_LACLASSE)
+  role_tech.add_activite(SRV_USER, ACT_CREATE)
+  role_tech.add_activite(SRV_USER, ACT_READ)
+  role_tech.add_activite(SRV_USER, ACT_UPDATE)
+  role_tech.add_activite(SRV_USER, ACT_DELETE)
 
   #
   # service /user
@@ -100,21 +109,15 @@ def bootstrap_annuaire()
   #
   Service.create(:id => SRV_ETAB, :libelle => "Gestion etablissement", :description => "Service de gestion des etablissements de laclasse.com", :url => "/etablissement", :api => true)
 
-  # Création des activités associées à ce service
-  Activite.create(:id => ACT_CREATE_USER)
-  Activite.create(:id => ACT_DELETE_USER)
-  Activite.create(:id => ACT_UPDATE_USER)
-  Activite.create(:id => ACT_READ_USER)
-
   # Et des Role et ActiviteRole
   Role.create(:id => ROL_PROF_ETB, :libelle => "Professeur", :service_id => SRV_ETAB)
   Role.create(:id => ROL_ELV_ETB, :libelle => "Elève", :service_id => SRV_ETAB)
   
-  Role.create(:id => ROL_ADM_ETB, :libelle => "Administrateur d'établissement", :service_id => SRV_ETAB)
-  ActiviteRole.create(:service_id => SRV_ETAB, :role_id => ROL_ADM_ETB, :activite_id => ACT_CREATE_USER)
-  ActiviteRole.create(:service_id => SRV_ETAB, :role_id => ROL_ADM_ETB, :activite_id => ACT_READ_USER)
-  ActiviteRole.create(:service_id => SRV_ETAB, :role_id => ROL_ADM_ETB, :activite_id => ACT_UPDATE_USER)
-  ActiviteRole.create(:service_id => SRV_ETAB, :role_id => ROL_ADM_ETB, :activite_id => ACT_DELETE_USER)
+  role_admin = Role.create(:id => ROL_ADM_ETB, :libelle => "Administrateur d'établissement", :service_id => SRV_ETAB)
+  role_admin.add_activite(SRV_USER, ACT_CREATE)
+  role_admin.add_activite(SRV_USER, ACT_READ)
+  role_admin.add_activite(SRV_USER, ACT_UPDATE)
+  role_admin.add_activite(SRV_USER, ACT_DELETE)
 
   Role.create(:id => ROL_PAR_ETB, :libelle => "Parent", :service_id => SRV_ETAB)
   Role.create(:id => ROL_DIR_ETB, :libelle => "Principal", :service_id => SRV_ETAB)

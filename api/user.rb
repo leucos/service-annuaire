@@ -104,10 +104,12 @@ class UserApi < Grape::API
     authorize_activites!(ACT_UPDATE, user.ressource)
     params.each do |k,v|
       # Un peu hacky mais je ne vois pas comment faire autrement...
-      if k != "id" and k != "route_info"
+      if k != "id" and k != "route_info" and k != "session_key"
         begin
           if user.respond_to?(k.to_sym) 
             user.set(k.to_sym => v)
+          else
+            error!("Parametre #{k} non pris en charge", 400)
           end
         rescue
           error!("Validation failed", 400)

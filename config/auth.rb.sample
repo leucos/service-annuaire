@@ -3,4 +3,5 @@ module AuthConfig
   REDIS_CONFIG  = {:host => '127.0.0.1', :port => 6379}
   # En second
   SESSION_DURATION = 3600
+  HTTP_HEADER = "X-Auth"
 end
