@@ -222,7 +222,7 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
 ## /etablissement
 
   `
-  // creer un etablissement
+// creer un etablissement
   POST /etablissement
   { "id": 1234, "nom": "Saint Honoré" }
   res 200:

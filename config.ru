@@ -26,6 +26,10 @@ map "/auth" do
 	run AuthApi 
 end 
 
+map "/etablissement" do 
+	run EtabApi
+end 
+
 
 #Ramaze.start(:root => Ramaze.options.roots, :started => true)
 

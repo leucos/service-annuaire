@@ -32,7 +32,7 @@ class UserApi < Grape::API
   get "/:id" do
     user = User[params[:id]]
     error!("Utilisateur non trouvé", 404) if user.nil?
-    authorize_activites!([ACT_READ, ACT_CREATE], user.ressource)
+    authorize_activites!(ACT_READ, user.ressource)
     present user, with: API::Entities::User
   end
 
@@ -75,12 +75,15 @@ class UserApi < Grape::API
   end
   post do
     p = params
+    authorize_activites!(ACT_CREATE, Ressource.laclasse, SRV_USER)
     begin
       u = User.new()
       params.each do |k,v|
         if k != "route_info"
           begin
-            u.set(k.to_sym => v)
+            if u.respond_to?(k.to_sym)
+               u.set(k.to_sym => v)
+            end 
           rescue
             error!("Validation failed", 400)
           end
@@ -96,31 +99,32 @@ class UserApi < Grape::API
   # Renvois la ressource user complète
   desc "Modification d'un compte utilisateur"
   put "/:id" do
-    u = User[params[:id]]
-    if u
-      params.each do |k,v|
-        # Un peu hacky mais je ne vois pas comment faire autrement...
-        if k != "id" and k != "route_info"
-          begin
-            u.set(k.to_sym => v)
-          rescue
-            error!("Validation failed", 400)
+    user = User[params[:id]]
+    error!("Utilisateur non trouvé", 404) if user.nil?
+    authorize_activites!(ACT_UPDATE, user.ressource)
+    params.each do |k,v|
+      # Un peu hacky mais je ne vois pas comment faire autrement...
+      if k != "id" and k != "route_info"
+        begin
+          if user.respond_to?(k.to_sym) 
+            user.set(k.to_sym => v)
           end
+        rescue
+          error!("Validation failed", 400)
         end
       end
-      begin
-        u.save()
-      rescue Sequel::ValidationFailed
-        error!("Validation failed", 400)
-      end
-    else
-      error!("Utilisateur non trouvé", 404)
+    end
+    begin
+      user.save()
+    rescue Sequel::ValidationFailed
+      error!("Validation failed", 400)
     end
   end
 
   desc "a service to search users according to certiain informations"
   # look at tests to see some examples about parameters
   get "/query/users"  do
+    authorize_activites!(ACT_READ, Ressource.laclasse, SRV_USER)
     params["columns"].nil? ? columns = User.columns : columns = symbolize_array(params["columns"].split(","))
     #filter_params
     filter = params["where"].nil? ? {} : params["where"].to_hash
@@ -172,6 +176,7 @@ class UserApi < Grape::API
     else
       error!("Utilisateur non trouvé", 404)
     end 
+    authorize_activites!(ACT_READ, user.ressource)
     user.relations
   end
 
@@ -471,7 +476,6 @@ class UserApi < Grape::API
 
   # expose custom resource attribute
   get "entity/:id" do
-
     id = params[:id]
     user = User[:id => id]
     if user
