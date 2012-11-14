@@ -44,15 +44,57 @@ describe EtabApi do
     etab = create_test_etablissement
     user = create_test_user_in_etab(etab.id, "test")
     role = create_test_role 
+    user2 = create_test_user("testuser")
     
-    post("/etablissement/#{etab.id}/role_user/#{user.id}", :role_id => role.id).status.should == 201
-    user.refresh
-    puts user.role_user.inspect
+    # user belongs to the the establishement 
+    post("/etablissement/#{etab.id}/user/#{user.id}/role_user", :role_id => role.id).status.should == 201
 
-    delete_test_etablissements
-    delete_test_role
-    delete_test_user("test") 
+    #user.refresh
+    #puts user.role_user.inspect
+    #user does not belong to the establishement, can not be accessed
+    #post("/etablissement/#{etab.id}/role_user/#{user2.id}", :role_id => role.id).status.should == 403
+
+    #user2.refresh
+    #user2.role_user.inspect
+  end
+
+  it "change the role of a user" do 
+    etab = create_test_etablissement
+    user = create_test_user_in_etab(etab.id, "test")
+    role1 = create_test_role 
+    #role2 = create_test_role2
+    put("/etablissement/#{etab.id}/user/#{user.id}/role_user/:old_role_id", :role_id => "prof").status.should == 200
+  end 
+
+  it "delete a role of a user" do 
+    etab = create_test_etablissement
+    user = create_test_user_in_etab(etab.id, "test")
+    role = create_test_user
+    delete("/etablissement/#{etab.id}/user/#{user.id}/role_user/:role_id").status.should == 200
+  end 
+
+  it "add/create a class in the establishment" do 
 
   end
+
+  it "modifies information about a class" do
+
+  end
+
+  it "deletes a class in the establishemenet" do
+
+  end 
+  
+  it "add a role to a user in a class" do
+  end    
+
+  it "modify a user role in a class" do 
+
+  end 
+
+  it "delete a user role in a class" do 
+  end 
+
+
 
 end
