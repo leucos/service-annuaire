@@ -15,9 +15,9 @@ class EtabApi < Grape::API
     #{ "id":  ... }
     desc "creer un etablissement"
     params do
-      requires :code_uai, type: String
+      optional :code_uai, type: String
       requires :nom, type: String
-      requires :type_etablissement, type: Integer
+      requires :type_etablissement_id, type: Integer
       optional :siren, type: String
       optional :adresse, type: String
       optional :code_postal, type: String
@@ -32,21 +32,20 @@ class EtabApi < Grape::API
       optional :ip_pub_passerelle,  type: String
     end
     post  do
+      puts "POST"
       #authorize_activites!(ACT_CREATE, Ressource.laclasse, SRV_ETAB)
       begin
         etab = Etablissement.new()
         parameters = exclude_hash(params, ["id", "route_info", "session"])
         parameters.each do |k,v|
-          if k != "route_info"
-            begin
-              if etab.respond_to?(k.to_sym)
-                 etab.set(k.to_sym => v)
-              end 
-            rescue
-              error!("Validation failed", 400)
-            end
+          begin
+            if etab.respond_to?(k.to_sym)
+               etab.set(k.to_sym => v)
+            end 
+          rescue => e
+            error!("Validation failed", 400)
           end
-        end
+        end 
         etab.save()
       rescue Sequel::ValidationFailed
         error!("Validation failed", 400)
@@ -94,6 +93,7 @@ class EtabApi < Grape::API
       error!("ressource nont trouvee", 404) if etab.nil?
       parameters = exclude_hash(params, ["id", "route_info", "session"])
       #authorize_activites!(ACT_UPDATE,etab.ressource)
+      puts "update api "
       begin
         parameters.each do |k,v|
           if k != "route_info" or k != "session"
@@ -102,7 +102,7 @@ class EtabApi < Grape::API
                  etab.set(k.to_sym => v)
               end 
             rescue => e
-              puts e.message
+              #puts e.message
               error!("Validation failed", 400)
             end
           end
@@ -119,20 +119,37 @@ class EtabApi < Grape::API
     desc "Assigner un role a quelqu'un"
     params do
       requires :id, type: Integer 
-      requires :user_id, type: Integer 
+      requires :user_id, type: String 
       requires :role_id, type: String
     end  
     post "/:id/role_user/:user_id" do 
       # check if user is authorized to  change the role of an other user
-      etab = Etablissement[:id => params[:id]]
+      puts "assign role api"
+      puts params.inspect
+
+      etab = Etablissement[:id => params["id"]]
       error!("ressource non trouvee", 404) if etab.nil?
-      user = User[:id => params[:user_id]]
+      user = User[:id => params["user_id"]]
       error!("ressource non trouvee", 404) if user.nil?
-      role = Role[:id => params[:role_id]]
+
+      # i am not sure
+      # error!("pas de droits", 403) if user.belongs_to(etab)
+      role = Role[:id => params["role_id"]]
       error!("ressource non trouvee", 404) if role.nil?
+      # la il ya un probleme
       #authorize_activites!(ACT_CREATE, etab.ressource, SER_USER)
 
-
+      #as i understood this 
+      # ressource is the actual etablissement
+      begin 
+        ressource = etab.ressource
+        user.add_role(ressource.id, ressource.service_id, role.id)  
+      rescue => e
+        puts e.message
+        error!("Validation Failed", 400)
+      end
+      {:user_id => user.id, :user_role => role.id} 
+      
     end
 
     #################

@@ -128,6 +128,7 @@ def create_test_user_in_etab(etb_id, login)
   r.parent_id = etb_id
   r.parent_service_id = SRV_ETAB
   r.save()
+  u
 end
 
 def create_test_ressources_tree

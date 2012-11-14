@@ -12,18 +12,17 @@ describe EtabApi do
   end
 
   it "create a new establishment(etablissement) " do
-    params = {:code_uai => "dfdf" , :nom => "dsfd", :type_etablissement => 2}
-    puts post('/etablissement/',params).body
+    params = {:code_uai => "dfdf" , :nom => "dsfd", :type_etablissement_id => 2}
+    post('/etablissement/',params).status.should == 201
     #puts last_response.body
   end
 
-  it "return the attributes of an establishement " do
+  it "return the attributes of an establishement" do
     # etablisement n'exist pas 
     get('/etablissement/1234').status.should == 404
     
     # etablissment exist
     get('/etablissement/2').status.should == 200
-    puts last_response.body
 
   end
 
@@ -41,8 +40,19 @@ describe EtabApi do
     delete_test_etablissements
   end 
 
-  it "assign a role to someone " do
-     
+  it "assign a role to user " do
+    etab = create_test_etablissement
+    user = create_test_user_in_etab(etab.id, "test")
+    role = create_test_role 
+    
+    post("/etablissement/#{etab.id}/role_user/#{user.id}", :role_id => role.id).status.should == 201
+    user.refresh
+    puts user.role_user.inspect
+
+    delete_test_etablissements
+    delete_test_role
+    delete_test_user("test") 
+
   end
 
 end

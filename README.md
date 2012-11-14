@@ -299,6 +299,34 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   {"GED": true, "CAHIER_TXT": false}
   PUT /etablissement/:id/services_actifs/:service_id
   {actif: true|false}
+
+############### 
+ressource etablissment 
+{
+  nom: "", 
+  .
+  .
+  libelle: "", 
+  type_etablissement: "college public";
+  adresse: "18, ..", 
+  longitude: , 
+  latitude: , 
+
+  classes
+  [{ nom: "", 
+     id: "",  
+     niveau: "", 
+      
+  }, 
+  ]
+
+  groupes_eleves
+  [{
+
+  }, 
+  ]
+}
+
   `
 
 ## /matiere
