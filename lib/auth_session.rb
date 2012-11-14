@@ -1,63 +1,57 @@
 require 'securerandom'
-require 'ramaze'
 require 'redis'
 
 class AuthSession
-  @@redis = Redis.new(ApiConfig::REDIS_CONFIG)
-   #Ramaze::Cache.options.session = Ramaze::Cache::Redis.using(ApiConfig::REDIS_CONFIG) 
-    
-
-  def self.set(key,value, ttl= nil)
-  	@@redis.set(key, value)
-    @@redis.expire(key, ttl) if ttl
+  class UnauthorizedDeletion < StandardError
+  end
+  class UserNotFound < StandardError
   end
 
+  @@redis = Redis.new(AuthConfig::REDIS_CONFIG)
+   #Ramaze::Cache.options.session = Ramaze::Cache::Redis.using(AuthConfig::REDIS_CONFIG) 
+    
+  # Créer les clés pour les sessions enregistrées
+  def self.init
+    AuthConfig::STORED_SESSION.each do |user_id, session_id|
+      if User[user_id].nil?
+        Ramaze::Log.error("Attention utilisateur #{user_id} inexistant pour la session #{session_id}")
+      end
+      # La clé d'une session stockée est l'utilisateur car on ne peut
+      # pas avoir plusieurs session pour un même utilisateur stocké
+      # Note : pas d'expiration pour les session stockées
+      @@redis.set(session_id, user_id)
+    end
+  end
 
+  # Met à jour le ttl de la clé si ce n'est pas une clé stockée (ttl == -1)
   def self.get(key)
-  	@@redis.get(key)
+  	value = @@redis.get(key)
+    if value and @@redis.ttl(key) != -1
+      @@redis.expire(key, AuthConfig::SESSION_DURATION)
+    end
+
+    return value
   end
 
   # deletes the value and the key
+  # raise UnauthorizedDeletion si il s'agit d'une session stockée
   def self.delete(key)
-    value = @@redis.get(key)
-    if value
-  	  @@redis.del(key)
-      @@redis.del(value)
-    end 
+    raise UnauthorizedDeletion.new if AuthConfig::STORED_SESSION.rassoc(key)
+ 	  @@redis.del(key)
   end
 
-  def self.exist?(key)
-  	@@redis.exists(key)
-  end
+  # Génère un id de session unique et l'associe à un id d'utlisateur
+  # Met un time to live à 1H
+  # todo : empêcher la création de session pour des utilisateurs inexistant ?
+  def self.create(user_id)
+    raise UserNotFound.new if User[user_id].nil?
 
-  def self.new(user_id)
-    if self.exist?(user_id) # user has already a session
-      self.delete(user_id)
-    end  
-  	key = SecureRandom.urlsafe_base64 
-  	@@redis.set(key, user_id)
-  	@@redis.set(user_id, key)
+    # Ne change pas la session si elle est statique
+    stored_session = AuthConfig::STORED_SESSION[user_id]
+    return stored_session if stored_session
+
+  	key = SecureRandom.urlsafe_base64
+  	@@redis.setex(key, AuthConfig::SESSION_DURATION, user_id)
   	return key
   end
-
-  def self.expire(key,time_in_seconds)
-    @@redis.expire(key,time_in_seconds)
-    value = @@redis.get(key)
-    @@redis.expire(value, time_in_seconds)
-  end
-
-  def self.time_to_live(key)
-    @@redis.ttl(key)
-  end
-
-  def self.incr_time_to_live(key, ttl)
-    if @@redis.exists(key) and @@redis.ttl(key) != -1
-      value = @@redis.get(key)
-      # add one hour 
-      @@redis.expire(value, @@redis.ttl(value)+ttl)
-      @@redis.expire(key, @@redis.ttl(key)+ttl)
-    else 
-      false 
-    end  
-  end  
 end 

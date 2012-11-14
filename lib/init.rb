@@ -1,5 +1,6 @@
 require __DIR__('query')
 require __DIR__('ressource_link')
+require __DIR__('auth_session')
 require __DIR__('alimentation/alimentor')
 require __DIR__('alimentation/parser_xml_menesr')
 require __DIR__('alimentation/diff_generator')

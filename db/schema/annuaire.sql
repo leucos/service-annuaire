@@ -407,6 +407,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`param_application` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `code` VARCHAR(45) NOT NULL ,
   `preference` TINYINT(1)  NOT NULL COMMENT 'Preference utilisateur ou param etablissement ?' ,
+  `visible` TINYINT(1)  NOT NULL DEFAULT 1 ,
   `libelle` VARCHAR(255) NULL ,
   `description` VARCHAR(1024) NULL ,
   `valeur_defaut` VARCHAR(2000) NULL ,

@@ -21,7 +21,7 @@ describe UserApi do
     role = create_test_role()
     u = create_user_with_role(role.id)
     # create session and authorized person
-    post("/api/authsession", :id => u.id)
+    post("/auth", :user_id => u.id)
     session = JSON.parse(last_response.body)["key"]
     #puts session
     # good session
@@ -30,8 +30,6 @@ describe UserApi do
 
     #fake session
     get("/user/#{u.id}?session=12345").status.should == 403
-    delete_test_role()
-    delete_test_user("test_admin")
   end
 
   it "create a new user when given good session key and has the rights to create a user in a specific place" do
