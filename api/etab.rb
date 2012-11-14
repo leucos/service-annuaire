@@ -127,14 +127,14 @@ class EtabApi < Grape::API
     post "/:id/user/:user_id/role_user" do 
       # check if user is authorized to  change the role of an other user
       #authorize_activites!(ACT_CREATE, etab.ressource)
-      etab = Etablissement[:id => params["id"]]
+      etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
-      user = User[:id => params["user_id"]]
+      user = User[:id => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
 
       # i am not sure
       # error!("pas de droits", 403) if user.belongs_to(etab)
-      role = Role[:id => params["role_id"]]
+      role = Role[:id => params[:role_id]]
       error!("ressource non trouvee", 404) if role.nil?
       # la il ya un probleme
       #authorize_activites!(ACT_UPDATE, etab.ressource, SRV_USER)
@@ -161,11 +161,11 @@ class EtabApi < Grape::API
       requires :old_role_id, type: String  
     end  
     put "/:id/user/:user_id/role_user/:old_role_id" do
-      etab = Etablissement[:id => params["id"]]
+      etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
-      user = User[:id => params["user_id"]]
+      user = User[:id => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
-      role = Role[:id => params["role_id"]]
+      old_role = Role[:id => params[:old_role_id]]
       error!("ressource non trouvee", 404) if role.nil?
       begin 
         ressource = etab.ressource
@@ -188,11 +188,11 @@ class EtabApi < Grape::API
       requires :role_id, type: String 
     end 
     delete "/:id/user/:user_id/role_user/:role_id" do
-      etab = Etablissement[:id => params["id"]]
+      etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
-      user = User[:id => params["user_id"]]
+      user = User[:id => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
-      role = Role[:id => params["role_id"]]
+      role = Role[:id => params[:role_id]]
       error!("ressource non trouvee", 404) if role.nil?
       begin 
         user.delete_role(role_id) 
