@@ -13,18 +13,26 @@ describe AuthApi do
     Rack::Builder.parse_file("config.ru").first
   end
 
-  id = 5 
+  before :all do
+    u = create_test_user()
+    @user_id = u.id
+  end
+
+  after :all do
+    delete_test_user()
+  end
+
   session = ""
 
   it "create a session based on user id " do
-    post('/auth',:user_id => id ).status.should == 201
+    post('/auth',:user_id => @user_id ).status.should == 201
     JSON.parse(last_response.body)["key"].empty?.should_not == true
     session = JSON.parse(last_response.body)["key"]
   end
 
   it "return the user id attached to an existing session" do
    get("/auth/#{session}").status.should == 200
-   JSON.parse(last_response.body)["user"].should == "5"
+   JSON.parse(last_response.body)["user"].should == @user_id
   end
 
   it "be able to destroy a created session" do 
