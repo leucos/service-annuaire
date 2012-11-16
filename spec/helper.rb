@@ -77,6 +77,16 @@ def create_test_role()
   return r
 end
 
+def create_test_role_with_id(role_id)
+  r = Role.create(:id => role_id, :service_id => SRV_ETAB)
+  return r
+end
+
+def delete_test_role_with_id(role_id)
+   Role[:id => role_id].destroy() if Role[:id => role_id]
+end 
+
+
 def delete_test_role
   Role[ROL_TEST].destroy() if Role[ROL_TEST]
 end

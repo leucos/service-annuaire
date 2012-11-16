@@ -1,5 +1,7 @@
 class EtabApi < Grape::API
-  format :json 
+  format :json
+
+  helpers RightHelpers 
   helpers do 
     def exclude_hash(params, excluded_items)
       parameters = params
@@ -122,22 +124,21 @@ class EtabApi < Grape::API
       requires :user_id, type: String 
       requires :role_id, type: String
     end  
-    post "/:id/role_user/:user_id" do 
+    post "/:id/user/:user_id/role_user" do 
       # check if user is authorized to  change the role of an other user
-      puts "assign role api"
-      puts params.inspect
-
-      etab = Etablissement[:id => params["id"]]
+      #authorize_activites!(ACT_CREATE, etab.ressource)
+      etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
-      user = User[:id => params["user_id"]]
+      user = User[:id => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
 
       # i am not sure
       # error!("pas de droits", 403) if user.belongs_to(etab)
-      role = Role[:id => params["role_id"]]
+      role = Role[:id => params[:role_id]]
       error!("ressource non trouvee", 404) if role.nil?
       # la il ya un probleme
-      #authorize_activites!(ACT_CREATE, etab.ressource, SER_USER)
+      #authorize_activites!(ACT_UPDATE, etab.ressource, SRV_USER)
+      #authorize_activites!(ACT_UPDATE, user.ressource)
 
       #as i understood this 
       # ressource is the actual etablissement
@@ -148,8 +149,7 @@ class EtabApi < Grape::API
         puts e.message
         error!("Validation Failed", 400)
       end
-      {:user_id => user.id, :user_role => role.id} 
-      
+      {:user_id => user.id, :user_role => role.id}     
     end
 
     #################
@@ -157,22 +157,53 @@ class EtabApi < Grape::API
     desc "Changer le role de quelqu'un"
     params do 
       requires :id, type: Integer 
-      requires :user_id, type: Integer 
+      requires :user_id, type: String
+      requires :old_role_id, type: String
+      requires :role_id  
     end  
-    put "/:id/role_user/:user_id" do
+    put "/:id/user/:user_id/role_user/:old_role_id" do
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      user = User[:id => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      old_role = Role[:id => params[:old_role_id]]
+      error!("ressource non trouvee", 404) if old_role.nil?
+      new_role = Role[:id => params[:role_id]]
+      error!("ressource non trouvee", 404) if new_role.nil?
+      begin 
+        ressource = etab.ressource  
+        old_role.destroy
+        user.add_role(ressource.id, ressource.service_id, new_role.id)
+      rescue => e
+        puts e.message
+        error!("Validation Failed", 400)
+      end
+      {:user_id => user.id, :user_role => new_role.id} 
     end 
 
     #################
     desc "Supprimer son role sur l'etablissement"
     params do 
       requires :id, type: Integer
-      requires :user_id, type: Integer
+      requires :user_id, type: String
+      requires :role_id, type: String 
     end 
-    delete "/:id/role_user/:user_id" do
+    delete "/:id/user/:user_id/role_user/:role_id" do
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      user = User[:id => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      role = Role[:id => params[:role_id]]
+      error!("ressource non trouvee", 404) if role.nil?
+      begin 
+        role.destroy 
+      rescue => e
+        puts e.message
+        error!("Validation Failed", 400)
+      end
     end  
 
 
-=begin
     #################
     #{nom: "4°C", niveau: "4EME"}
     desc "creer une classe"
@@ -180,6 +211,12 @@ class EtabApi < Grape::API
       requires :id, type: Integer
     end 
     post "/:id/classe" do 
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      begin
+
+      rescue => e 
+      end 
     end 
 
     #################
@@ -198,10 +235,10 @@ class EtabApi < Grape::API
       requires :id, type: Integer
       requires :classe_id, type: Integer
     end 
-    delete "/:id/classe/:classe_id"  do 
-    
+    delete "/:id/classe/:classe_id"  do   
     end 
 
+=begin
     #################
     #{role_id : "PROF"}
     desc "Gestion des rattachement et des roles"

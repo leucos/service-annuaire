@@ -45,14 +45,79 @@ describe EtabApi do
     user = create_test_user_in_etab(etab.id, "test")
     role = create_test_role 
     
-    post("/etablissement/#{etab.id}/role_user/#{user.id}", :role_id => role.id).status.should == 201
-    user.refresh
-    puts user.role_user.inspect
+    # user belongs to the the establishement 
+    post("/etablissement/#{etab.id}/user/#{user.id}/role_user", :role_id => role.id).status.should == 201
 
-    delete_test_etablissements
-    delete_test_role
-    delete_test_user("test") 
+    user.refresh 
+    user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role.id]).should == true 
+
+
+    #user.refresh
+    #puts user.role_user.inspect
+    #user does not belong to the establishement, can not be accessed
+    #post("/etablissement/#{etab.id}/role_user/#{user2.id}", :role_id => role.id).status.should == 403
+
+    #user2.refresh
+    #user2.role_user.inspect
+  end
+
+  it "modify a user's role " do 
+    etab = create_test_etablissement
+    user = create_test_user_in_etab(etab.id, "test")
+    role1 = create_test_role 
+    # create a user role 
+    post("/etablissement/#{etab.id}/user/#{user.id}/role_user", :role_id => role1.id).status.should == 201    
+    user.refresh 
+    user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role1.id]).should == true 
+
+    #modify this role
+    role2 = create_test_role_with_id("prof")
+    put("/etablissement/#{etab.id}/user/#{user.id}/role_user/#{role1.id}", :role_id => role2.id).status.should == 200
+    user.refresh
+    user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role1.id]).should == false
+    user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role2.id]).should == true  
+    
+    # can not add roles to a user having the same id
+    post("/etablissement/#{etab.id}/user/#{user.id}/role_user", :role_id => role2.id).status.should == 400
+  end 
+
+  it "delete a role of a user" do 
+    etab = create_test_etablissement
+    user = create_test_user_in_etab(etab.id, "test")
+    role = create_test_role
+    # create a user's role
+    post("/etablissement/#{etab.id}/user/#{user.id}/role_user", :role_id => role.id).status.should == 201
+    user.refresh 
+    user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role.id]).should == true 
+
+    #delete user's role
+    delete("/etablissement/#{etab.id}/user/#{user.id}/role_user/#{role.id}").status.should == 200
+    user.refresh 
+    user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role.id]).should == false
+  end 
+
+  it "add/create a class in the establishment" do 
 
   end
+
+  it "modifies information about a class" do
+
+  end
+
+  it "deletes a class in the establishemenet" do
+
+  end 
+  
+  it "add a role to a user in a class" do
+  end    
+
+  it "modify a user role in a class" do 
+
+  end 
+
+  it "delete a user role in a class" do 
+  end 
+
+
 
 end

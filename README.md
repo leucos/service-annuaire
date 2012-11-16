@@ -240,13 +240,13 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   { "id":  ... }
 
   //Assigner un role à quelqu'un
-  POST /etablissement/:id/role_user/:user_id
+  POST /etablissement/:id/user/:user_id/role_user
   {role_id : "ADM_ETB"}
   //Changer le role de quelqu'un
-  PUT /etablissement/:id/role_user/:user_id
+  PUT /etablissement/:id/user/:user_id/role_user/:old_role_id
   {role_id : "PROF"}
   //Supprimer son role sur l'établissement
-  DEL /etablissement/:id/role_user/:user_id
+  DEL /etablissement/:id/user/:user_id/role_user/:role_id
 
   //Interface similaire pour /classe, /groupe et /libre
   //Peut-être qu'on mettra tout ça dans /regroupement ?
@@ -327,7 +327,7 @@ ressource etablissment
   [{ nom: "", 
      id: "",  
      niveau: "", 
-      
+
   }, 
   ]
 
