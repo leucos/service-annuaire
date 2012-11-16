@@ -158,7 +158,8 @@ class EtabApi < Grape::API
     params do 
       requires :id, type: Integer 
       requires :user_id, type: String
-      requires :old_role_id, type: String  
+      requires :old_role_id, type: String
+      requires :role_id  
     end  
     put "/:id/user/:user_id/role_user/:old_role_id" do
       etab = Etablissement[:id => params[:id]]
@@ -166,18 +167,18 @@ class EtabApi < Grape::API
       user = User[:id => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
       old_role = Role[:id => params[:old_role_id]]
-      error!("ressource non trouvee", 404) if role.nil?
+      error!("ressource non trouvee", 404) if old_role.nil?
+      new_role = Role[:id => params[:role_id]]
+      error!("ressource non trouvee", 404) if new_role.nil?
       begin 
-        ressource = etab.ressource
-         
-        #user.delete(role_id)
-        #user.add_role(ressource.id, ressource.service_id, role.id)
-
+        ressource = etab.ressource  
+        old_role.destroy
+        user.add_role(ressource.id, ressource.service_id, new_role.id)
       rescue => e
         puts e.message
         error!("Validation Failed", 400)
       end
-      {:user_id => user.id, :user_role => role.id} 
+      {:user_id => user.id, :user_role => new_role.id} 
     end 
 
     #################
@@ -195,7 +196,7 @@ class EtabApi < Grape::API
       role = Role[:id => params[:role_id]]
       error!("ressource non trouvee", 404) if role.nil?
       begin 
-        user.delete_role(role_id) 
+        role.destroy 
       rescue => e
         puts e.message
         error!("Validation Failed", 400)
