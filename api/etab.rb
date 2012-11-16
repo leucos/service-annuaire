@@ -116,7 +116,10 @@ class EtabApi < Grape::API
     end 
 
 
-    #################
+    ##########################################
+    # Gestion des roles dans l'etablissement #
+    ##########################################
+    
     #{role_id : "ADM_ETB"}
     desc "Assigner un role a quelqu'un"
     params do
@@ -146,7 +149,7 @@ class EtabApi < Grape::API
         ressource = etab.ressource
         user.add_role(ressource.id, ressource.service_id, role.id)  
       rescue => e
-        puts e.message
+        #puts e.message
         error!("Validation Failed", 400)
       end
       {:user_id => user.id, :user_role => role.id}     
@@ -175,7 +178,7 @@ class EtabApi < Grape::API
         old_role.destroy
         user.add_role(ressource.id, ressource.service_id, new_role.id)
       rescue => e
-        puts e.message
+        #puts e.message
         error!("Validation Failed", 400)
       end
       {:user_id => user.id, :user_role => new_role.id} 
@@ -198,35 +201,61 @@ class EtabApi < Grape::API
       begin 
         role.destroy 
       rescue => e
-        puts e.message
         error!("Validation Failed", 400)
       end
     end  
 
+    #######################
+    # Gestion des classes #
+    #######################
 
-    #################
-    #{nom: "4°C", niveau: "4EME"}
+    #@input: {libelle: "4°C", niveau: "4EME"}
+    #@output: {classe.id }
     desc "creer une classe"
     params do 
       requires :id, type: Integer
+      requires :libelle, type: String
+      requires :niveau_id, type: String 
     end 
     post "/:id/classe" do 
       etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
+      parameters = exclude_hash(params, ["id", "route_info", "session"])
+      #puts parameters.inspect
       begin
-
-      rescue => e 
+          classe = etab.add_classe(parameters)
+          {:classe_id => classe.id}
+      rescue => e
+        puts e.message
+        error!("mouvaise request", 400) 
       end 
     end 
 
     #################
-    #{nom: "4°D"}   
-    desc "Modifier l'info d'un etab" 
+    #@input{libelle: "4°D"}   
+    desc "Modifier l'info d'une classe" 
     params do 
       requires :id, type: Integer
       requires :classe_id, type:Integer 
     end 
     put "/:id/classe/:classe_id" do 
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      classe = Regroupement[:id => params[:classe_id]]
+      error!("ressource non trouvee", 404) if classe.nil?
+      error!("pas de droit", 403) if classe.etablissement_id != etab.id
+      parameters = exclude_hash(params, ["id", "route_info", "session", "classe_id"])
+      begin 
+        parameters.each do  |k,v| 
+          if classe.respond_to?(k.to_sym)
+            classe.set(k.to_sym => v) 
+          end    
+        end
+        classe.save 
+      rescue  => e       
+        puts e.message
+        error!("mouvaise request", 400) 
+      end 
     end 
 
     #################
@@ -236,10 +265,91 @@ class EtabApi < Grape::API
       requires :classe_id, type: Integer
     end 
     delete "/:id/classe/:classe_id"  do   
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      classe = Regroupement[:id => params[:classe_id]]
+      error!("ressource non trouvee", 404) if classe.nil?
+      error!("pas de droit", 403) if classe.etablissement_id != etab.id
+      begin
+        Regroupement[:id => classe.id].destroy
+      rescue  => e 
+      end 
     end 
 
-=begin
+    ################################
+    # Gestion des groupes d'eleves #
+    ################################
+
+    desc "creer un groupe d'eleve"
+    params do 
+      requires :id, type: Integer
+      requires :libelle, type: String
+      optional :niveau_id, type: String 
+      optional :description, type: String 
+    end 
+    post "/:id/groupe" do 
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      parameters = exclude_hash(params, ["id", "route_info", "session"])
+      #puts parameters.inspect
+      begin
+          groupe = etab.add_groupe_eleve(parameters)
+          {:groupe_id => groupe.id}
+      rescue => e
+        puts e.message
+        error!("mouvaise request", 400) 
+      end 
+    end 
+
     #################
+    #@input{libelle: "4°D"}   
+    desc "Modifier l'info d'un groupe d'eleve" 
+    params do 
+      requires :id, type: Integer
+      requires :groupe_id, type:Integer 
+    end 
+    put "/:id/groupe/:groupe_id" do 
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      groupe = Regroupement[:id => params[:groupe_id]]
+      error!("ressource non trouvee", 404) if groupe.nil?
+      error!("pas de droit", 403) if groupe.etablissement_id != etab.id
+      parameters = exclude_hash(params, ["id", "route_info", "session", "groupe_id"])
+      begin 
+        parameters.each do  |k,v| 
+          if groupe.respond_to?(k.to_sym)
+            groupe.set(k.to_sym => v) 
+          end    
+        end
+        groupe.save 
+      rescue  => e       
+        puts e.message
+        error!("mouvaise request", 400) 
+      end 
+    end 
+
+    #################
+    desc "Suppression d'un groupe"
+    params do 
+      requires :id, type: Integer
+      requires :groupe_id, type: Integer
+    end 
+    delete "/:id/groupe/:groupe_id"  do   
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      groupe = Regroupement[:id => params[:groupe_id]]
+      error!("ressource non trouvee", 404) if groupe.nil?
+      error!("pas de droit", 403) if groupe.etablissement_id != etab.id
+      begin
+        Regroupement[:id => groupe.id].destroy
+      rescue  => e
+        puts e.message
+        error!("mouvaise request", 400)  
+      end 
+    end
+
+    #################
+
     #{role_id : "PROF"}
     desc "Gestion des rattachement et des roles"
     params do 
@@ -297,7 +407,8 @@ class EtabApi < Grape::API
     end 
     get "/:id/classe/niveaux" do 
     end 
-    
+
+=begin
     #################
     #{profil_id: "ELV"}
     desc "Ajout de profils utilisateur"

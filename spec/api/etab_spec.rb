@@ -40,6 +40,7 @@ describe EtabApi do
     delete_test_etablissements
   end 
 
+  ### establishement user role  api ###
   it "assign a role to user " do
     etab = create_test_etablissement
     user = create_test_user_in_etab(etab.id, "test")
@@ -51,14 +52,7 @@ describe EtabApi do
     user.refresh 
     user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role.id]).should == true 
 
-
-    #user.refresh
-    #puts user.role_user.inspect
-    #user does not belong to the establishement, can not be accessed
-    #post("/etablissement/#{etab.id}/role_user/#{user2.id}", :role_id => role.id).status.should == 403
-
-    #user2.refresh
-    #user2.role_user.inspect
+    #TODO add authorization in order not to create a user that does not belong to the establishement
   end
 
   it "modify a user's role " do 
@@ -94,19 +88,94 @@ describe EtabApi do
     delete("/etablissement/#{etab.id}/user/#{user.id}/role_user/#{role.id}").status.should == 200
     user.refresh 
     user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role.id]).should == false
-  end 
-
-  it "add/create a class in the establishment" do 
-
   end
 
+
+  ##########################################
+  # Establishement classes and groups test #
+  ##########################################
+
+  it "add(create) a class in the establishment" do 
+    etab = create_test_etablissement
+    classe = {:libelle =>"6emeC", :niveau_id => 1}
+    post("/etablissement/#{etab.id}/classe", classe).status.should == 201 
+    etab.classes.include?(Regroupement[:libelle => classe[:libelle], :niveau_id => classe[:niveau_id]]).should == true 
+    #puts JSON.parse(last_response.body).inspect
+  end
+
+
   it "modifies information about a class" do
+    etab = create_test_etablissement
+    
+    #create  a new class
+    classe = {:libelle =>"6emeC", :niveau_id => 1}
+    post("/etablissement/#{etab.id}/classe", classe).status.should == 201 
+    etab.classes.include?(Regroupement[:libelle => classe[:libelle], :niveau_id => classe[:niveau_id]]).should == true 
+    response = JSON.parse(last_response.body)
+    classe_id = response["classe_id"]
+    
+    # modify class information
+    classe = {:libelle =>"6emeA", :niveau_id => 1}
+    put("/etablissement/#{etab.id}/classe/#{classe_id}", classe).status.should == 200
+    etab.classes.include?(Regroupement[:id => classe_id, :libelle => classe[:libelle], :niveau_id => classe[:niveau_id]]).should == true 
 
   end
 
   it "deletes a class in the establishemenet" do
+    etab = create_test_etablissement 
 
+    #create a new class
+    classe = {:libelle =>"6emeC", :niveau_id => 1}
+    post("/etablissement/#{etab.id}/classe", classe).status.should == 201 
+    etab.classes.include?(Regroupement[:libelle => classe[:libelle], :niveau_id => classe[:niveau_id]]).should == true 
+    response = JSON.parse(last_response.body)
+    classe_id = response["classe_id"]
+    
+    # delete the classe 
+    delete("/etablissement/#{etab.id}/classe/#{classe_id}").status.should == 200
+    etab.classes.include?(Regroupement[:id => classe_id]).should == false 
   end 
+
+
+  it "add/create a group in the establishement" do 
+    etab = create_test_etablissement
+    groupe = {:libelle =>"groupe1"}
+    post("/etablissement/#{etab.id}/groupe", groupe).status.should == 201 
+    etab.groupes_eleves.include?(Regroupement[:libelle => groupe[:libelle]]).should == true 
+  end
+
+  it "modifies information about (group d'eleve)" do 
+    etab = create_test_etablissement
+    
+    #create  a new class
+    groupe = {:libelle =>"groupe1"}
+    post("/etablissement/#{etab.id}/groupe", groupe).status.should == 201 
+    etab.groupes_eleves.include?(Regroupement[:libelle => groupe[:libelle]]).should == true 
+    response = JSON.parse(last_response.body)
+    groupe_id = response["groupe_id"]
+    
+    # modify class information
+    groupe = {:libelle =>"groupemodifie", :niveau_id => 1}
+    put("/etablissement/#{etab.id}/groupe/#{groupe_id}", groupe).status.should == 200
+    etab.groupes_eleves.include?(Regroupement[:id => groupe_id, :libelle => groupe[:libelle], :niveau_id => groupe[:niveau_id]]).should == true 
+  end 
+
+  it "deletes a group (d'eleve)" do 
+    etab = create_test_etablissement 
+
+    #create a new class
+    groupe = {:libelle =>"groupe1"}
+    post("/etablissement/#{etab.id}/groupe", groupe).status.should == 201 
+    etab.groupes_eleves.include?(Regroupement[:libelle => groupe[:libelle]]).should == true 
+    response = JSON.parse(last_response.body)
+    groupe_id = response["groupe_id"]
+    
+    # delete the classe 
+    delete("/etablissement/#{etab.id}/groupe/#{groupe_id}").status.should == 200
+    etab.groupes_eleves.include?(Regroupement[:id => groupe_id]).should == false 
+  end
+ 
+  #################################
   
   it "add a role to a user in a class" do
   end    
