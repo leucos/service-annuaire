@@ -174,19 +174,74 @@ describe EtabApi do
     delete("/etablissement/#{etab.id}/groupe/#{groupe_id}").status.should == 200
     etab.groupes_eleves.include?(Regroupement[:id => groupe_id]).should == false 
   end
- 
-  #################################
+
+
+  ##########################################################
+  # Gestion des rattachement et des roles dans une classe  #
+  ##########################################################
   
   it "add a role to a user in a class" do
+    etab = create_test_etablissement
+    user = create_test_user_in_etab(etab.id, "test")
+    role = create_test_role
+
+    #create test class in etab 
+    hash = {:libelle =>"6emeA", :niveau_id => 1}
+    classe = etab.add_classe(hash)
+    post("/etablissement/#{etab.id}/classe/#{classe.id}/role_user/#{user.id}", :role_id => role.id).status.should == 201
+
+    #puts user.role_user.inspect
+    #puts user.rights(classe.ressource).inspect
+
   end    
 
-  it "modify a user role in a class" do 
+  it "modify a user role in a class" do
+    
+    etab = create_test_etablissement 
+    user = create_test_user_in_etab(etab.id, "test")
+    role1 = create_test_role 
+    
+    ##create test class in etab  and test role
+    hash = {:libelle =>"6emeA", :niveau_id => 1}
+    classe = etab.add_classe(hash)
+    post("/etablissement/#{etab.id}/classe/#{classe.id}/role_user/#{user.id}", :role_id => role1.id).status.should == 201
 
+    user.refresh 
+    user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role1.id]).should == true 
+
+    #puts user.role_user.inspect
+    #puts user.rights(classe.ressource).inspect
+
+    # modify user role 
+    role2 = create_test_role_with_id("prof")
+    put("/etablissement/#{etab.id}/classe/#{classe.id}/role_user/#{user.id}/#{role1.id}", :role_id => role2.id).status.should == 200
+    
+    user.refresh
+    user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role1.id]).should == false
+    user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role2.id]).should == true
+    #puts last_response.body  
   end 
 
   it "delete a user role in a class" do 
+    etab = create_test_etablissement 
+    user = create_test_user_in_etab(etab.id, "test")
+    role = create_test_role 
+    
+    ##create test class in etab  and test role
+    hash = {:libelle =>"6emeA", :niveau_id => 1}
+    classe = etab.add_classe(hash)
+    post("/etablissement/#{etab.id}/classe/#{classe.id}/role_user/#{user.id}", :role_id => role.id).status.should == 201
+    user.refresh 
+    user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role.id]).should == true
+
+    ## delete the user role in the class 
+    delete("/etablissement/#{etab.id}/classe/#{classe.id}/role_user/#{user.id}/#{role.id}").status.should == 200
+    user.refresh 
+    user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role.id]).should == false
+    
+    
   end 
 
-
+  ##########################
 
 end
