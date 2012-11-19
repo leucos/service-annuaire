@@ -8,11 +8,12 @@
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 # id                            | int(11)             | false    | PRI      |            | auto_increment
 # libelle                       | varchar(45)         | true     |          |            | 
-# niveau_id                     | int(11)             | true     | MUL      |            | 
-# etablissement_id              | char(8)             | false    | MUL      |            | 
+# description                   | text                | true     |          |            | 
 # code_mef_aaf                  | int(11)             | true     |          |            | 
 # date_last_maj_aaf             | date                | true     |          |            | 
 # libelle_aaf                   | char(8)             | true     |          |            | 
+# niveau_id                     | int(11)             | true     | MUL      |            | 
+# etablissement_id              | int(11)             | true     | MUL      |            | 
 # type_regroupement_id          | char(8)             | false    | MUL      |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
@@ -28,7 +29,6 @@ class Regroupement < Sequel::Model(:regroupement)
 
   # Referential integrity
   one_to_many :enseigne_regroupement
-  many_to_one :etablissement
   one_to_one :ressource, :key => :id do |ds|
     ds.where(:service_id => [SRV_GROUPE, SRV_CLASSE, SRV_LIBRE])
   end

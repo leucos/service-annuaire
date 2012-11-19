@@ -2,8 +2,6 @@
 require_relative '../helper'
 
 describe Application do
-  delete_test_application()
-
   it "remove all the parameter link to the application before destroy" do
     app = create_test_application_with_param()
     app_id = app.id

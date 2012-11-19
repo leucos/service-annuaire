@@ -20,6 +20,11 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   //Gestion des rattachement à un autre fournisseur d'identité
   //Api pour savoir si un login est dispo ?
   //api pour tester si un mot de passe correspond au critère de validation des mots de passes ?cd 
+  
+  //Il faut une api publique pour récupérer l'id d'un utilisateur en fonction de son login
+  //ou d'un de ses emails
+  //Envois un mail de régénération de mot de passe
+  POST /user/:id/lost_password
 
   // open bar, sans cookie
   * GET /user?login=test&password=test
@@ -88,6 +93,12 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   PUT /user/:user_id/email/:email_id
   {adresse: "test@lyon.fr", type: "principal ou academique"}
   DELETE /user/:user_id/email/:email_id
+  //Envois un email de validation pour vérifier si l'adresse est valide
+  //Stocker ça dans Redis et mettre un ttl de 1h ou 6h
+  POST /user/:user_id/email/:email_id/validate
+  //La clé à été envoyée par mail
+  GET /user/:user_id/email/:email_id/validate/:validation_key
+
 
   //Telephone
   GET /user/:user_id/telephones
@@ -422,6 +433,9 @@ C'est un élément centrale de l'annuaire car il permet à un établissement de 
       }
     ]
   }
+
+  //Récupérer la liste des comptes et des mots de passe créer automatiquement
+  GET /alimentation/:etablissement_id/:type (eleve, parents ou personnel education nationale)
 
 ## Paramètre d'établissement et Préférence utilisateur
 
