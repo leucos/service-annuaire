@@ -238,9 +238,30 @@ describe EtabApi do
     delete("/etablissement/#{etab.id}/classe/#{classe.id}/role_user/#{user.id}/#{role.id}").status.should == 200
     user.refresh 
     user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role.id]).should == false
+
+
+  end
+
+  it "adds a prof to a class" do 
+    etab = create_test_etablissement 
+    user = create_test_user_in_etab(etab.id, "test")
+    #role = create_test_role 
     
-    
+    #create test class in etab
+    hash = {:libelle =>"6emeA", :niveau_id => 1}
+    classe = etab.add_classe(hash)
+
+    matieres = [200, 300]
+    post("/etablissement/#{etab.id}/classe/#{classe.id}/enseigne/#{user.id}", matieres => matieres).status.should == 201
+
+    puts last_response.body 
+
+    RoleUser.include?(RoleUser[:user_id => user.id, :role_id =>"PROF_CLS"]).should == true
+
+    # other conditions 
+
   end 
+
 
   ##########################
 

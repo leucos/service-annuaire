@@ -453,17 +453,47 @@ class EtabApi < Grape::API
     end
 
     ############### 
-    #{matieres : ["FRANCAIS", "MATHEMATIQUES"]}
-    desc "ajouter un enseigneant" 
+    #{matieres ids : [200, 300]}
+    desc "ajouter un enseignant" 
     params do
       requires :id, type: Integer
       requires :classe_id, type: Integer
-      requires :user_id, type: Integer 
+      requires :user_id, type: String
+      #optional :matieres, type: Hash 
     end 
     post "/:id/classe/:classe_id/enseigne/:user_id" do 
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      
+      classe = Regroupement[:id => params[:classe_id]]
+      error!("ressource non trouvee", 404) if classe.nil?
+      error!("pas de droit", 403) if classe.etablissement_id != etab.id
+      user = User[:id => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      matieres = params[:matieres]
+      puts matieres.inspect
+
+      begin 
+        classe.add_prof(user.id, matieres)
+      rescue  => e 
+        puts e.message
+        error!("mouvaise requete", 400)
+      end 
+    end
+
+    ####################
+    desc "supprimer un enseignant"
+    params do 
+      requires :id, type: Integer
+      requires :classe_id, type: Integer
+      requires :user_id, type: String
+      optional :matieres, type: Hash 
+    end
+    delete "/:id/classe/:classe_id/enseigne/:user_id" do 
     end 
-    
-    ###############
+
+   
+    ####################
     desc "Gestion des rattachements a un groupe libre"
     params do
       requires :id, type: Integer 
@@ -490,7 +520,7 @@ class EtabApi < Grape::API
     get "/:id/classe/niveaux" do 
     end 
 
-=begin
+
     #################
     #{profil_id: "ELV"}
     desc "Ajout de profils utilisateur"
@@ -589,6 +619,6 @@ class EtabApi < Grape::API
     end 
     put ":id/services_actifs/:service_id" do 
     end 
-=end  
+ 
 
 end
