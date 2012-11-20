@@ -28,6 +28,7 @@ class Regroupement < Sequel::Model(:regroupement)
   end
 
   # Referential integrity
+  many_to_one :etablissement
   one_to_many :enseigne_regroupement
   one_to_one :ressource, :key => :id do |ds|
     ds.where(:service_id => [SRV_GROUPE, SRV_CLASSE, SRV_LIBRE])
@@ -70,21 +71,23 @@ class Regroupement < Sequel::Model(:regroupement)
   end
 
   def nb_membres
-    MembreRegroupement.filter(:regroupement => self).count
+    RoleUser.filter(:ressource => self.ressource).unique(:user_id)
   end
 
   def is_classe
-    type_regroupement_id == 'CLS'
+    type_regroupement_id == TYP_REG_CLS 
+
   end
 
   def is_groupe
-    type_regroupement_id == 'GRP'
+    type_regroupement_id == TYP_REG_GRP 
   end
 
+=begin
   # returns the number of groups in the class 
   def nb_groups
-    if type_regroupement_id == 'CLS'
-      MembreRegroupement.filter(:user_id => MembreRegroupement.select(:user_id).filter(:regroupement => self)).select(:regroupement_id).distinct.count
+    if type_regroupement_id == TYP_REG_CLS
+      #MembreRegroupement.filter(:user_id => MembreRegroupement.select(:user_id).filter(:regroupement => self)).select(:regroupement_id).distinct.count
     else
       raise 'Erreur, le groupe n\' est pas une classe'
     end
@@ -106,7 +109,7 @@ class Regroupement < Sequel::Model(:regroupement)
     User.filter(:membre_regroupement => MembreRegroupement.filter(:regroupement => self),
       :profil_user => ProfilUser.filter(:etablissement_id => etablissement_id)).all 
   end
-
+ 
   def add_membre(user_id)
     membre = MembreRegroupement.new
     membre.regroupement = self
@@ -118,16 +121,26 @@ class Regroupement < Sequel::Model(:regroupement)
     MembreRegroupement.where(:user_id => user_id, :regroupement => self).delete
   end
 
-  def add_prof(user_id)
+=end
+
+  # matieres = [ ]
+  def add_prof(user_id, matieres)
     #actually sans matieres
-    prof = EnseigneRegroupement.new
-    prof.regroupement = self
-    prof.user_id = user_id
-    prof.matiere_enseignee_id = 100
-    prof.save 
+    user = User[:id => user_id]
+    user.add_role(self.ressource.id, self.ressource.service_id, "PROF_CLS")
+    matieres.each do |mat|
+      ens_mat = EnseigneRegroupement.new
+      ens_mat.regroupement = self
+      ens_mat.user_id = user_id     
+      ens_mat.matiere_enseignee_id = mat
+      ens_mat.save 
+    end   
   end
 
   def delete_prof(user_id)
+    # supprimer le role prof de l'utilisateur
+    # supprimer les matieres ensignee par cet utilisateur
+    RoleUser[:user_id => user_id, :role_id => PROF_CLS]
     EnseigneRegroupement.where(:user_id => user_id, :regroupement => self).delete
   end
 end

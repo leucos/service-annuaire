@@ -13,6 +13,19 @@ describe Regroupement do
     groupe.ressource.service_id.should == SRV_GROUPE
     libre.ressource.id.should == libre.id.to_s
     libre.ressource.service_id.should == SRV_LIBRE
-    Regroupement.filter(:libelle => "test").destroy()
+  end 
+
+  it " adds a prof to  classe" do
+    # create  a class 
+    classe = Regroupement.create(:type_regroupement_id => TYP_REG_CLS, :libelle => "test")
+
+    user = User.create(:login => "test", :nom => "test", :prenom => "test")
+    # a list of matieres   
+    matieres = [200, 400]  
+    # add user_role
+    classe.add_prof(user.id, matieres)
+
+    RoleUser.include?(RoleUser[:user_id => user.id, :role_id =>"PROF_CLS"]).should == true 
+
   end 
 end
