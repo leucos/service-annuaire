@@ -92,6 +92,10 @@ def bootstrap_annuaire()
   # service laclasse.com (les super admin y sont reliés)
   Service.create(:id => SRV_LACLASSE, :libelle => "Laclasse.com", :description => "Service auquel tout est rattaché", :url => "/", :api => true)
 
+  # TODO : Rajouter les roles de prof et eleve dans une classe (cela sera des constantes)
+  # TODO : Rajouter le role de documentaliste qui a comme une role de prof sur toutes les classes
+  # (accès aux documents, cahier de texte) sans avoir besoin de s'y rattacher
+
   # Création des roles associés à ce service
   role_tech = Role.create(:id => ROL_TECH, :libelle => "Administrateur technique", :service_id => SRV_LACLASSE)
   role_tech.add_activite(SRV_USER, ACT_CREATE)

@@ -23,6 +23,7 @@ doc/
 #Config files
 config/database.rb
 config/auth.rb
+config/redis.rb
 
 #Mysql Workbench backup files
 *.bak

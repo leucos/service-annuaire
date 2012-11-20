@@ -32,13 +32,14 @@ describe AuthSession do
 
   it "created session has an expiration time" do
     session = AuthSession.create(@user_id)
-    AuthSessionTest.redis.ttl(session).should > AuthConfig::SESSION_DURATION - 10
-    AuthSessionTest.redis.ttl(session).should <= AuthConfig::SESSION_DURATION
+    AuthSessionTest.redis.ttl(AuthSession.key(session)).should > AuthConfig::SESSION_DURATION - 10
+    AuthSessionTest.redis.ttl(AuthSession.key(session)).should <= AuthConfig::SESSION_DURATION
     AuthSession.delete(session)
   end
 
   it "stored session has no expiration time" do
-    AuthSessionTest.redis.ttl(AuthConfig::STORED_SESSION.first[0]).should == -1
+    AuthSession.get(AuthConfig::STORED_SESSION.first[1]).should_not == nil
+    AuthSessionTest.redis.ttl(AuthSession.key(AuthConfig::STORED_SESSION.first[1])).should == -1
   end
 
   it "delete an existing session" do
@@ -50,29 +51,30 @@ describe AuthSession do
   it "set expire time to session" do
     session = AuthSession.create(@user_id)
     #  session is valid for one day
-    AuthSessionTest.redis.setex(session, 300, @user_id)
-    AuthSessionTest.redis.ttl(session).should > 290 
-    AuthSessionTest.redis.ttl(session).should <= 300
+    AuthSessionTest.redis.setex(AuthSession.key(session), 300, @user_id)
+    AuthSessionTest.redis.ttl(AuthSession.key(session)).should > 290 
+    AuthSessionTest.redis.ttl(AuthSession.key(session)).should <= 300
     AuthSession.delete(session)
   end
 
   it "Update le ttl quand on accède à la session, sauf pour les session stockées" do
     session = AuthSession.create(@user_id)
-    AuthSessionTest.redis.setex(session, 300, @user_id)
+    AuthSessionTest.redis.setex(AuthSession.key(session), 300, @user_id)
+    #On fait un get pour updater le ttl
     AuthSession.get(session)
-    AuthSessionTest.redis.ttl(session).should > AuthConfig::SESSION_DURATION - 10
-    AuthSessionTest.redis.ttl(session).should <= AuthConfig::SESSION_DURATION
+    AuthSessionTest.redis.ttl(AuthSession.key(session)).should > AuthConfig::SESSION_DURATION - 10
+    AuthSessionTest.redis.ttl(AuthSession.key(session)).should <= AuthConfig::SESSION_DURATION
 
     stored_session_id = AuthConfig::STORED_SESSION.first[1]
     AuthSession.get(stored_session_id)
-    AuthSessionTest.redis.ttl(stored_session_id).should == -1
+    AuthSessionTest.redis.ttl(AuthSession.key(stored_session_id)).should == -1
   end
 
   it "Ne met pas de redis.ttl et ne change pas l'id de session d'un utilisateur qui a une session stockée" do
     stored_user_id = AuthConfig::STORED_SESSION.first[0]
     stored_session_id = AuthConfig::STORED_SESSION.first[1]
     AuthSession.create(stored_user_id).should == stored_session_id
-    AuthSessionTest.redis.ttl(stored_session_id).should == -1
+    AuthSessionTest.redis.ttl(AuthSession.key(stored_session_id)).should == -1
   end
 
   it "Ne permet pas la suppression de session stockée" do
