@@ -67,7 +67,7 @@ describe UserApi do
   it "be able to add new relations to users if sending good parameters and return bad request or resource not found otherwise" do 
     u = create_test_user()
     post("user/#{u.id}/relation", :eleve_id => "VAA60000", :type_relation_id => "PAR").status.should == 201
-    response = JSON.parse(last_response.body)
+    #response = JSON.parse(last_response.body)
     # bad request 
     post("user/#{u.id}/relation", :type_relation_id => "PAR").status.should == 400
 
@@ -121,8 +121,10 @@ describe UserApi do
     u = create_test_user()
     u.add_email("testuser@laclasse.com")
     id = u.email.first.id
-    put("user/#{u.id}/email/vddd", :adresse => "modifie@laclasse.com").status.should == 403
+    put("user/#{u.id}/email/vddd", :adresse => "modifie@laclasse.com").status.should == 400
+    put("user/#{u.id}/email/12345", :adresse => "modifie@laclasse.com").status.should == 404
     put("user/#{u.id}/email/#{id}", :adresse => "modifie@laclasse.com", :principal => true, :academique => true ).status.should == 200
+    u.email_dataset.filter(:academique => true).count.should == 1
     response = last_response.body
     #puts response
   end 
@@ -138,6 +140,24 @@ describe UserApi do
     u.email.count.should == (count-1)
   end
 
+  it "envois un email de validation" do
+    u = create_test_user("testuser")
+    e = u.add_email("testuser@laclasse.com")
+    get("user/#{u.id}/email/prout/validate").status.should == 404
+    get("user/#{u.id}/email/12345/validate").status.should == 404
+    get("user/#{u.id}/email/#{e.id}/validate").status.should == 200
+    # Peut être fait plusieurs fois comme github
+    get("user/#{u.id}/email/#{e.id}/validate").status.should == 200
+  end
+
+  it "Permet de valider une adresse email" do
+    u = create_test_user("testuser")
+    e = u.add_email("testuser@laclasse.com")
+    key = e.generate_validation_key
+    get("user/#{u.id}/email/#{e.id}/validate/#{key}").status.should == 200
+    get("user/#{u.id}/email/#{e.id}/validate/#{key}").status.should == 404
+    get("user/#{u.id}/email/#{e.id}/validate/mauvaise_cle").status.should == 404
+  end
   it "returns a list of user phone numbers" do 
     u = create_test_user("testuser")
     u.add_telephone("0404040404", TYP_TEL_MAIS)

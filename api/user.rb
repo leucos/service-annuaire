@@ -2,6 +2,7 @@
 
 class UserApi < Grape::API
   format :json
+  error_format :json
 
   helpers RightHelpers
   helpers do
@@ -34,27 +35,6 @@ class UserApi < Grape::API
     error!("Utilisateur non trouvé", 404) if user.nil?
     authorize_activites!(ACT_READ, user.ressource)
     present user, with: API::Entities::User
-  end
-
-  # TODO : merger ce code avec /:id => nécessite modif SSO
-  desc "Renvois le profil utilisateur si on donne le bon login. Nécessite une authentification."
-  params do
-    requires :login, type: String
-  end
-  get "profil/:login" do
-    result = {} 
-    u = User[:login => params[:login]]
-    if u
-      #result[:user] = u
-      p = u.profil_actif
-      if p
-        #result[:profil] = {:code_uai => p.etablissement.code_uai, :code_ent => p.profil.code_ent}
-        result = u.to_hash.merge({:code_uai => p.etablissement.code_uai, :categories => p.profil.code_ent}) 
-      end
-    else
-      error!("Utilisateur non trouvé", 404)
-    end
-    result
   end
 
   # Renvois la ressource user
@@ -172,26 +152,24 @@ class UserApi < Grape::API
   # returns the relations of a user 
   # actually not complet 
   get "/:id/relations" do 
-    id = params[:id]
-    if !id.nil? and !id.empty?
-      user = User[:id => id]
-    else
-      error!("Utilisateur non trouvé", 404)
-    end 
+    user = User[params[:id]]
+    error!("Utilisateur non trouvé", 404) if user.nil?
+    
     authorize_activites!(ACT_READ, user.ressource)
     user.relations
   end
 
-  
-  # @state[not finished]
   #Il ne peut y en avoir qu'une part adulte
   #Cas d'un user qui devient parent d'élève {eleve_id: VAA60001, type_relation_id: "PAR"}
-  desc "Ajout d'une relation entre un adulte et un élève"  
+  desc "Ajout d'une relation entre un adulte et un élève"
+  params do
+    requires :eleve_id, type: String
+    requires :type_relation_id, type: String
+  end 
   post "/:user_id/relation" do
-    user_id = params["user_id"]
-    if User[:id => user_id].nil? 
-      error!("ressource non trouvé", 404)
-    end 
+    user = User[params[:user_id]]
+    error!("Utilisateur non trouvé", 404) if user.nil?
+
     eleve_id = params["eleve_id"]
     type_relation_id = params["type_relation_id"]
 
@@ -200,7 +178,7 @@ class UserApi < Grape::API
         #User[:id => user_id].add_relation(eleve_id, type_relation_id) 
         # returns {id: user_id ,relations: [{eleve_id, type_relation id}]}
 
-        {:user_id => user_id , :eleve_id => eleve_id , :type_relation_id => type_relation_id}
+        #{:user_id => user_id , :eleve_id => eleve_id , :type_relation_id => type_relation_id}
       else
         error!("mauvaise requete", 400)
       end 
@@ -215,7 +193,7 @@ class UserApi < Grape::API
   desc "Modification de la relation"
   params do
     requires :type_relation_id, type: String
-    requires :eleve_id, type:String 
+    requires :eleve_id, type: String
   end
   put "/:user_id/relation/:eleve_id" do
     user_id = params["user_id"]
@@ -289,26 +267,22 @@ class UserApi < Grape::API
   # modifier l'adresse et le type de l'email
   # l'email doit apartenir à l'utilisateur user_id
   desc "modifier un email existant"
+  params do
+    requires :email_id, type: Integer
+    optional :adresse, type: String
+    optional :academique, type: Boolean
+    optional :principal, type: Boolean
+  end
   put ":user_id/email/:email_id" do
-    user_id = params["user_id"]
-    email_id = params["email_id"].to_i
-    u = User[:id => user_id]
-    if u.nil? or !u.email.map{|email| email.id}.include?(email_id)
-      error!("ressource non trouvé", 403)
-    else
-      adresse = params["adresse"]
-      if adresse.nil?
-        error!("mauvaise requete", 400)
-      else
-        academique = (!params["academique"].nil?  and  params["academique"] == "true") ? true : false
-        principal = (!params["principal"].nil?  and  params["principal"] == "true") ? true : false
-        email = Email[:id => email_id]
-        email.adresse = adresse
-        email.academique = academique
-        email.principal = principal 
-        email.save 
-      end 
-    end 
+    u = User[:id => params[:user_id]]
+    email = Email[:id => params[:email_id]]
+    error!("Utilisateur non trouvé", 404) if u.nil?
+    error!("Email non trouvé", 404) if email.nil? or !u.has_email(email)
+    
+    email.adresse = params[:adresse] if params[:adresse]
+    email.academique = params[:academique] if params[:academique]
+    email.principal = params[:principal] if params[:principal]
+    email.save 
   end
 
   # supprimer un des email de l'utilisateur 
@@ -325,10 +299,26 @@ class UserApi < Grape::API
     end   
   end
 
-  desc "Envois un email de verification à l'utilisateur sur l'email choisit" do
-  get ":user_id/email/:email_id"
+  desc "Envois un email de verification à l'utilisateur sur l'email choisit"
+  get ":user_id/email/:email_id/validate" do
+    u = User[:id => params[:user_id]]
+    email = Email[:id => params[:email_id]]
+    error!("Utilisateur non trouvé", 404) if u.nil?
+    error!("Email non trouvé", 404) if email.nil? or !u.has_email(email)
+
+    email.send_validation_mail()
   end
 
+  desc "Envois un email de verification à l'utilisateur sur l'email choisit"
+  get ":user_id/email/:email_id/validate/:validation_key" do
+    u = User[:id => params[:user_id]]
+    email = Email[:id => params[:email_id]]
+    error!("Utilisateur non trouvé", 404) if u.nil?
+    error!("Email non trouvé", 404) if email.nil? or !u.has_email(email)
+
+    valide = email.check_validation_key(params[:validation_key])
+    error!("Clé de validation invalide ou périmée", 404) unless valide
+  end
 
   #recuperer la liste des telephones qui appartien à un utilisateur 
   desc "recuperer les telephones"

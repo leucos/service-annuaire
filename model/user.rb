@@ -313,6 +313,13 @@ class User < Sequel::Model(:user)
     return email.nil? ? nil : email.adresse
   end
 
+  # Permet de savoir si l'email passé en paramètre appartient bien à l'utilisateur
+  # param Email
+  # return true or false
+  def has_email(email)
+    self.email.include?(email)
+  end
+
   # Ajoute un téléphone à l'utilisateur
   # type par défaut Maison mais détecte si c'est un portable
   def add_telephone(numero, type_telephone_id = TYP_TEL_MAIS)

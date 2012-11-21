@@ -67,7 +67,7 @@ class Email < Sequel::Model(:email)
     #TEMP : pour éviter d'avoir des erreurs avec gmail notamment mais peut-être mettre ailleurs
     
     # J'ai honteusement pompé sur le message de vérification de mail de GitHub
-    mail = Mail.deliver do
+    mail = Mail.new do
       to adresse
       from "noreply@laclasse.com"
       subject "[laclasse.com] Merci de vérfier votre adresse email '#{adresse}'"
@@ -85,5 +85,8 @@ Cordialement,
 
 L'équipe laclasse.com")
     end
+    # Dommage que l'on ne peut pas préciser ça dans le deliver...
+    mail.charset = 'utf-8'
+    mail.deliver
   end
 end
