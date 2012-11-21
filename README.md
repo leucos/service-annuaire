@@ -95,7 +95,9 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   DELETE /user/:user_id/email/:email_id
   //Envois un email de validation pour vérifier si l'adresse est valide
   //Stocker ça dans Redis et mettre un ttl de 1h ou 6h
-  POST /user/:user_id/email/:email_id/validate
+  //Doit-on appeler ca de la validation ou de la vérification ?
+  GET /user/:user_id/email/:email_id/validate
+  //On peut mettre aussi request_validation et confirm_validation comme github
   //La clé à été envoyée par mail
   GET /user/:user_id/email/:email_id/validate/:validation_key
 

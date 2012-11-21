@@ -1,0 +1,6 @@
+Mail.defaults do
+  delivery_method :smtp, {
+    :adress => "smtp.mydomain.org",
+    :enable_starttls_auto => false,
+  }
+end

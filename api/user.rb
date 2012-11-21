@@ -1,5 +1,5 @@
-#encoding: utf-8
 #coding: utf-8
+
 class UserApi < Grape::API
   format :json
 
@@ -286,8 +286,8 @@ class UserApi < Grape::API
     end 
   end
 
-# modifier l'adresse et le type de l'email
-# l'email doit apartenir à l'utilisateur user_id
+  # modifier l'adresse et le type de l'email
+  # l'email doit apartenir à l'utilisateur user_id
   desc "modifier un email existant"
   put ":user_id/email/:email_id" do
     user_id = params["user_id"]
@@ -311,7 +311,7 @@ class UserApi < Grape::API
     end 
   end
 
-# supprimer un des email de l'utilisateur 
+  # supprimer un des email de l'utilisateur 
   desc "supprimer un email" 
   delete ":user_id/email/:email_id" do
     user_id = params["user_id"]
@@ -325,7 +325,11 @@ class UserApi < Grape::API
     end   
   end
 
-  
+  desc "Envois un email de verification à l'utilisateur sur l'email choisit" do
+  get ":user_id/email/:email_id"
+  end
+
+
   #recuperer la liste des telephones qui appartien à un utilisateur 
   desc "recuperer les telephones"
   get ":user_id/telephones" do

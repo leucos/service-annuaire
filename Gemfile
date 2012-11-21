@@ -13,7 +13,7 @@ gem 'archive-tar-minitar'
 gem 'nokogiri'
 gem 'rest-client'
 gem 'redis'
-
+gem 'mail'
 
 group :development do
   gem 'rack-test'

@@ -24,6 +24,7 @@ doc/
 config/database.rb
 config/auth.rb
 config/redis.rb
+config/mail.rb
 
 #Mysql Workbench backup files
 *.bak
