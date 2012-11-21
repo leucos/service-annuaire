@@ -229,6 +229,17 @@ describe User do
     p2.relations.length.should == 1
   end
 
+  it ".find_relation renvoie la relation entre un utilisateur et un eleve si elle existe" do
+    u = create_test_user()
+    e = create_test_user("eleve")
+    e2 = create_test_user("eleve2")
+    u.add_enfant(e)
+
+    u.find_relation(e).should_not == nil
+    u.find_relation(e).class.should == RelationEleve
+    u.find_relation(e2).should == nil
+  end
+
   it ".ressource return associated ressource" do
     u = create_test_user()
     u.ressource.id.should == u.id

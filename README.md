@@ -17,6 +17,7 @@ ATTENTION, il ne s'agit pas forcément de l'api actuelle mais de ce que l'on aim
 401 => Ce service requiert une authentification et l'utilisateur n'est pas authentifié
 403 => L'utilisateur est authentifié mais n'a pas les droits d'accédé à ce service
 404 => La ressource n'est pas trouvé. La syntaxe de la requète est bonne mais les paramètres ne correspondent pas à une ressource existante (ex : user non existant) ou ne sont pas logique par rapport au path. Ex : l'email n'appartient pas à l'utilisateur dans /user/:user_id/email/:email_id
+405 => Si le verbe HTTP utilisé pour un path n'existe pas (exemple appel de DELETE pour un url disponible uniquement en GET)
 
 ## /user et /users
 

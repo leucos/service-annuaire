@@ -24,15 +24,40 @@ class UserApi < Grape::API
     def symbolize_array(arr)
       arr.map{|v| v.is_a?(String) ? v.to_sym : v}
     end
+
+    def check_user!(message = "Utilisateur non trouvé", param_id = :user_id)
+      user = User[params[param_id]]
+      error!(message, 404) if user.nil?
+      return user
+    end
+
+    def modify_user(user)
+      params.each do |k,v|
+        # todo : Un peu hacky mais je ne vois pas comment faire autrement...
+        if k != "user_id" and k != "route_info" and k != "session_key"
+          begin
+            if user.respond_to?(k.to_sym) 
+              user.set(k.to_sym => v)
+            else
+              error!("Parametre #{k} non pris en charge", 400)
+            end
+          rescue Sequel::ValidationFailed
+            error!("Validation failed", 400)
+          end
+        end
+      end
+
+      begin
+        user.save()
+      rescue Sequel::ValidationFailed
+        error!("Validation failed", 400)
+      end
+    end
   end
 
   desc "Renvois le profil utilisateur si on donne le bon id. Nécessite une authentification."
-  params do
-    requires :id, type: String
-  end
-  get "/:id" do
-    user = User[params[:id]]
-    error!("Utilisateur non trouvé", 404) if user.nil?
+  get "/:user_id" do
+    user = check_user!()
     authorize_activites!(ACT_READ, user.ressource)
     present user, with: API::Entities::User
   end
@@ -54,53 +79,24 @@ class UserApi < Grape::API
     optional :id_jointure_aaf, type: Integer
   end
   post do
-    p = params
     authorize_activites!(ACT_CREATE, Ressource.laclasse, SRV_USER)
-    begin
-      u = User.new()
-      params.each do |k,v|
-        if k != "route_info"
-          begin
-            if u.respond_to?(k.to_sym)
-               u.set(k.to_sym => v)
-            end 
-          rescue
-            error!("Validation failed", 400)
-          end
-        end
-      end
-      u.save()
-    rescue Sequel::ValidationFailed
-      error!("Validation failed", 400)
-    end
+    user = User.new()
+
+    modify_user(user)
+    
+    present user, with: API::Entities::User
   end
 
   # Même chose que post mais peut ne pas prendre des champs require
   # Renvois la ressource user complète
   desc "Modification d'un compte utilisateur"
-  put "/:id" do
-    user = User[params[:id]]
-    error!("Utilisateur non trouvé", 404) if user.nil?
+  put "/:user_id" do
+    user = check_user!()
     authorize_activites!(ACT_UPDATE, user.ressource)
-    params.each do |k,v|
-      # Un peu hacky mais je ne vois pas comment faire autrement...
-      if k != "id" and k != "route_info" and k != "session_key"
-        begin
-          if user.respond_to?(k.to_sym) 
-            user.set(k.to_sym => v)
-          else
-            error!("Parametre #{k} non pris en charge", 400)
-          end
-        rescue
-          error!("Validation failed", 400)
-        end
-      end
-    end
-    begin
-      user.save()
-    rescue Sequel::ValidationFailed
-      error!("Validation failed", 400)
-    end
+
+    modify_user(user)
+
+    present user, with: API::Entities::User
   end
 
   desc "a service to search users according to certiain informations"
@@ -151,9 +147,8 @@ class UserApi < Grape::API
   # Récupération des relations 
   # returns the relations of a user 
   # actually not complet 
-  get "/:id/relations" do 
-    user = User[params[:id]]
-    error!("Utilisateur non trouvé", 404) if user.nil?
+  get "/:user_id/relations" do 
+    user = check_user!()
     
     authorize_activites!(ACT_READ, user.ressource)
     user.relations
@@ -167,42 +162,34 @@ class UserApi < Grape::API
     requires :type_relation_id, type: String
   end 
   post "/:user_id/relation" do
-    user = User[params[:user_id]]
-    error!("Utilisateur non trouvé", 404) if user.nil?
+    user = check_user!("Adulte non trouvé")
+    eleve = check_user!("Eleve non trouvé", :eleve_id)
+    type_rel = TypeRelationEleve[params[:type_relation_id]]
+    error!("Type de relation invalide", 400) if type_rel.nil? 
+    relation = user.find_relation(eleve)
+    error!("Relation déjà existante", 400) if relation
 
-    eleve_id = params["eleve_id"]
-    type_relation_id = params["type_relation_id"]
+    user.add_enfant(eleve, type_rel.id)
 
-    if !eleve_id.nil? and !eleve_id.empty?
-      if !type_relation_id.nil? and !type_relation_id.empty?
-        #User[:id => user_id].add_relation(eleve_id, type_relation_id) 
-        # returns {id: user_id ,relations: [{eleve_id, type_relation id}]}
-
-        #{:user_id => user_id , :eleve_id => eleve_id , :type_relation_id => type_relation_id}
-      else
-        error!("mauvaise requete", 400)
-      end 
-    else
-      error!("mauvaise requete", 400) 
-    end 
-
+    present user, with: API::Entities::User
   end
 
-
-  # @state[not finished]
   desc "Modification de la relation"
   params do
     requires :type_relation_id, type: String
     requires :eleve_id, type: String
   end
   put "/:user_id/relation/:eleve_id" do
-    user_id = params["user_id"]
-    if User[:id => user_id].nil?
-      error!("ressource non trouvé", 403)
-    end
-    eleve_id = params["eleve_id"]
-    type_relation_id = !params["type_relation_id"].empty? ? params["type_relation_id"] : error!("mauvaise requete", 400)
-    {:user_id => user_id, :eleve_id => eleve_id}
+    user = check_user!("Adulte non trouvé")
+    eleve = check_user!("Eleve non trouvé", :eleve_id)
+    type_rel = TypeRelationEleve[params[:type_relation_id]]
+    relation = user.find_relation(eleve)
+    error!("Type de relation invalide", 400) if type_rel.nil?
+    error!("Relation inexistante", 404) if relation.nil?
+
+    relation.update(:type_relation_eleve_id => type_rel.id)
+
+    present user, with: API::Entities::User
   end
   
 
@@ -210,58 +197,41 @@ class UserApi < Grape::API
   #Suppression de la relation (1 par adulte)
   #DEL /user/:user_id/relation/:eleve_id 
   desc "suppression d'une relation adulte/eleve"
+  params do
+    requires :eleve_id, type: String
+  end
   delete "/:user_id/relation/:eleve_id" do 
-    user_id = params["user_id"]
-    eleve_id = params["eleve_id"]
+    user = check_user!("Adulte non trouvé")
+    eleve = check_user!("Eleve non trouvé", :eleve_id)
+    relation = user.find_relation(eleve)
+    error!("Relation inexistante", 404) if relation.nil?
 
-    if User[:id => eleve_id].nil? or User[:id => user_id].nil? #adult or eleve donnot exist
-      error!("ressource non trouvé", 403)
-    end 
+    relation.destroy()
 
-    u = User[user_id]
-
-    # if relation des not exist  
-      #error! ("ressource non trouvé", 403)
-    #else
-      #delete the relation 
-    #end 
-    "ok"  
+    present user, with: API::Entities::User
   end
 
   desc "recuperer la liste des emails"
   get "/:user_id/emails" do 
-    user_id = params["user_id"]
-    u = User[:id => user_id]
-    if u.nil? 
-      error!("ressource non trouvé", 403)
-    else
-      emails = u.email
-      emails.map  do |email|
-        {:id => email.id, :adresse => email.adresse, :academique => email.academique, :principal => email.principal}
-      end 
-    end 
+    u = check_user!()
+
+    emails = u.email
+    emails.map  do |email|
+      {:id => email.id, :adresse => email.adresse, :academique => email.academique, :principal => email.principal}
+    end
   end
 
   desc "ajouter un email à l'utilisateur"
+  params do
+    requires :adresse, type: String
+    optional :academique, type: Boolean
+  end
   post ":user_id/email" do
-    user_id = params["user_id"]
-    u = User[:id => user_id]
-    if u.nil? 
-      error!("ressource non trouvé", 403)
-    else
-      if params["adresse"].nil? or params["adresse"].empty? 
-        error!("mauvaise requete", 400) 
-      else 
-        adresse = params["adresse"] 
-      end 
-      if params["academique"].nil? or params["academique"].empty? 
-          academique = false 
-      else
-          academique = params["academique"] == "true" ? true : false 
-      end 
-      u.add_email(adresse, academique)
-      
-    end 
+    user = check_user!()
+    academique = params[:academique] ? true : false 
+    user.add_email(params[:adresse], academique)
+
+    present user, with: API::Entities::User
   end
 
   # modifier l'adresse et le type de l'email
@@ -274,37 +244,38 @@ class UserApi < Grape::API
     optional :principal, type: Boolean
   end
   put ":user_id/email/:email_id" do
-    u = User[:id => params[:user_id]]
+    user = check_user!()
     email = Email[:id => params[:email_id]]
-    error!("Utilisateur non trouvé", 404) if u.nil?
-    error!("Email non trouvé", 404) if email.nil? or !u.has_email(email)
+    error!("Email non trouvé", 404) if email.nil? or !user.has_email(email)
     
     email.adresse = params[:adresse] if params[:adresse]
     email.academique = params[:academique] if params[:academique]
     email.principal = params[:principal] if params[:principal]
-    email.save 
+    #Todo : si l'utilisateur à déjà un email principal, faut-il l'enlever ou générer une erreur ?
+    email.save()
+
+    present user, with: API::Entities::User
   end
 
   # supprimer un des email de l'utilisateur 
-  desc "supprimer un email" 
+  desc "supprimer un email"
+  params do
+    requires :email_id, type: Integer
+  end
   delete ":user_id/email/:email_id" do
-    user_id = params["user_id"]
-    email_id = params["email_id"].to_i
-    u = User[:id => user_id]
-    if u.nil? or !u.email.map{|email| email.id}.include?(email_id)
-      error!("ressource non trouvé", 403)
-    else
-      email = Email[:id => email_id]
-      email.destroy
-    end   
+    user = check_user!()
+    email = Email[:id => params[:email_id]]
+    error!("Email non trouvé", 404) if email.nil? or !user.has_email(email)
+    email.destroy()
+
+    present user, with: API::Entities::User
   end
 
   desc "Envois un email de verification à l'utilisateur sur l'email choisit"
   get ":user_id/email/:email_id/validate" do
-    u = User[:id => params[:user_id]]
+    user = check_user!()
     email = Email[:id => params[:email_id]]
-    error!("Utilisateur non trouvé", 404) if u.nil?
-    error!("Email non trouvé", 404) if email.nil? or !u.has_email(email)
+    error!("Email non trouvé", 404) if email.nil? or !user.has_email(email)
 
     email.send_validation_mail()
   end
@@ -469,17 +440,4 @@ class UserApi < Grape::API
     end   
 
   end
-
-  # expose custom resource attribute
-  get "entity/:id" do
-    id = params[:id]
-    user = User[:id => id]
-    if user
-      present user, with: API::Entities::User
-    else
-     error!("ressource non trouvé", 404)
-    end 
-  end  
-
-
 end

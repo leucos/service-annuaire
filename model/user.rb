@@ -186,6 +186,10 @@ class User < Sequel::Model(:user)
     RelationEleve.filter({:eleve_id => self.id, :user_id => self.id}.sql_or).all
   end
 
+  def find_relation(eleve)
+    RelationEleve.filter(:user_id => self.id, :eleve_id => eleve.id).first
+  end
+
   # Renvoi le premier profil_user trouvé dans un établissement
   # Pas super mais il faut réfléchir à cette notion de profil_actif
   def profil_actif
