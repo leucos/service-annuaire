@@ -242,7 +242,7 @@ describe EtabApi do
 
   end
 
-  it "adds a prof to a class" do 
+  it "adds a prof to a class if is not already a prof or or add (mateires) if  not" do 
     etab = create_test_etablissement 
     user = create_test_user_in_etab(etab.id, "test")
     #role = create_test_role 
@@ -251,18 +251,154 @@ describe EtabApi do
     hash = {:libelle =>"6emeA", :niveau_id => 1}
     classe = etab.add_classe(hash)
 
+    #create a prof 
     matieres = [200, 300]
-    post("/etablissement/#{etab.id}/classe/#{classe.id}/enseigne/#{user.id}", matieres => matieres).status.should == 201
-
-    puts last_response.body 
-
+    post("/etablissement/#{etab.id}/classe/#{classe.id}/enseigne/#{user.id}", :matieres => matieres).status.should == 201
     RoleUser.include?(RoleUser[:user_id => user.id, :role_id =>"PROF_CLS"]).should == true
+    EnseigneRegroupement.include?(EnseigneRegroupement[:user_id => user.id, :regroupement_id => classe.id, :matiere_enseignee_id => 200]).should  == true
 
-    # other conditions 
+    # add matieres to a prof 
+    matieres = [500]
+    post("/etablissement/#{etab.id}/classe/#{classe.id}/enseigne/#{user.id}", :matieres => matieres).status.should == 201
+    RoleUser.include?(RoleUser[:user_id => user.id, :role_id =>"PROF_CLS"]).should == true
+    EnseigneRegroupement.include?(EnseigneRegroupement[:user_id => user.id, :regroupement_id => classe.id, :matiere_enseignee_id => 500]).should  == true
+
 
   end 
 
+  it "deletes a prof from a class and consequently deletes all his  subjects (matieres)" do 
+    etab = create_test_etablissement 
+    user = create_test_user_in_etab(etab.id, "test")
+
+    #create test class in etab 
+    hash = {:libelle =>"6emeA", :niveau_id => 1}
+    classe = etab.add_classe(hash)
+
+    # add prof to the class 
+    matieres = [200, 300]
+    post("/etablissement/#{etab.id}/classe/#{classe.id}/enseigne/#{user.id}", :matieres => matieres).status.should == 201
+    RoleUser.include?(RoleUser[:user_id => user.id, :role_id =>"PROF_CLS"]).should == true
+    EnseigneRegroupement.include?(EnseigneRegroupement[:user_id => user.id, :regroupement_id => classe.id, :matiere_enseignee_id => 200]).should  == true
+
+    delete("/etablissement/#{etab.id}/classe/#{classe.id}/enseigne/#{user.id}").status.should == 200 
+    RoleUser.include?(RoleUser[:user_id => user.id, :role_id =>"PROF_CLS"]).should == false
+    EnseigneRegroupement.include?(EnseigneRegroupement[:user_id => user.id, :regroupement_id => classe.id, :matiere_enseignee_id => 200]).should  == false
+  end
+
+  it "deletes a subject teached by a prof " do
+    etab = create_test_etablissement 
+    user = create_test_user_in_etab(etab.id, "test")
+
+    #create test class in etab 
+    hash = {:libelle =>"6emeA", :niveau_id => 1}
+    classe = etab.add_classe(hash)
+
+    # add prof to the class and add 2 subjects 200, 300 
+    matieres = [200, 300]
+    post("/etablissement/#{etab.id}/classe/#{classe.id}/enseigne/#{user.id}", :matieres => matieres).status.should == 201
+
+    deleted_matiere_id  = 200
+    delete("/etablissement/#{etab.id}/classe/#{classe.id}/enseigne/#{user.id}/matieres/#{deleted_matiere_id}").status.should == 200
+    EnseigneRegroupement.include?(EnseigneRegroupement[:user_id => user.id, :regroupement_id => classe.id, :matiere_enseignee_id => 200]).should  == false
+    EnseigneRegroupement.include?(EnseigneRegroupement[:user_id => user.id, :regroupement_id => classe.id, :matiere_enseignee_id => 300]).should  == true    
+  end   
 
   ##########################
+
+  it "returns class levels in a school(etablissement)" do 
+    etab = create_test_etablissement
+    get("/etablissement/#{etab.id}/classe/niveaux").status.should == 200
+    # test levels
+  end
+
+  it "adds a user profile" do
+    etab = create_test_etablissement  
+    user = create_test_user
+    profil_id = "ELV"
+
+    # add profil eleve to user 
+    post("/etablissement/#{etab.id}/profil_user/#{user.id}", :profil_id => profil_id).status.should == 201 
+    ProfilUser.include?(ProfilUser[:profil_id => profil_id, :user_id => user.id, :etablissement_id => etab.id]).should == true 
+    #puts last_response.body
+  end
+
+  it "modifies a user profile in a school(etablissement)" do
+    etab = create_test_etablissement  
+    user = create_test_user
+    profil_id = "ADF"
+
+    # add profil to user 
+    post("/etablissement/#{etab.id}/profil_user/#{user.id}", :profil_id => profil_id).status.should == 201 
+    ProfilUser.include?(ProfilUser[:profil_id => profil_id, :user_id => user.id, :etablissement_id => etab.id]).should == true 
+    
+    new_profil_id = "DIR"
+    #put("/etablissement/#{etab.id}/profil_user/#{user.id}/#{old_profil_id}")
+    put("/etablissement/#{etab.id}/profil_user/#{user.id}/#{profil_id}", :new_profil_id => new_profil_id).status.should == 200
+   
+    ProfilUser.include?(ProfilUser[:profil_id => profil_id, :user_id => user.id, :etablissement_id => etab.id]).should == false
+    ProfilUser.include?(ProfilUser[:profil_id => new_profil_id, :user_id => user.id, :etablissement_id => etab.id]).should == true
+    
+    ## IMPORTANT: add user profile means also add  a  corresponding user role 
+    
+  end
+
+  it "deletes a user profile in a school(etablissement)" do
+    etab = create_test_etablissement 
+    user = create_test_user 
+    profil_id = "ADF"
+
+    #add profil to user 
+    post("/etablissement/#{etab.id}/profil_user/#{user.id}", :profil_id => profil_id).status.should == 201 
+
+    #delete user's profil
+    delete("/etablissement/#{etab.id}/profil_user/#{user.id}/#{profil_id}").status.should == 200
+    ProfilUser.include?(ProfilUser[:profil_id => profil_id, :user_id => user.id, :etablissement_id => etab.id]).should == false 
+  end
+
+  ################################################################
+  # Gestion des parametres  des application dans l'etablissement #
+  ################################################################
+
+  it "returns the value of a specific parameter if exist or default if not" do 
+    etab = create_test_etablissement
+    # params {:code => type } 
+    parameters = {"param_1" => false, "param_2" => false, "param3" => false} 
+    app_id = "test_app"
+    app = create_test_application_with_params(app_id, parameters)
+    # add application to etab 
+    ApplicationEtablissement.create(:application_id => app.id, :etablissement_id => etab.id)
+    #create etablissement parameter
+    param_id = ParamApplication[:code => "param_1"].id 
+    etab.set_preference(param_id, 50)
+    get("/etablissement/#{etab.id}/parametre/#{app_id}/param_1").status.should == 200
+    # test valeur
+    response = JSON.parse(last_response.body)
+    response["valeur"].to_i.should == 50    
+  end
+
+  it "modifies the value fo a specific parameter " do 
+    etab = create_test_etablissement
+    # params {:code => type } 
+    parameters = {"param_1" => false, "param_2" => false, "param3" => false} 
+    app_id = "test_app"
+    app = create_test_application_with_params(app_id, parameters)
+    # add application to etab 
+    ApplicationEtablissement.create(:application_id => app.id, :etablissement_id => etab.id)
+    #create test etablissment parameter
+    param_id = ParamApplication[:code => "param_1"].id 
+
+    etab.set_preference(param_id, 50)
+    #modify the value 
+    valeur = 60
+    put("/etablissement/#{etab.id}/parametre/#{app_id}/param_1", :valeur => valeur).status.should == 200
+
+    get("/etablissement/#{etab.id}/parametre/#{app_id}/param_1").status.should == 200
+    #puts last_response.body
+    response = JSON.parse(last_response.body)
+    response["valeur"].to_i.should  == 60
+  end
+
+  it "return the default value" 
+
 
 end
