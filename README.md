@@ -28,12 +28,13 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   //Activation avec code
   //Gestion des rattachement à un autre fournisseur d'identité
   //Api pour savoir si un login est dispo ?
-  //api pour tester si un mot de passe correspond au critère de validation des mots de passes ?cd 
+  //api pour tester si un mot de passe correspond au critère de validation des mots de passes ?
   
   //Il faut une api publique pour récupérer l'id d'un utilisateur en fonction de son login
   //ou d'un de ses emails
   //Envois un mail de régénération de mot de passe
-  POST /user/:id/lost_password
+  //Temporiser les appel pour éviter les spams ?
+  GET /user/sign_in/forgot_password?login=test&adresse=test@laclasse.com
 
   // open bar, sans cookie
   * GET /user?login=test&password=test

@@ -28,17 +28,19 @@ describe UserApi do
     # good session but no rights
     get("/user/#{u.id}?session_key=#{@session}").status.should == 403
     #fake session
-    get("/user/#{u.id}?session_key=12345").status.should == 403
+    get("/user/#{u.id}?session_key=12345").status.should == 401
     #Good session and good rights
     get("/user/#{u.id}?session_key=#{@stored_session}").status.should == 200
   end
 
   it "create a new user when given good session key and has the rights to create a user in a specific place" do
-    # good session key sent  
-    post("/user", :login => 'test', :password => 'test', :nom => 'test', :prenom => 'test', :session_key => @session).status.should == 201
+    # good session key sent 
+    hash = {:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test', :session_key => @session}
+    post("/user", hash).status.should == 201
 
-    # fake session key sent  
-    post("/user", :login => 'test', :password => 'test', :nom => 'test', :prenom => 'test', :session_key => "123456").status.should == 403
+    # fake session key sent
+    hash = {:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test', :session_key => "123456"}
+    post("/user", hash).status.should == 401
   end
 
   it "modify user when given good session key and has the rights to modify " do 

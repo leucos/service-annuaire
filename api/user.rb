@@ -3,6 +3,13 @@
 class UserApi < Grape::API
   format :json
   error_format :json
+  default_error_status 400
+
+  # Tout erreur de validation est gérée à ce niveau
+  # Va renvoyer le message d'erreur au format json
+  # avec le default error status
+  rescue_from Sequel::ValidationFailed
+  rescue_from :all
 
   helpers RightHelpers
   helpers do
@@ -32,26 +39,12 @@ class UserApi < Grape::API
     end
 
     def modify_user(user)
-      params.each do |k,v|
-        # todo : Un peu hacky mais je ne vois pas comment faire autrement...
-        if k != "user_id" and k != "route_info" and k != "session_key"
-          begin
-            if user.respond_to?(k.to_sym) 
-              user.set(k.to_sym => v)
-            else
-              error!("Parametre #{k} non pris en charge", 400)
-            end
-          rescue Sequel::ValidationFailed
-            error!("Validation failed", 400)
-          end
-        end
+      # Use the declared helper
+      declared(params, include_missing: false).each do |k,v|
+        user.set(k.to_sym => v)
       end
 
-      begin
-        user.save()
-      rescue Sequel::ValidationFailed
-        error!("Validation failed", 400)
-      end
+      user.save()
     end
   end
 
@@ -65,9 +58,9 @@ class UserApi < Grape::API
   # Renvois la ressource user
   desc "Service de création d'un utilisateur"
   params do
-    # todo : optional mais si password, login obligé et vice/versa
+    # todo : optional mais si password, login obligé et vice/versa ?
     requires :login, type: String, desc: "Doit commencer par une lettre et ne pas comporter d'espace"
-    optional :password, type: String
+    requires :password, type: String
     requires :nom, type: String
     requires :prenom, type: String
     optional :sexe, type: String, desc: "Valeurs possibles : F ou M"
@@ -90,6 +83,19 @@ class UserApi < Grape::API
   # Même chose que post mais peut ne pas prendre des champs require
   # Renvois la ressource user complète
   desc "Modification d'un compte utilisateur"
+  params do
+    optional :login, type: String, desc: "Doit commencer par une lettre et ne pas comporter d'espace"
+    optional :password, type: String
+    optional :nom, type: String
+    optional :prenom, type: String
+    optional :sexe, type: String, desc: "Valeurs possibles : F ou M"
+    optional :date_naissance, type: Date
+    optional :adresse, type: String
+    optional :code_postal, type: Integer, desc: "Ne doit comporter que 6 chiffres" 
+    optional :ville, type: String
+    optional :id_sconet, type: Integer
+    optional :id_jointure_aaf, type: Integer
+  end
   put "/:user_id" do
     user = check_user!()
     authorize_activites!(ACT_UPDATE, user.ressource)
@@ -414,5 +420,24 @@ class UserApi < Grape::API
         user.set_preference(param_application.id, nil)
       end
     end
+  end
+
+  #todo : en post ou en get ?
+  #todo : comment limiter les appel à cette api pour éviter le spamming ?
+  # le sign_in/ est "obligatoire" afin de ne pas confondre avec le GET /:user_id
+  # Api publique
+  desc "Procedure de regénération des mots de passe. Envois un mail à la personne à qui le login ou l'adresse mail appartient"
+  params do
+    optional :login, type: String
+    optional :adresse, type: String
+  end
+  get "sign_in/forgot_password" do
+    # Si l'adresse passée en paramètre correspond à plusieurs login et qu'on a pas le login passé en paramètre
+    # On renvois une erreur
+
+    # si l'utilisateur n'a qu'un login et pas d'adresse mail associées
+    # on envoit automatiquement un mail à ses parents ?
+    # au deux ?
+    "ok"
   end
 end
