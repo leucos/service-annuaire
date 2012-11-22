@@ -422,14 +422,15 @@ class UserApi < Grape::API
     end
   end
 
-  #todo : en post ou en get ?
-  #todo : comment limiter les appel à cette api pour éviter le spamming ?
+  # todo : gérer aussi les récupération de mot de passe avec login 
+  # et envoie de mail au parent si l'élève n'a pas d'email ?
+  # todo : comment limiter les appel à cette api pour éviter le spamming ?
   # le sign_in/ est "obligatoire" afin de ne pas confondre avec le GET /:user_id
   # Api publique
   desc "Procedure de regénération des mots de passe. Envois un mail à la personne à qui le login ou l'adresse mail appartient"
   params do
+    requires :adresse, type: String
     optional :login, type: String
-    optional :adresse, type: String
   end
   get "sign_in/forgot_password" do
     # Si l'adresse passée en paramètre correspond à plusieurs login et qu'on a pas le login passé en paramètre

@@ -29,6 +29,10 @@
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
 class User < Sequel::Model(:user)
+  # Déclenché quand on tente d'envoyer un mail de regénération de mot de passe
+  # sur un email qui nous appartient pas ou qui n'appartient pas aux parents
+  class InvalidEmailOwner < StandardError
+  end
 
   # Plugins
   plugin :validation_helpers
@@ -47,7 +51,7 @@ class User < Sequel::Model(:user)
     :join_table => :relation_eleve, :class => self
   many_to_many :enfants, :left_key => :user_id, :right_key => :eleve_id, 
     :join_table => :relation_eleve, :class => self do |ds|
-      ds.where(:type_relation_eleve_id => ["PAR", "RLGL"])
+      ds.where(:type_relation_eleve_id => [TYP_REL_PAR, TYP_REL_RLGL])
     end
   # Liste de tous les utilisateurs (adultes) avec qui l'élève est en relation
   many_to_many :relation_adulte, :left_key => :eleve_id, :right_key => :user_id, 
@@ -55,7 +59,7 @@ class User < Sequel::Model(:user)
   # Liste de tous les parents d'un élève
   many_to_many :parents, :left_key => :eleve_id, :right_key => :user_id, 
     :join_table => :relation_eleve, :class => self do |ds|
-      ds.where(:type_relation_eleve_id => ["PAR", "RLGL"])
+      ds.where(:type_relation_eleve_id => [TYP_REL_PAR, TYP_REL_RLGL])
     end
 
   # Check si l'id passé en paramètre correspond bien aux critères d'identifiant ENT
@@ -377,6 +381,47 @@ class User < Sequel::Model(:user)
       :ressource_id => ressource_id, :ressource_service_id => service_id)
   end
 
+  # Créé une session utilisateur temporaire
+  # pour permettre à la personne de se connecter sans login/mdp
+  # puis met le flag change_password à true
+  # et envois un mail avec une url contenant la clé de session
+  # Il ne sera pas demandé à l'utilisateur de se logué car il a une session
+  # et comme le flag change_password est à true, on lui demandera
+  # en premier lieu de changer son password
+  # todo : faire passer ça dans sidekick et à un système d'envois de mail centralisé avec template
+  def send_password_mail(email)
+    # On envois que si le mail nous appartient ou appartient à nous parent
+    is_parent_mail = parents.index{|p| p.has_email(email)} != nil
+    if has_email(email) or is_parent_mail
+      self.update(:change_password => true)
+      session_key = AuthSession.create(self.id, EMAIL_DURATION)
+      full_name = self.full_name
+      mail = Mail.new do
+        to email.adresse
+        from "noreply@laclasse.com"
+        subject "[laclasse.com] Veuillez réinitialiser votre mot de passe"
+        # todo : ne pas mettre l'adresse laclasse.com en dur
+        body(
+"Bonjour,
+
+Il semblerait que #{is_parent_mail ? 'votre enfant ' + full_name + ' a' :'vous avez'} perdu #{is_parent_mail ? 'son':'votre'} mot de passe laclasse.com.
+Si c'est le cas, merci de suivre dans les prochaines #{EMAIL_DURATION/3600}h le lien ci-dessous afin de réinitialiser #{is_parent_mail ? 'son':'votre'} mot de passe :
+https://www.laclasse.com/?session_key=#{session_key}
+
+Si vous #{is_parent_mail ? '(ou votre enfant) ':''}n'avez pas fait de demande de réinitialisation de mot de passe, merci d'ignorer ce message.
+Sachez qu'il #{is_parent_mail ? '':'vous '}sera tout de même demandé #{is_parent_mail ? 'à votre enfant ':''}de changer de mot de passe lors de #{is_parent_mail ? 'sa':'votre'} prochaine connexion.
+
+Cordialement,
+
+L'équipe laclasse.com")
+      end
+      # Dommage que l'on ne peut pas préciser ça dans le deliver...
+      mail.charset = 'utf-8'
+      mail.deliver
+    else
+      raise InvalidEmailOwner
+    end
+  end
 
 private
   

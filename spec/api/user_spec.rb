@@ -288,7 +288,7 @@ describe UserApi do
   end
 
   it "Gère quand l'utilisateur à perdu son mot de passe" do
-    get("user/sign_in/forgot_password").status.should == 200
+    get("user/sign_in/forgot_password?adresse=test@laclasse.com").status.should == 200
   end
 
 =begin

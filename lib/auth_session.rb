@@ -42,7 +42,7 @@ class AuthSession
   # Génère un id de session unique et l'associe à un id d'utlisateur
   # Met un time to live à 1H
   # todo : empêcher la création de session pour des utilisateurs inexistant ?
-  def self.create(user_id)
+  def self.create(user_id, ttl = AuthConfig::SESSION_DURATION)
     raise UserNotFound.new if User[user_id].nil?
 
     # Ne change pas la session si elle est statique
@@ -50,7 +50,7 @@ class AuthSession
     return stored_session if stored_session
 
   	key = SecureRandom.urlsafe_base64
-  	REDIS.setex(key(key), AuthConfig::SESSION_DURATION, user_id)
+  	REDIS.setex(key(key), ttl, user_id)
   	return key
   end
 end 
