@@ -272,6 +272,10 @@ class UserApi < Grape::API
   end
 
   desc "Envois un email de verification à l'utilisateur sur l'email choisit"
+  params do
+    requires :user_id, type: String
+    requires :email_id, type: Integer
+  end
   get ":user_id/email/:email_id/validate" do
     user = check_user!()
     email = Email[:id => params[:email_id]]
@@ -281,11 +285,14 @@ class UserApi < Grape::API
   end
 
   desc "Envois un email de verification à l'utilisateur sur l'email choisit"
+  params do
+    requires :user_id, type: String
+    requires :email_id, type: Integer
+  end
   get ":user_id/email/:email_id/validate/:validation_key" do
-    u = User[:id => params[:user_id]]
+    user = check_user!()
     email = Email[:id => params[:email_id]]
-    error!("Utilisateur non trouvé", 404) if u.nil?
-    error!("Email non trouvé", 404) if email.nil? or !u.has_email(email)
+    error!("Email non trouvé", 404) if email.nil? or !user.has_email(email)
 
     valide = email.check_validation_key(params[:validation_key])
     error!("Clé de validation invalide ou périmée", 404) unless valide
@@ -294,13 +301,8 @@ class UserApi < Grape::API
   #recuperer la liste des telephones qui appartien à un utilisateur 
   desc "recuperer les telephones"
   get ":user_id/telephones" do
-    user_id = params["user_id"]
-    u = User[:id => user_id]
-    if u.nil?
-      error!("ressource non trouvé", 403)
-    else
-      u.telephone.map{|tel| {id: tel.id, numero: tel.numero, type: tel.type_telephone_id} } 
-    end
+    user = check_user!()
+    user.telephone.map{|tel| {id: tel.id, numero: tel.numero, type: tel.type_telephone_id} } 
   end 
   
   #ajouter un telephone
@@ -310,20 +312,14 @@ class UserApi < Grape::API
     optional :type_telephone_id, type: String
   end
   post ":user_id/telephone"do
-    user_id = params["user_id"]
-    if User[:id =>user_id].nil?
-      error!("ressource non trouvé", 403)
-    else 
-      numero = params["numero"]
-      u = User[:id =>user_id]
-      if !params["type_telephone_id"].nil? and ["MAIS", "PORT", "TRAV", "AUTR"].include?(params["type_telephone_id"])
-        type_telephone_id = params["type_telephone_id"]
-        u.add_telephone(numero, type_telephone_id )
-      else       
-        u.add_telephone(numero)
-      end    
-
-    end 
+    user = check_user!()
+    numero = params["numero"]
+    if !params["type_telephone_id"].nil? and ["MAIS", "PORT", "TRAV", "AUTR"].include?(params["type_telephone_id"])
+      type_telephone_id = params["type_telephone_id"]
+      user.add_telephone(numero, type_telephone_id )
+    else
+      user.add_telephone(numero)
+    end
   end
 
   #modifier le telephone
@@ -334,9 +330,8 @@ class UserApi < Grape::API
     optional :type_telephone_id, type: String
   end
   put ":user_id/telephone/:telephone_id"  do 
-    u = User[params[:user_id]]
-    error!("ressource non trouvée", 404) if u.nil?
-    tel = u.telephone_dataset[params[:telephone_id]]  
+    user = check_user!()
+    tel = user.telephone_dataset[params[:telephone_id]]  
     error!("ressource non trouvée", 404) if tel.nil?
     
     tel.set(:numero => params[:numero]) if params[:numero]
@@ -352,13 +347,10 @@ class UserApi < Grape::API
   #supprimer un telephone 
   desc "suppression d'un telephone"
   delete ":user_id/telephone/:telephone_id"  do
-    user_id = params["user_id"]
-    u = User[:id => user_id]
-    if u.nil?
-      error!("ressource non trouvé", 404)
-    elsif params["telephone_id"].nil? or params["telephone_id"].empty? 
+    user = check_user!()
+    if params["telephone_id"].nil? or params["telephone_id"].empty? 
       error!("mouvaise requete", 400)
-    elsif !u.telephone.map{|tel| tel.id}.include?(params["telephone_id"].to_i)  
+    elsif !user.telephone.map{|tel| tel.id}.include?(params["telephone_id"].to_i)  
       error!("ressource non trouvé", 404)
     else
       tel = Telephone[:id => params["telephone_id"].to_i]
@@ -370,74 +362,57 @@ class UserApi < Grape::API
   #Récupère les préférences d'une application
   desc "Récupère les préférences d'une application d'un utilisateur"
   get ":user_id/application/:application_id/preferences" do 
-    user_id = params["user_id"]
+    user = check_user!()
     application_id = params["application_id"]
     application = Application[:id => application_id]
-    u = User[:id => user_id]
-    if u.nil? or application.nil?
-      error!("ressource non trouvé", 404)
-    else
-      #puts u.preferences(application_id).inspect
-      u.preferences(application_id)
-    end 
-
+    user.preferences(application_id)
   end
 
   #Modifie une préférence
   desc "Modifier une(des) preferecne(s)"
   put ":user_id/application/:application_id/preferences" do
-    user_id = params["user_id"]
+    user = check_user!()
     application_id = params["application_id"]
     application = Application[:id => application_id]
-    u = User[:id => user_id]
-    if u.nil? or application.nil?
-      error!("ressource non trouvé", 404)
-    else
-      preferences  = params.select {|key, value|  (key != "route_info" and key != "user_id" and key != "application_id")  }
-      #puts preferences.inspect
-      # no preferences are sent
-      if preferences.count == 0 
-        error!("mouvaise requete", 403)
+    
+    preferences  = params.select {|key, value|  (key != "route_info" and key != "user_id" and key != "application_id")  }
+    #puts preferences.inspect
+    # no preferences are sent
+    if preferences.count == 0 
+      error!("mauvaise requete", 403)
+    end
+    i = 0
+    preferences.each do |code, value|
+      param_application = ParamApplication[:code => code]
+      if param_application.nil?
+        i+=1
       end
-      i = 0 
-      preferences.each do |code, value|
-        param_application = ParamApplication[:code => code]
-        if param_application.nil?
-          i+=1
-        end                     
+    end
+    # all preferences are not valid
+    if preferences.count == i and i > 0
+      error!("mauvaise requete", 403)
+    end
+    preferences.each do |code, value|
+      param_application = ParamApplication[:code => code]
+      if !param_application.nil? and param_application.application_id == application_id
+        user.set_preference(param_application.id, value)
       end
-      # all preferences are not valid 
-      if preferences.count == i and i > 0
-        error!("mouvaise requete", 403)
-      end
-      preferences.each do |code, value|
-        param_application = ParamApplication[:code => code]
-        if !param_application.nil? and param_application.application_id == application_id 
-          u.set_preference(param_application.id, value)
-        end                     
-      end
-
     end
   end
 
   #Remettre la valeure par défaut pour toutes les préférences
   desc "Remettre la valeure par défaut pour toutes les préférences"
   delete ":user_id/application/:application_id/preferences" do 
-    user_id = params["user_id"]
+    user = check_user!()
     application_id = params["application_id"]
     application = Application[:id => application_id]
-    u = User[:id => user_id]
-    if u.nil? or application.nil?
-      error!("ressource non trouvé", 404)
-    else
-      preferences = ParamUser.filter(:user_id  => user_id).select(:param_application_id).all
-      preferences.each do |paramuser|
-        param_application = ParamApplication[:id => paramuser.param_application_id]
-        if !param_application.nil? and param_application.application_id == application_id 
-          u.set_preference(param_application.id, nil)
-        end                   
-      end 
-    end   
 
+    preferences = ParamUser.filter(:user  => user).select(:param_application_id).all
+    preferences.each do |paramuser|
+      param_application = ParamApplication[:id => paramuser.param_application_id]
+      if !param_application.nil? and param_application.application_id == application_id
+        user.set_preference(param_application.id, nil)
+      end
+    end
   end
 end

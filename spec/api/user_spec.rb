@@ -148,7 +148,7 @@ describe UserApi do
   it "envois un email de validation" do
     u = create_test_user("testuser")
     e = u.add_email("testuser@laclasse.com")
-    get("user/#{u.id}/email/prout/validate").status.should == 404
+    get("user/#{u.id}/email/prout/validate").status.should == 400
     get("user/#{u.id}/email/12345/validate").status.should == 404
     get("user/#{u.id}/email/#{e.id}/validate").status.should == 200
     # Peut être fait plusieurs fois comme github
