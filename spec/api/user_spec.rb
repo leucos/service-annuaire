@@ -31,7 +31,7 @@ describe UserApi do
     post('/user', :login => 'test', :password => 'test', 
       :nom => 'test', :prenom => 'test', :sexe => 'F').status.should == 201
     User.filter(:login => "test").count.should == 1
-    JSON.parse(last_response.body)[:sexe].should == 'F'
+    JSON.parse(last_response.body)["sexe"].should == 'F'
   end
 
   it "fail on user creation when given non regexp compliant arguments" do
@@ -59,20 +59,23 @@ describe UserApi do
 
   it "returns user relations" do 
     u = create_test_user()
+    eleve = create_test_user("testeleve")
     get("user/#{u.id}/relations").status.should == 200
-    user = JSON.parse(last_response.body)
-    delete_test_users()
+    # pas possible de récupérer une relation spécifique (sert pas à grand chose)
+    get("user/#{u.id}/relation/#{eleve.id}").status.should == 405
+    
   end
 
   it "be able to add new relations to users if sending good parameters and return bad request or resource not found otherwise" do 
     u = create_test_user()
-    post("user/#{u.id}/relation", :eleve_id => "VAA60000", :type_relation_id => "PAR").status.should == 201
-    response = JSON.parse(last_response.body)
+    eleve = create_test_user("testeleve")
+    post("user/#{u.id}/relation", :eleve_id => eleve.id, :type_relation_id => TYP_REL_PAR).status.should == 201
+    #response = JSON.parse(last_response.body)
     # bad request 
-    post("user/#{u.id}/relation", :type_relation_id => "PAR").status.should == 400
+    post("user/#{u.id}/relation", :type_relation_id => TYP_REL_PAR).status.should == 400
 
     #resource not found (non trouvé)
-    post("user/VADD/relation", :eleve_id => "VAA60000", :type_relation_id => "PAR").status.should == 404 
+    post("user/VADD/relation", :eleve_id => eleve.id, :type_relation_id => TYP_REL_PAR).status.should == 404 
     #puts response.inspect
   end
 
@@ -80,18 +83,19 @@ describe UserApi do
     u = create_test_user()
     eleve = create_test_user("testeleve")
     #good request
-    put("user/#{u.id}/relation/#{eleve.id}", :type_relation_id => "PAR").status.should == 200
-    get("user/#{u.id}/relation/#{eleve.id}")
+    post("user/#{u.id}/relation", :eleve_id => eleve.id, :type_relation_id => TYP_REL_RLGL).status.should == 201
+    put("user/#{u.id}/relation/#{eleve.id}", :type_relation_id => TYP_REL_PAR).status.should == 200
+    
     #bad requests
     put("user/#{u.id}/relation/#{eleve.id}", :type_relation_id => "").status.should == 400
-    put("user/#{u.id}/relation/", :type_relation_id => "PAR").status.should == 405
-    put("user/vva/relation/#{eleve.id}", :type_relation_id => "PAR").status.should == 403
+    put("user/#{u.id}/relation/", :type_relation_id => TYP_REL_PAR).status.should == 405
+    put("user/vva/relation/#{eleve.id}", :type_relation_id => TYP_REL_PAR).status.should == 404
   end 
 
   it "be able to delete an existing relation" do 
     u = create_test_user()
     eleve = create_test_user("testeleve")
-    put("user/#{u.id}/relation/#{eleve.id}", :type_relation_id => "PAR")
+    u.add_enfant(eleve)
     delete("user/#{u.id}/relation/#{eleve.id}").status.should == 200
     response = last_response.body
     #puts response
@@ -112,7 +116,7 @@ describe UserApi do
   it "adds an email to a specific user" do 
     u = create_test_user()
     post("user/#{u.id}/email").status.should == 400
-    post("user/VAaadfq/email", :adresse => "testuser@laclasse.com").status.should == 403
+    post("user/VAaadfq/email", :adresse => "testuser@laclasse.com").status.should == 404
     post("user/#{u.id}/email", :adresse => "testuser@laclasse.com").status.should == 201
     u.email.first.adresse.should == "testuser@laclasse.com" 
   end
@@ -121,8 +125,10 @@ describe UserApi do
     u = create_test_user()
     u.add_email("testuser@laclasse.com")
     id = u.email.first.id
-    put("user/#{u.id}/email/vddd", :adresse => "modifie@laclasse.com").status.should == 403
+    put("user/#{u.id}/email/vddd", :adresse => "modifie@laclasse.com").status.should == 400
+    put("user/#{u.id}/email/12345", :adresse => "modifie@laclasse.com").status.should == 404
     put("user/#{u.id}/email/#{id}", :adresse => "modifie@laclasse.com", :principal => true, :academique => true ).status.should == 200
+    u.email_dataset.filter(:academique => true).count.should == 1
     response = last_response.body
     #puts response
   end 
@@ -132,12 +138,31 @@ describe UserApi do
     u.add_email("testuser@laclasse.com")
     id = u.email.first.id
     count = u.email.count 
-    delete("user/#{u.id}/email/vddd").status.should == 403
+    delete("user/#{u.id}/email/vddd").status.should == 400
+    delete("user/#{u.id}/email/12345").status.should == 404
     delete("user/#{u.id}/email/#{id}").status.should == 200
     u.refresh()
     u.email.count.should == (count-1)
   end
 
+  it "envois un email de validation" do
+    u = create_test_user("testuser")
+    e = u.add_email("testuser@laclasse.com")
+    get("user/#{u.id}/email/prout/validate").status.should == 400
+    get("user/#{u.id}/email/12345/validate").status.should == 404
+    get("user/#{u.id}/email/#{e.id}/validate").status.should == 200
+    # Peut être fait plusieurs fois comme github
+    get("user/#{u.id}/email/#{e.id}/validate").status.should == 200
+  end
+
+  it "Permet de valider une adresse email" do
+    u = create_test_user("testuser")
+    e = u.add_email("testuser@laclasse.com")
+    key = e.generate_validation_key
+    get("user/#{u.id}/email/#{e.id}/validate/#{key}").status.should == 200
+    get("user/#{u.id}/email/#{e.id}/validate/#{key}").status.should == 404
+    get("user/#{u.id}/email/#{e.id}/validate/mauvaise_cle").status.should == 404
+  end
   it "returns a list of user phone numbers" do 
     u = create_test_user("testuser")
     u.add_telephone("0404040404", TYP_TEL_MAIS)
@@ -238,7 +263,7 @@ describe UserApi do
       :ressource_id => e.ressource.id, :ressource_service_id => e.ressource.service_id,
       :role_id => role.id)
     #u.etablissements.count.should == 2
-    get("/user/entity/#{u.id}").status.should == 200
+    get("/user/#{u.id}").status.should == 200
   end  
 
   it "respond to a query without parameters" do

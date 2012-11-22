@@ -153,6 +153,17 @@ describe User do
     u.email.count.should == 3
   end
 
+  it "Sait si un email apparatient à l'utilisateur" do
+    u1 = create_test_user()
+    e1 = u1.add_email("test@laclasse.com")
+    u2 = create_test_user("test2")
+    e2 =u2.add_email("test2@laclasse.com")
+    u1.has_email(e1).should == true
+    u1.has_email(e2).should == false
+    u2.has_email(e1).should == false
+    u2.has_email(e2).should == true
+  end
+
   it "add a telephone to the user" do
     u = create_test_user()
     u.add_telephone("0478431245")
@@ -216,6 +227,17 @@ describe User do
     u.relations.length.should == 2
     p1.relations.length.should == 1
     p2.relations.length.should == 1
+  end
+
+  it ".find_relation renvoie la relation entre un utilisateur et un eleve si elle existe" do
+    u = create_test_user()
+    e = create_test_user("eleve")
+    e2 = create_test_user("eleve2")
+    u.add_enfant(e)
+
+    u.find_relation(e).should_not == nil
+    u.find_relation(e).class.should == RelationEleve
+    u.find_relation(e2).should == nil
   end
 
   it ".ressource return associated ressource" do

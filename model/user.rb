@@ -186,6 +186,10 @@ class User < Sequel::Model(:user)
     RelationEleve.filter({:eleve_id => self.id, :user_id => self.id}.sql_or).all
   end
 
+  def find_relation(eleve)
+    RelationEleve.filter(:user_id => self.id, :eleve_id => eleve.id).first
+  end
+
   # Renvoi le premier profil_user trouvé dans un établissement
   # Pas super mais il faut réfléchir à cette notion de profil_actif
   def profil_actif
@@ -311,6 +315,13 @@ class User < Sequel::Model(:user)
   def email_academique
     email = email_dataset.filter(:academique => true).first
     return email.nil? ? nil : email.adresse
+  end
+
+  # Permet de savoir si l'email passé en paramètre appartient bien à l'utilisateur
+  # param Email
+  # return true or false
+  def has_email(email)
+    self.email.include?(email)
   end
 
   # Ajoute un téléphone à l'utilisateur

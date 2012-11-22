@@ -102,4 +102,26 @@ class SsoApi < Grape::API
     
     dataset.all
   end
+
+
+  # TEMP : je ne sais pas si ce code sert toujours
+  desc "Renvois le profil utilisateur si on donne le bon login. Nécessite une authentification."
+  params do
+    requires :login, type: String
+  end
+  get "profil/:login" do
+    result = {} 
+    u = User[:login => params[:login]]
+    if u
+      #result[:user] = u
+      p = u.profil_actif
+      if p
+        #result[:profil] = {:code_uai => p.etablissement.code_uai, :code_ent => p.profil.code_ent}
+        result = u.to_hash.merge({:code_uai => p.etablissement.code_uai, :categories => p.profil.code_ent}) 
+      end
+    else
+      error!("Utilisateur non trouvé", 404)
+    end
+    result
+  end
 end

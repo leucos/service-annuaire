@@ -14,6 +14,9 @@ require 'grape'
 require 'i18n'
 require 'date'
 require 'nokogiri'
+require 'securerandom'
+require 'redis'
+require 'mail'
 
 require __DIR__('config/init')
 # Initialize controllers and models

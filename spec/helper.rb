@@ -13,6 +13,10 @@ RSpec.configure do |c|
   end
 end
 
+Mail.defaults do
+  delivery_method :test
+end
+
 def create_test_user(login = "test")
   User.create(:login => login, :password => 'test', :nom => 'test', :prenom => 'test')
 end

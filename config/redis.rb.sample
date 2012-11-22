@@ -1,0 +1,5 @@
+REDIS  = Redis.new({:host => '127.0.0.1', :port => 6379})
+REDIS_PATH = "com.laclasse.dev.annuaire"
+EMAIL_PATH = "email"
+# 5 heures
+EMAIL_DURATION = 3600 * 5

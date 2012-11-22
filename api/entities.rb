@@ -2,10 +2,10 @@ module API
   module Entities
     class User < Grape::Entity
       #root 'users', 'user'
-      expose :id, :id_sconet, :login, :nom, :prenom
+      expose :id, :id_sconet, :login, :nom, :prenom, :sexe
+      expose(:full_name) {|user,options| user.full_name}
       expose :profil_user, :as => :profils
       expose :email, :as => :adresse_emails
-      expose(:name) {|user,options| [ user.prenom, user.nom ].join(' ')}
       # etablissement + rights + profils
       expose(:etablissements) do |user,options|
         user.etablissements.map do |etab| 
