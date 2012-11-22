@@ -398,7 +398,68 @@ describe EtabApi do
     response["valeur"].to_i.should  == 60
   end
 
-  it "return the default value" 
+  it "resets the value by default of a parameter" do 
+    etab = create_test_etablissement
+    # params {:code => type } 
+    parameters = {"param_1" => false} 
+    app_id = "test_app"
+    app = create_test_application_with_params(app_id, parameters)
+    # add application to etab 
+    ApplicationEtablissement.create(:application_id => app.id, :etablissement_id => etab.id)
+    #create test etablissment parameter
+    param_id = ParamApplication[:code => "param_1"].id 
+    etab.set_preference(param_id, 50)
+    
+    get("/etablissement/#{etab.id}/parametre/#{app_id}/param_1").status.should == 200
+    response = JSON.parse(last_response.body)
+    response["valeur"].to_i.should  == 50
 
+    delete("/etablissement/#{etab.id}/parametre/#{app_id}/param_1").status.should == 200
+
+    get("/etablissement/#{etab.id}/parametre/#{app_id}/param_1").status.should == 200
+    response = JSON.parse(last_response.body)
+    response["valeur"].should  == nil
+  end
+
+  it "retruns all parameters of an application" do 
+    etab = create_test_etablissement
+    # params {:code => type } 
+    parameters = {"param_1" => false, "param_2" => false, "param_3" => false} 
+    app_id = "test_app"
+    app = create_test_application_with_params(app_id, parameters)
+
+    # add application to etab 
+    ApplicationEtablissement.create(:application_id => app.id, :etablissement_id => etab.id)
+
+    param_id = ParamApplication[:code => "param_1"].id 
+    etab.set_preference(param_id, 50) 
+
+    get("/etablissement/#{etab.id}/parametres/#{app.id}").status.should == 200
+    response = JSON.parse(last_response.body)
+    response.count.should == 3
+  end
+
+
+  it "returns all parameters in the school(etablissement)" do
+    etab = create_test_etablissement 
+    # parameters 
+    parameters= {"param_1" => false, "param_2" => false}
+    app1_id  = "app1"
+    app1 = create_test_application_with_params(app1_id, parameters)
+
+    # add application to etab 
+    ApplicationEtablissement.create(:application_id => app1.id, :etablissement_id => etab.id)
+
+    app2_id = "app2" 
+    app2 = create_test_application_with_params(app2_id, parameters)
+
+    # add application to etab 
+    ApplicationEtablissement.create(:application_id => app2.id, :etablissement_id => etab.id)
+
+    get("/etablissement/#{etab.id}/parametres").status.should == 200
+
+    puts last_response.body 
+
+  end  
 
 end

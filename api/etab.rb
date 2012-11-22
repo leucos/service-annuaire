@@ -747,19 +747,51 @@ class EtabApi < Grape::API
     desc "Remettre la valeure par defaut du parametre"
     params do 
       requires :id, type: Integer 
-      requires :app_id, type: Integer 
+      requires :app_id, type: String 
       requires :code , type: String
     end   
     delete "/:id/parametre/:app_id/:code" do 
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+
+      app = Application[:id => params[:app_id]]
+      error!("ressource non trouvee", 404) if app.nil?
+
+      param_application = ParamApplication[:code => params[:code]]
+      error!("ressource non trouvee", 404) if param_application.nil?
+      begin
+        id = param_application.id 
+        etab.set_preference(id, nil) 
+      rescue => e
+        error!("mouvaise requete", 400) 
+      end   
     end
 
     ##################
     desc "Recupere tous les parametres sur une application donnee"
     params do
       requires :id, type: Integer 
-      requires :app_id, type: Integer  
+      requires :app_id, type: String  
     end 
-    get "/:id/parametres/:app_id" do 
+    get "/:id/parametres/:app_id" do
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+
+      app = Application[:id => params[:app_id]]
+      error!("ressource non trouvee", 404) if app.nil?
+      begin
+        if ApplicationEtablissement[:application_id => app.id, :etablissement_id => etab.id]
+          parameters = etab.preferences(app.id) 
+          # for the moment this returns the whole parameter object
+          parameters
+        else
+          error!("ressource non trouvee", 404) 
+        end 
+
+      rescue  => e 
+        error!("mouvaise requete", 400)
+      end 
+
     end
 
     ###################
@@ -767,7 +799,23 @@ class EtabApi < Grape::API
     params do 
       requires :id, type: Integer 
     end 
-    get "/:id/parametres" do 
+    get "/:id/parametres" do
+      puts params.inspect
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      begin
+        parameters = []
+        ApplicationEtablissement.filter(:etablissement_id => etab.id).each do |app_etab|
+          temp  = etab.preferences(app_etab.application_id)
+            temp.each do |param|
+              parameters.push(param)
+            end  
+        end
+        parameters     
+      rescue => e
+        error!("mouvaise requete", 400)
+      end
+      
     end 
 
     ###################
