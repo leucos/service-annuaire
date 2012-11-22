@@ -32,7 +32,7 @@ describe Etablissement do
     u.add_profil(e.id, PRF_ELV)
     e.destroy()
     ProfilUser.filter(:user => u).count.should == 0
-
+    
     delete_test_etablissements()
     delete_test_users()
   end

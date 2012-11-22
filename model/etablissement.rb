@@ -132,11 +132,11 @@ class Etablissement < Sequel::Model(:etablissement)
   end
 
   # Renvois les preferences d'un établissement sur une application
-  def preferences(application_id)
-    ParamApplication.
+  def preferences(application_id, code)
+    DB[:param_application].
       join_table(:left, :param_etablissement, {:param_application_id => :id, :etablissement_id => self.id}).
-      filter(:application_id => application_id, :preference => true).
-      select(:code, :valeur_defaut, :valeur, :libelle, :description, :autres_valeurs, :type_param_id).
+      filter(:application_id => application_id, :preference => false, :code => code).
+      select(:id, :valeur_defaut, :valeur, :libelle, :description, :autres_valeurs, :type_param_id).
       all
   end
 end
