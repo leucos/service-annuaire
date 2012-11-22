@@ -10,7 +10,7 @@ module RightHelpers
     # Puis enfin dans les paramètres GET/POST
     session = params[:session_key] if params[:session_key]
 
-    error!("Clé de session introuvable", 403) if  session.nil?
+    error!("Clé de session introuvable", 401) if  session.nil?
 
     # Une fois qu'on a la session, on doit récupérer l'utilisateur lié à cette session
     user_id = AuthSession.get(session)
@@ -30,7 +30,7 @@ module RightHelpers
       end
       error!("Pas de droits", 403) if !authorized  
     else
-      error!("Clé de session=#{session} non valide", 403)
+      error!("Clé de session=#{session} non valide", 401)
     end
   end
 end

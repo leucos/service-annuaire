@@ -23,7 +23,11 @@ describe UserApi do
   end
 
   it "return user profile on user creation" do
-    post('/user', :login => 'test', :password => 'test', :nom => 'test', :prenom => 'test').status.should == 201
+    hash = {:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test'}
+    #post('/user/modification', hash).status.should == 201
+    post('/user', hash).status.should == 201
+    # On ne peut pas créer 2 fois un user avec le même login
+    post('/user', hash).status.should == 400
     User.filter(:login => "test").count.should == 1
   end
 
@@ -54,7 +58,8 @@ describe UserApi do
 
   it "not accept bad parameters" do
     u = create_test_user()
-    put("/user/#{u.id}", :truc => 'titi').status.should == 400
+    # Doit-on gueuler quand on passe un paramètre pas attendu ?
+    put("/user/#{u.id}", :truc => 'titi').status.should == 200
   end
 
   it "returns user relations" do 
@@ -280,7 +285,11 @@ describe UserApi do
     response = JSON.parse(last_response.body)
     response["TotalModelRecords"].should == User.count
     response["TotalQueryResults"].should == User.count    
-  end 
+  end
+
+  it "Gère quand l'utilisateur à perdu son mot de passe" do
+    get("user/sign_in/forgot_password").status.should == 200
+  end
 
 =begin
   it "query responds also to model instance methods" do
