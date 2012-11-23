@@ -56,7 +56,7 @@ class UserApi < Grape::API
   end
 
   desc "Renvois le profil utilisateur si on donne le bon id. Nécessite une authentification."
-  get "/:user_id" do
+  get "/:user_id", :requirements => { :user_id => /.{8}/ } do
     user = check_user!()
     authorize_activites!(ACT_READ, user.ressource)
     present user, with: API::Entities::User
@@ -428,14 +428,13 @@ class UserApi < Grape::API
   # todo : gérer aussi les récupération de mot de passe avec login 
   # et envoie de mail au parent si l'élève n'a pas d'email ?
   # todo : comment limiter les appel à cette api pour éviter le spamming ?
-  # le sign_in/ est "obligatoire" afin de ne pas confondre avec le GET /:user_id
   # Api publique
   desc "Procedure de regénération des mots de passe. Envois un mail à la personne à qui le login ou l'adresse mail appartient"
   params do
     requires :adresse, type: String
     optional :login, type: String
   end
-  get "sign_in/forgot_password" do
+  get "forgot_password" do
     # Si l'adresse passée en paramètre correspond à plusieurs login et qu'on a pas le login passé en paramètre
     # On renvois une erreur
     if params[:login]
