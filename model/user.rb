@@ -38,6 +38,7 @@ class User < Sequel::Model(:user)
   plugin :validation_helpers
   plugin :json_serializer
   plugin :ressource_link, :service_id => SRV_USER
+  plugin :fuzzy_search
 
   # Referential integrity
   one_to_many :enseigne_regroupement

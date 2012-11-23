@@ -1,3 +1,4 @@
+#coding: utf-8
 module Sequel
   module Plugins
     # Plugin qui rajoute une relation one_to_one vers une ressource du type de la classe
