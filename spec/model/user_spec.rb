@@ -2,6 +2,8 @@
 require_relative '../helper'
 
 describe User do
+  include Mail::Matchers
+
   before(:all) do
     #In case of something went wrong
     delete_test_users()
@@ -158,10 +160,10 @@ describe User do
     e1 = u1.add_email("test@laclasse.com")
     u2 = create_test_user("test2")
     e2 =u2.add_email("test2@laclasse.com")
-    u1.has_email(e1).should == true
-    u1.has_email(e2).should == false
-    u2.has_email(e1).should == false
-    u2.has_email(e2).should == true
+    u1.has_email(e1.adresse).should == true
+    u1.has_email(e2.adresse).should == false
+    u2.has_email(e1.adresse).should == false
+    u2.has_email(e2.adresse).should == true
   end
 
   it "add a telephone to the user" do
@@ -383,5 +385,33 @@ describe User do
     u.add_profil(e1.id, PRF_ELV)
     
     u.profil_actif.should_not == nil
+  end
+
+  it "send a password email and set change_password to true" do
+    u = create_test_user()
+    u.update(:change_password => false)
+    email = u.add_email("test@test.com")
+    u.send_password_mail(email)
+    u.change_password.should == true
+    should have_sent_email.from('noreply@laclasse.com')
+    should have_sent_email.to(email.adresse)
+  end
+
+  it "send pasword mail only to your email or your parents email" do
+    #On ne peut pas envoyé le mail de mot de passe sur une adresse mail
+    # qui est pas à nous ou sur lequel il n'y a pas un lien enfant=>parent
+    u = create_test_user()
+
+    u2 = create_test_user("t2")
+    email = u2.add_email("test2@test.com")
+    expect {
+      u.send_password_mail(email)
+    }.to raise_error(User::InvalidEmailOwner)
+
+    u2.add_enfant(u)
+    u.refresh
+    expect {
+      u.send_password_mail(email)
+    }.not_to raise_error(User::InvalidEmailOwner)
   end
 end

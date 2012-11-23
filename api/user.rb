@@ -8,6 +8,7 @@ class UserApi < Grape::API
   # Tout erreur de validation est gérée à ce niveau
   # Va renvoyer le message d'erreur au format json
   # avec le default error status
+  # todo : on peut mettre juste :all car on ne traite pas différement l'erreur de validation
   rescue_from Sequel::ValidationFailed
   rescue_from :all
 
@@ -38,6 +39,12 @@ class UserApi < Grape::API
       return user
     end
 
+    def check_email!(user)
+      email = Email[:id => params[:email_id]]
+      error!("Email non trouvé", 404) if email.nil? or !user.has_email(email.adresse)
+      return email
+    end
+
     def modify_user(user)
       # Use the declared helper
       declared(params, include_missing: false).each do |k,v|
@@ -49,7 +56,7 @@ class UserApi < Grape::API
   end
 
   desc "Renvois le profil utilisateur si on donne le bon id. Nécessite une authentification."
-  get "/:user_id" do
+  get "/:user_id", :requirements => { :user_id => /.{8}/ } do
     user = check_user!()
     authorize_activites!(ACT_READ, user.ressource)
     present user, with: API::Entities::User
@@ -251,8 +258,7 @@ class UserApi < Grape::API
   end
   put ":user_id/email/:email_id" do
     user = check_user!()
-    email = Email[:id => params[:email_id]]
-    error!("Email non trouvé", 404) if email.nil? or !user.has_email(email)
+    email = check_email!(user)
     
     email.adresse = params[:adresse] if params[:adresse]
     email.academique = params[:academique] if params[:academique]
@@ -270,8 +276,7 @@ class UserApi < Grape::API
   end
   delete ":user_id/email/:email_id" do
     user = check_user!()
-    email = Email[:id => params[:email_id]]
-    error!("Email non trouvé", 404) if email.nil? or !user.has_email(email)
+    email = check_email!(user)
     email.destroy()
 
     present user, with: API::Entities::User
@@ -284,8 +289,7 @@ class UserApi < Grape::API
   end
   get ":user_id/email/:email_id/validate" do
     user = check_user!()
-    email = Email[:id => params[:email_id]]
-    error!("Email non trouvé", 404) if email.nil? or !user.has_email(email)
+    email = check_email!(user)
 
     email.send_validation_mail()
   end
@@ -297,8 +301,7 @@ class UserApi < Grape::API
   end
   get ":user_id/email/:email_id/validate/:validation_key" do
     user = check_user!()
-    email = Email[:id => params[:email_id]]
-    error!("Email non trouvé", 404) if email.nil? or !user.has_email(email)
+    email = check_email!(user)
 
     valide = email.check_validation_key(params[:validation_key])
     error!("Clé de validation invalide ou périmée", 404) unless valide
@@ -422,22 +425,31 @@ class UserApi < Grape::API
     end
   end
 
-  #todo : en post ou en get ?
-  #todo : comment limiter les appel à cette api pour éviter le spamming ?
-  # le sign_in/ est "obligatoire" afin de ne pas confondre avec le GET /:user_id
+  # todo : gérer aussi les récupération de mot de passe avec login 
+  # et envoie de mail au parent si l'élève n'a pas d'email ?
+  # todo : comment limiter les appel à cette api pour éviter le spamming ?
   # Api publique
   desc "Procedure de regénération des mots de passe. Envois un mail à la personne à qui le login ou l'adresse mail appartient"
   params do
+    requires :adresse, type: String
     optional :login, type: String
-    optional :adresse, type: String
   end
-  get "sign_in/forgot_password" do
+  get "forgot_password" do
     # Si l'adresse passée en paramètre correspond à plusieurs login et qu'on a pas le login passé en paramètre
     # On renvois une erreur
+    if params[:login]
+      user = User[:login => params[:login]]
+      error!("Utilisateur non trouvé", 404) if user.nil?
+    else
+      dataset = User.filter(:email => Email.filter(:adresse => params[:adresse]))
+      nb_adresses = dataset.count
+      error!("Cette adresse est liée à plusieurs utilisateurs", 404) if nb_adresses > 1
+      error!("Aucun utilisateur ne correspond à cette adresse", 404) if nb_adresses == 0
 
-    # si l'utilisateur n'a qu'un login et pas d'adresse mail associées
-    # on envoit automatiquement un mail à ses parents ?
-    # au deux ?
-    "ok"
+      user = dataset.first
+    end
+
+    # send_password_mail va générer une erreur si l'email n'appartient pas à l'utilisateur ou à ses parents
+    user.send_password_mail(params[:adresse])
   end
 end

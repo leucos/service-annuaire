@@ -288,7 +288,23 @@ describe UserApi do
   end
 
   it "Gère quand l'utilisateur à perdu son mot de passe" do
-    get("user/sign_in/forgot_password").status.should == 200
+    get("user/forgot_password?adresse=test@laclasse.com").status.should == 404
+    u = create_test_user("testmail")
+    u.add_email("test@laclasse.com")
+    get("user/forgot_password?adresse=test@laclasse.com").status.should == 200
+    get("user/forgot_password?adresse=test@laclasse.com&login=existepas").status.should == 404
+    u2 = create_test_user()
+    # Pour l'instant dans notre model de donnée, il est possible que 2 personnes aient le même email
+    u2.add_email("test@laclasse.com")
+    # Comme on ne peut pas distinguer à qui il appartient, on renvoit 404
+    get("user/forgot_password?adresse=test@laclasse.com").status.should == 404
+    # Sauf si on précise le login
+    get("user/forgot_password?adresse=test@laclasse.com&login=testmail").status.should == 200
+    # On peut aussi renvoyé le mot de passe sur l'email de quelqu'un d'autre mais que si il est parent
+    u2.add_email("test2@laclasse.com")
+    get("user/forgot_password?adresse=test2@laclasse.com&login=testmail").status.should == 400
+    u2.add_enfant(u)
+    get("user/forgot_password?adresse=test2@laclasse.com&login=testmail").status.should == 200
   end
 
 =begin

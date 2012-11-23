@@ -34,7 +34,7 @@ Permet de manipuler les utilisateurs ainsi que leur ressources associés (numér
   //ou d'un de ses emails
   //Envois un mail de régénération de mot de passe
   //Temporiser les appel pour éviter les spams ?
-  GET /user/sign_in/forgot_password?login=test&adresse=test@laclasse.com
+  GET /user/forgot_password?login=test&adresse=test@laclasse.com
 
   // open bar, sans cookie
   * GET /user?login=test&password=test
