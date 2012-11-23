@@ -160,10 +160,10 @@ describe User do
     e1 = u1.add_email("test@laclasse.com")
     u2 = create_test_user("test2")
     e2 =u2.add_email("test2@laclasse.com")
-    u1.has_email(e1).should == true
-    u1.has_email(e2).should == false
-    u2.has_email(e1).should == false
-    u2.has_email(e2).should == true
+    u1.has_email(e1.adresse).should == true
+    u1.has_email(e2.adresse).should == false
+    u2.has_email(e1.adresse).should == false
+    u2.has_email(e2.adresse).should == true
   end
 
   it "add a telephone to the user" do

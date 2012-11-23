@@ -324,8 +324,8 @@ class User < Sequel::Model(:user)
   # Permet de savoir si l'email passé en paramètre appartient bien à l'utilisateur
   # param Email
   # return true or false
-  def has_email(email)
-    self.email.include?(email)
+  def has_email(adresse)
+    self.email.index{|e| e.adresse == adresse} != nil
   end
 
   # Ajoute un téléphone à l'utilisateur
@@ -389,15 +389,15 @@ class User < Sequel::Model(:user)
   # et comme le flag change_password est à true, on lui demandera
   # en premier lieu de changer son password
   # todo : faire passer ça dans sidekick et à un système d'envois de mail centralisé avec template
-  def send_password_mail(email)
+  def send_password_mail(adresse)
     # On envois que si le mail nous appartient ou appartient à nous parent
-    is_parent_mail = parents.index{|p| p.has_email(email)} != nil
-    if has_email(email) or is_parent_mail
+    is_parent_mail = parents.index{|p| p.has_email(adresse)} != nil
+    if has_email(adresse) or is_parent_mail
       self.update(:change_password => true)
       session_key = AuthSession.create(self.id, EMAIL_DURATION)
       full_name = self.full_name
       mail = Mail.new do
-        to email.adresse
+        to adresse
         from "noreply@laclasse.com"
         subject "[laclasse.com] Veuillez réinitialiser votre mot de passe"
         # todo : ne pas mettre l'adresse laclasse.com en dur
