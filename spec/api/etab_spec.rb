@@ -455,11 +455,78 @@ describe EtabApi do
 
     # add application to etab 
     ApplicationEtablissement.create(:application_id => app2.id, :etablissement_id => etab.id)
-
     get("/etablissement/#{etab.id}/parametres").status.should == 200
+    response = JSON.parse(last_response.body)
+    response.count.should == 4
 
-    puts last_response.body 
+  end
 
+  it "returns active applications in the school(etablissement)" do
+    etab = create_test_etablissement 
+    # parameters 
+    app1_id  = "app1"
+    app1 = create_test_application_with_params(app1_id, {})
+    # add application to etab (activé) 
+    ApplicationEtablissement.create(:application_id => app1.id, :etablissement_id => etab.id)
+
+    app2_id = "app2" 
+    app2 = create_test_application_with_params(app2_id, {})
+    # add application to etab 
+    ApplicationEtablissement.create(:application_id => app2.id, :etablissement_id => etab.id)
+
+    get("/etablissement/#{etab.id}/application_actifs").status.should == 200
+    #puts last_response.body
+
+  end
+
+  it "activates and desactivate applications in a school" do 
+    etab = create_test_etablissement
+    app_id = "app"
+    app = create_test_application_with_params(app_id, {})
+    get("/etablissement/#{etab.id}/application_actifs").status.should == 200
+    application_actifs = JSON.parse(last_response.body)
+    application_actifs.count.should == 0
+
+    #activate the application 
+    put("/etablissement/#{etab.id}/application_actifs/activer/#{app.id}", :actif => true).status.should == 200
+
+    get("/etablissement/#{etab.id}/application_actifs").status.should == 200
+    application_actifs = JSON.parse(last_response.body)
+    application_actifs.count.should == 1
+  end
+
+  it "creates a new (groupe libre)"  do 
+    etab = create_test_etablissement
+    hash = {:libelle => "groupe_libre"}
+    post("/etablissement/#{etab.id}/groupe_libre/", hash).status.should == 201
+    response = JSON.parse(last_response.body)
+    Regroupement[:id => response["groupe_id"]].type_regroupement_id == TYP_REG_LBR 
+  end
+
+  it " modifies a (groupe libre)" do
+    etab = create_test_etablissement
+    hash = {:libelle => "groupe_libre"}
+    
+    # create a group
+    post("/etablissement/#{etab.id}/groupe_libre", hash).status.should == 201
+    groupe_id = JSON.parse(last_response.body)["groupe_id"]
+    #puts groupe_id 
+
+    put("/etablissement/#{etab.id}/groupe_libre/#{groupe_id}", :libelle => "modified groupe").status.should == 200
+    #puts last_response.body
+
+  end 
+
+  it "deletes a (groupe _libre)" do 
+    etab = create_test_etablissement
+    hash = {:libelle => "groupe_libre"}
+    # create a group
+    post("/etablissement/#{etab.id}/groupe_libre", hash).status.should == 201
+    groupe_id = JSON.parse(last_response.body)["groupe_id"]
+    #puts groupe_id 
+
+    delete("/etablissement/#{etab.id}/groupe_libre/#{groupe_id}").status.should == 200
+    Regroupement[:id => groupe_id].should == nil 
   end  
 
 end
