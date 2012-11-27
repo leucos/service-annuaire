@@ -42,7 +42,6 @@ class EtabApi < Grape::API
       optional :ip_pub_passerelle,  type: String
     end
     post  do
-      puts "POST"
       #authorize_activites!(ACT_CREATE, Ressource.laclasse, SRV_ETAB)
       begin
         etab = Etablissement.new()
@@ -102,7 +101,6 @@ class EtabApi < Grape::API
       error!("ressource nont trouvee", 404) if etab.nil?
       parameters = exclude_hash(params, ["id", "route_info", "session"])
       #authorize_activites!(ACT_UPDATE,etab.ressource)
-      puts "update api "
       begin
         parameters.each do |k,v|
           if k != "route_info" or k != "session"
