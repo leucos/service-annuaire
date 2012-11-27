@@ -1,4 +1,5 @@
-require __DIR__('helpers')
+require __DIR__('right_helpers')
+require __DIR__('search_helpers')
 require __DIR__('entities')
 require __DIR__('user')
 require __DIR__('sso')

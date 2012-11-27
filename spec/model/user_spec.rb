@@ -391,7 +391,7 @@ describe User do
     u = create_test_user()
     u.update(:change_password => false)
     email = u.add_email("test@test.com")
-    u.send_password_mail(email)
+    u.send_password_mail(email.adresse)
     u.change_password.should == true
     should have_sent_email.from('noreply@laclasse.com')
     should have_sent_email.to(email.adresse)
@@ -405,13 +405,13 @@ describe User do
     u2 = create_test_user("t2")
     email = u2.add_email("test2@test.com")
     expect {
-      u.send_password_mail(email)
+      u.send_password_mail(email.adresse)
     }.to raise_error(User::InvalidEmailOwner)
 
     u2.add_enfant(u)
     u.refresh
     expect {
-      u.send_password_mail(email)
+      u.send_password_mail(email.adresse)
     }.not_to raise_error(User::InvalidEmailOwner)
   end
 end

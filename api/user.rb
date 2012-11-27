@@ -13,6 +13,7 @@ class UserApi < Grape::API
   rescue_from :all
 
   helpers RightHelpers
+  helpers SearchHelpers
   helpers do
     # return an array of columns 
     def model
@@ -451,5 +452,32 @@ class UserApi < Grape::API
 
     # send_password_mail va générer une erreur si l'email n'appartient pas à l'utilisateur ou à ses parents
     user.send_password_mail(params[:adresse])
+  end
+
+  desc "Service de recherche d'utilisateurs"
+  params do
+    optional :query, type: String, desc: "pattern de recherche. Possibilité de spécifié la colonne sur laquelle faire la recherche ex: 'nom:Chackpack prenom:Georges'"
+    optional :limit, type: Integer, desc: "Nombre maximum de résultat renvoyés"
+    optional :page, type: Integer, desc: "Dans le cas d'une requète paginée"
+    optional :sort, type: String, desc: "Nom de la colonne sur laquelle faire le tri"
+    optional :order, type: String, regexp: /^(asc|desc)$/i, desc: "Ordre de tri : ASC ou DESC"
+    group :advanced do
+      optional :prenom, type: String
+      optional :nom, type: String
+      optional :login, type: String
+      optional :etablissement, type: String, desc: "Nom de l'établissement dans lequel est l'utilisateur"
+      optional :user_id, type: String
+    end
+  end
+  get "" do
+    authorize_activites!(ACT_READ, Ressource.laclasse, SRV_USER)
+    # todo : manque user_id et etablissement
+    accepted_fields = [:prenom, :user__nom, :login, :etablissement__nom, :user__id]
+    dataset = User.
+      select(:user__nom, :user__prenom, :login, :user__id).
+      join_table(:left, :profil_user, :profil_user__user_id => :user__id).
+      join_table(:left, :etablissement, :etablissement__id => :etablissement_id)
+
+    super_search!(dataset, accepted_fields)
   end
 end
