@@ -178,6 +178,9 @@ class UserApi < Grape::API
   post "/:user_id/relation" do
     user = check_user!("Adulte non trouvé")
     eleve = check_user!("Eleve non trouvé", :eleve_id)
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     type_rel = TypeRelationEleve[params[:type_relation_id]]
     error!("Type de relation invalide", 400) if type_rel.nil? 
     relation = user.find_relation(eleve)
@@ -196,6 +199,9 @@ class UserApi < Grape::API
   put "/:user_id/relation/:eleve_id" do
     user = check_user!("Adulte non trouvé")
     eleve = check_user!("Eleve non trouvé", :eleve_id)
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     type_rel = TypeRelationEleve[params[:type_relation_id]]
     relation = user.find_relation(eleve)
     error!("Type de relation invalide", 400) if type_rel.nil?
@@ -217,6 +223,9 @@ class UserApi < Grape::API
   delete "/:user_id/relation/:eleve_id" do 
     user = check_user!("Adulte non trouvé")
     eleve = check_user!("Eleve non trouvé", :eleve_id)
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     relation = user.find_relation(eleve)
     error!("Relation inexistante", 404) if relation.nil?
 
@@ -227,9 +236,11 @@ class UserApi < Grape::API
 
   desc "recuperer la liste des emails"
   get "/:user_id/emails" do 
-    u = check_user!()
+    user = check_user!()
 
-    emails = u.email
+    authorize_activites!(ACT_READ, user.ressource)
+
+    emails = user.email
     emails.map  do |email|
       {:id => email.id, :adresse => email.adresse, :academique => email.academique, :principal => email.principal}
     end
@@ -242,6 +253,9 @@ class UserApi < Grape::API
   end
   post ":user_id/email" do
     user = check_user!()
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     academique = params[:academique] ? true : false 
     user.add_email(params[:adresse], academique)
 
@@ -261,6 +275,8 @@ class UserApi < Grape::API
     user = check_user!()
     email = check_email!(user)
     
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     email.adresse = params[:adresse] if params[:adresse]
     email.academique = params[:academique] if params[:academique]
     email.principal = params[:principal] if params[:principal]
@@ -278,6 +294,9 @@ class UserApi < Grape::API
   delete ":user_id/email/:email_id" do
     user = check_user!()
     email = check_email!(user)
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     email.destroy()
 
     present user, with: API::Entities::User
@@ -292,6 +311,8 @@ class UserApi < Grape::API
     user = check_user!()
     email = check_email!(user)
 
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     email.send_validation_mail()
   end
 
@@ -304,6 +325,8 @@ class UserApi < Grape::API
     user = check_user!()
     email = check_email!(user)
 
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     valide = email.check_validation_key(params[:validation_key])
     error!("Clé de validation invalide ou périmée", 404) unless valide
   end
@@ -312,6 +335,9 @@ class UserApi < Grape::API
   desc "recuperer les telephones"
   get ":user_id/telephones" do
     user = check_user!()
+    
+    authorize_activites!(ACT_READ, user.ressource)
+
     user.telephone.map{|tel| {id: tel.id, numero: tel.numero, type: tel.type_telephone_id} } 
   end 
   
@@ -323,6 +349,9 @@ class UserApi < Grape::API
   end
   post ":user_id/telephone"do
     user = check_user!()
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     numero = params["numero"]
     if !params["type_telephone_id"].nil? and ["MAIS", "PORT", "TRAV", "AUTR"].include?(params["type_telephone_id"])
       type_telephone_id = params["type_telephone_id"]
@@ -341,6 +370,9 @@ class UserApi < Grape::API
   end
   put ":user_id/telephone/:telephone_id"  do 
     user = check_user!()
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     tel = user.telephone_dataset[params[:telephone_id]]  
     error!("ressource non trouvée", 404) if tel.nil?
     
@@ -358,6 +390,9 @@ class UserApi < Grape::API
   desc "suppression d'un telephone"
   delete ":user_id/telephone/:telephone_id"  do
     user = check_user!()
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     if params["telephone_id"].nil? or params["telephone_id"].empty? 
       error!("mouvaise requete", 400)
     elsif !user.telephone.map{|tel| tel.id}.include?(params["telephone_id"].to_i)  
@@ -373,6 +408,9 @@ class UserApi < Grape::API
   desc "Récupère les préférences d'une application d'un utilisateur"
   get ":user_id/application/:application_id/preferences" do 
     user = check_user!()
+    
+    authorize_activites!(ACT_READ, user.ressource)
+
     application_id = params["application_id"]
     application = Application[:id => application_id]
     user.preferences(application_id)
@@ -382,6 +420,9 @@ class UserApi < Grape::API
   desc "Modifier une(des) preferecne(s)"
   put ":user_id/application/:application_id/preferences" do
     user = check_user!()
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     application_id = params["application_id"]
     application = Application[:id => application_id]
     
@@ -414,6 +455,9 @@ class UserApi < Grape::API
   desc "Remettre la valeure par défaut pour toutes les préférences"
   delete ":user_id/application/:application_id/preferences" do 
     user = check_user!()
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     application_id = params["application_id"]
     application = Application[:id => application_id]
 
