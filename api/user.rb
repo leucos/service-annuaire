@@ -56,6 +56,7 @@ class UserApi < Grape::API
     end
   end
 
+resource :user do
   desc "Renvois le profil utilisateur si on donne le bon id. Nécessite une authentification."
   get "/:user_id", :requirements => { :user_id => /.{8}/ } do
     user = check_user!()
@@ -540,4 +541,6 @@ class UserApi < Grape::API
 
     results
   end
+  
+end #resource 
 end
