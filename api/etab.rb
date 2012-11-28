@@ -1,3 +1,4 @@
+require 'grape-swagger'
 class EtabApi < Grape::API
   format :json
   error_format :json
@@ -15,7 +16,7 @@ class EtabApi < Grape::API
       return parameters
     end
   end
-
+  resource :etablissement do
     ####################################
     # Gestion de l'etablissement (CRUD)#
     ####################################
@@ -1094,6 +1095,6 @@ class EtabApi < Grape::API
         error!("mouvaise requete", 400)
       end  
     end 
- 
+ end
 
 end

@@ -54,7 +54,7 @@ class UserApi < Grape::API
       user.save()
     end
   end
-
+resource :user do
   desc "Renvois le profil utilisateur si on donne le bon id. Nécessite une authentification."
   get "/:user_id", :requirements => { :user_id => /.{8}/ } do
     user = check_user!()
@@ -452,4 +452,5 @@ class UserApi < Grape::API
     # send_password_mail va générer une erreur si l'email n'appartient pas à l'utilisateur ou à ses parents
     user.send_password_mail(params[:adresse])
   end
+end
 end
