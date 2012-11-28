@@ -500,11 +500,11 @@ class UserApi < Grape::API
 
   desc "Service de recherche d'utilisateurs"
   params do
-    optional :query, type: String, desc: "pattern de recherche. Possibilité de spécifié la colonne sur laquelle faire la recherche ex: 'nom:Chackpack prenom:Georges'"
+    optional :query, type: String, desc: "pattern de recherche. Possibilité de spécifier la colonne sur laquelle faire la recherche ex: 'nom:Chackpack prenom:Georges'"
     optional :limit, type: Integer, desc: "Nombre maximum de résultat renvoyés"
     optional :page, type: Integer, desc: "Dans le cas d'une requète paginée"
-    optional :sort, type: String, desc: "Nom de la colonne sur laquelle faire le tri"
-    optional :order, type: String, regexp: /^(asc|desc)$/i, desc: "Ordre de tri : ASC ou DESC"
+    optional :sort_col, type: String, desc: "Nom de la colonne sur laquelle faire le tri"
+    optional :sort_dir, type: String, regexp: /^(asc|desc)$/i, desc: "Direction de tri : ASC ou DESC"
     group :advanced do
       optional :prenom, type: String
       optional :nom, type: String
@@ -516,12 +516,18 @@ class UserApi < Grape::API
   get "" do
     authorize_activites!(ACT_READ, Ressource.laclasse, SRV_USER)
     # todo : manque user_id et etablissement
-    accepted_fields = [:prenom, :user__nom, :login, :etablissement__nom, :user__id]
-    dataset = User.
-      select(:user__nom, :user__prenom, :login, :user__id).
-      join_table(:left, :profil_user, :profil_user__user_id => :user__id).
-      join_table(:left, :etablissement, :etablissement__id => :etablissement_id)
+    accepted_fields = {
+      prenom: :prenom, nom: :user__nom, login: :login, etablissement: :etablissement__nom, id: :user__id
+    }
 
-    super_search!(dataset, accepted_fields)
+    dataset = User.search_all_dataset()
+
+    results = super_search!(dataset, accepted_fields)
+
+    results[:results].each do |u|
+      u[:emails] = User[u[:id]].email_dataset.naked.all
+    end
+
+    results
   end
 end

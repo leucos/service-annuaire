@@ -36,9 +36,10 @@ class User < Sequel::Model(:user)
 
   # Plugins
   plugin :validation_helpers
-  plugin :json_serializer
+  #plugin :json_serializer
   plugin :ressource_link, :service_id => SRV_USER
   plugin :fuzzy_search
+  plugin :select_json_array
 
   # Referential integrity
   one_to_many :enseigne_regroupement
@@ -87,6 +88,19 @@ class User < Sequel::Model(:user)
     end
 
     return final_login
+  end
+
+  # Renvois un dataset utilisé pour faire une recherche sur tous les utilisateurs
+  # Et formaté pour renvoyé le résultat en JSON
+  def self.search_all_dataset
+    # Attention, la fonction group_concat est spécifique à MySQL !
+    dataset = User.
+      select(:user__nom___nom, :user__prenom, :login, :user__id, :etablissement__nom___etab).
+      #select_json_array(:emails, {:email__id => "i_id", :email__adresse => "adresse"}).
+      left_join(:email, :email__user_id => :user__id).
+      left_join(:profil_user, :profil_user__user_id => :user__id).
+      left_join(:etablissement, :etablissement__id => :etablissement_id).
+      group(:user__id)
   end
 
   # Très important : Hook qui génère l'id unique du user avant de l'inserer dans la BDD
@@ -171,10 +185,6 @@ class User < Sequel::Model(:user)
     validates_format /^\d{5}$/, :code_postal if code_postal
     # Le sexe est soit F  ou M
     validates_format /^[FM]$/, :sexe if sexe
-  end
-
-  def self.authenticate(creds)
-    User[:login => creds[:user]]
   end
 
   def password
