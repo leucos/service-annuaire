@@ -5,9 +5,9 @@ module Sequel
     module FuzzySearch
 
       module DatasetMethods
-        # Rajoute une fonction Search au model
-        # param fields Array<:fields>
-        # param patterns Array<String>
+        # Rajoute une fonction search au model et au dataset
+        # param fields Array<:fields> liste des champs sur lesquels faire la recherche (ex : [:nom, :prenom, :login])
+        # param patterns Array<String> liste des chaines à rechercher (ex : ["Charpack", "Georges"])
         def search(fields, patterns)
           dataset = self
           patterns.each do |p|

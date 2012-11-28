@@ -14,21 +14,13 @@
 # 'start.rb' and use `ruby start.rb` instead.
 require ::File.expand_path('../app', __FILE__)
 
-#map "/user" do
-  run UserApi
-#end
+run UserApi
+run AuthApi 
+run EtabApi
 
 map "/sso" do
   run SsoApi
 end
-
-map "/auth" do 
-	run AuthApi 
-end 
-
-#map "/etablissement" do 
-	run EtabApi
-#end
 
 map "/" do
 	run Root

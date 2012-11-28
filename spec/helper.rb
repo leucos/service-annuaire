@@ -34,8 +34,8 @@ def delete_test_user(login = "test")
   User.filter(:login => login).destroy()
 end
 
-def create_test_etablissement
-  Etablissement.create(:nom => "test", :type_etablissement => TypeEtablissement.first)
+def create_test_etablissement(nom = "test")
+  Etablissement.create(:nom => nom, :type_etablissement => TypeEtablissement.first)
 end
 
 def delete_test_etablissements

@@ -313,10 +313,15 @@ describe UserApi do
     get("user/?query=test").status.should == 200
     #puts last_response.body
     response = JSON.parse(last_response.body)
-    response.count.should == 2
+    #puts response
+    response["results"].count.should == 2
     get("user/?query=test+autre").status.should == 200
     response = JSON.parse(last_response.body)
-    response.count.should == 1
+    response["results"].count.should == 1
+    # On peut aussi récupérer tous les utilisateurs
+    get("user/").status.should == 200
+    response = JSON.parse(last_response.body)
+    response["results"].count.should == 3 # Super admin en plus
   end
 
   it "Recherche avec pagination" do
@@ -326,33 +331,33 @@ describe UserApi do
 
     get("user/?query=test&page=1&limit=3").status.should == 200
     response = JSON.parse(last_response.body)
-    response.count.should == 3
+    response["results"].count.should == 3
     get("user/?query=test&page=2&limit=3").status.should == 200
     response = JSON.parse(last_response.body)
-    response.count.should == 2
+    response["results"].count.should == 2
   end
 
   it "Recherche ordonnée" do
     5.times do |i|
       create_test_user("test#{i}")
     end
-    get("user/?query=test&sort=login&order=desc").status#.should == 200
+    get("user/?query=test&sort_col=login&sort_dir=desc").status.should == 200
     response = JSON.parse(last_response.body)
-    response.first[:login].should == "test4"
-    get("user/?query=test&sort=login&order=asc").status.should == 200
+    response["results"].first["login"].should == "test4"
+    get("user/?query=test&sort_col=login&sort_dir=asc").status.should == 200
     response = JSON.parse(last_response.body)
-    response.first[:login].should == "test0"
+    response["results"].first["login"].should == "test0"
     # Default order is ASC
-    get("user/?query=test&sort=login").status.should == 200
+    get("user/?query=test&sort_col=login").status.should == 200
     response = JSON.parse(last_response.body)
-    response.first[:login].should == "test0"
-    get("user/?query=test&sort=login&order=ascendant").status.should == 400
+    response["results"].first["login"].should == "test0"
+    get("user/?query=test&sort_col=login&sort_dir=ascendant").status.should == 400
     # Le tri ne marche pas sur des colonnes inexistantes
-    get("user/?query=test&sort=truc&order=asc").status.should == 400
+    get("user/?query=test&sort_col=truc&sort_dir=asc").status.should == 400
     # Et sur des colonnes interdites
-    get("user/?query=test&sort=password&order=asc").status.should == 400
+    get("user/?query=test&sort_col=password&sort_dir=asc").status.should == 400
     # On doit forcément préciser une colonne à trier
-    get("user/?query=test&order=asc").status.should == 400
+    get("user/?query=test&sort_dir=asc").status.should == 400
   end
 
   it "Recherche avec champs" do
@@ -360,27 +365,21 @@ describe UserApi do
     u.update(:prenom => "rené")
     get("user/?query=login:test+prenom:rene").status.should == 200
     response = JSON.parse(last_response.body)
-    response.count.should == 1
-    response.first.prenom.should == "rené"
-    response.first.id.should == u.id
+    response["results"].count.should == 1
+    response["results"].first["prenom"].should == "rené"
+    response["results"].first["id"].should == u.id
     get(URI.encode("user/?query=login:test+prenom:rené")).status.should == 200
     response = JSON.parse(last_response.body)
-    response.count.should == 1
+    response["results"].count.should == 1
     get("user/?query=login:test+truc:rene").status.should == 400
   end
 
-
-  # Todo tester ce helper quand on l'aure mis dans un module a part
-  # it "Split bien les query" do
-  #   query = "nom:\"Georges Charpack\" test jean \"asta la vista baby\" prenom:\"Jean Claude\""
-  #   expected = ["nom:Georges Charpack", "test", "jean", "asta la vista baby", "prenom:Jean Claude"]
-  #   split_query(query).should == expected
-  # end
-
   it "Recherche avec espaces" do
-    e = Etablissement.find_or_create(:nom => "Victor Dolto")
+    e = create_test_etablissement("Victor Dolto")
+    e2 = create_test_etablissement("autre")
     u = create_test_user
     u.add_profil(e.id, PRF_ELV)
+    u.add_profil(e2.id, PRF_ENS)
     # Cette élève à le prénom Victor mais n'est pas dans le collège Victor Dolto
     u2 = create_test_user("test2")
     u2.prenom = "Victor"
@@ -388,11 +387,49 @@ describe UserApi do
     # Comme ça on ne se trouve pas avec tous les georges et tous les charpack
     get(URI.encode("user/?query=\"Victor Dolto\"")).status.should == 200
     response = JSON.parse(last_response.body)
-    response.count.should == 1
-    get(URI.encode("user/?query=test+etablissement__nom:\"Victor Dolto\"")).status.should == 200
+    response["results"].count.should == 1
+    get(URI.encode("user/?query=test+etablissement:\"Victor Dolto\"")).status.should == 200
     response = JSON.parse(last_response.body)
-    response.count.should == 1
+    response["results"].count.should == 1
+    get(URI.encode("user/?query=test+etablissement:autre"))
+    response = JSON.parse(last_response.body)
+    response["results"].count.should == 1
   end
+
+  it "Renvois tous les mails, telephones et profils de l'utilisateur" do
+    u = create_test_user
+    e = create_test_etablissement("Victor Dolto")
+    e2 = create_test_etablissement("autre")
+    u.add_email("test@laclasse.com")
+    u.add_email("test@yahoo.fr")
+    u.add_telephone("0404040404")
+    u.add_telephone("0604040404")
+    u.add_profil(e.id, PRF_ELV)
+    u.add_profil(e2.id, PRF_ENS)
+    get("user/?query=login:test")
+    response = JSON.parse(last_response.body)
+    response["results"].count.should == 1
+    # Il faut reparser les emails vu que c'est du json
+    #puts response["results"].first["emails"]
+    user = response["results"].first
+    user["emails"].count.should == 2
+    user["telephones"].count.should == 2
+    user["profils"].count.should == 2
+  end
+=begin
+  it "benchmark 500 user" do
+    500.times do |i|
+      login = "test#{i}"
+      u = create_test_user(login)
+      u.add_email("#{login}@laclasse.com")
+    end
+    require 'benchmark'
+    include Benchmark
+    Benchmark.benchmark(Benchmark::CAPTION, 7, Benchmark::FORMAT, ">total:", ">avg:") do |x|
+      x.report("get 500 user: ") { 50.times do get("user/") end}
+    end
+  end
+=end
 =begin
   it "query responds also to model instance methods" do
     # email_acadmeique is instance method and not a columns

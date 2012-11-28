@@ -9,6 +9,7 @@ require __DIR__('alimentation/memory_db')
 require __DIR__('alimentation/db_sync')
 require __DIR__('rights')
 require __DIR__('fuzzy_search')
+require __DIR__('select_json_array')
 
 
 

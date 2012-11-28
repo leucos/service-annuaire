@@ -414,4 +414,15 @@ describe User do
       u.send_password_mail(email.adresse)
     }.not_to raise_error(User::InvalidEmailOwner)
   end
+
+  it "search_all_dataset renvois un dataset préformaté pour le json" do
+    u = create_test_user
+    e = u.add_email("test@laclasse.com")
+    u.add_email("test2@laclasse.com")
+    dataset = User.search_all_dataset()
+    hash = dataset.filter(:login => u.login).naked.first
+    # emails = JSON.parse(hash[:emails])
+    # emails.count.should == 2
+    # emails.first["id"].should == e.id
+  end
 end

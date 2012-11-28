@@ -32,6 +32,10 @@ module SearchHelpers
     good_split
   end
 
+  def check_field!(field, accepted_fields, message)
+    error!(message, 400) unless accepted_fields.include?(field)
+  end
+
   def apply_filter!(patterns, dataset, accepted_fields)
     # Ensuite parmis ces patterns, il y a peut-être des champs spécifique
     # qui sont définit par des ":" ex : nom:test
@@ -40,28 +44,29 @@ module SearchHelpers
     fuzzy_patterns = patterns - field_patterns
 
     # Puis on fait une requète "fuzzy" sur les champs non spécifiés
-    dataset = dataset.search(accepted_fields, fuzzy_patterns)
+    dataset = dataset.search(accepted_fields.values, fuzzy_patterns)
 
     # Puis on filtre de manière les champs spécifiés un par un
     field_patterns.each do |fp|
       field, pattern = fp.split(':')
       field = field.to_sym
-      error!("Champ de recherche #{field} non accepté", 400) unless accepted_fields.include?(field)
-      dataset = dataset.filter(field => pattern)
+      check_field!(field, accepted_fields, "Champ de recherche #{field} non accepté")
+      dataset = dataset.filter(accepted_fields[field] => pattern)
     end
 
     return dataset
   end
 
   # Applique au dataset un tri ascendant ou descandant sur une des colonnes acceptées
-  def apply_sort!(column, order, dataset, accepted_fields)
+  def apply_sort!(column, direction, dataset, accepted_fields)
     column = column.to_sym
-    error!("Colonne de tri #{column} non acceptée", 400) unless accepted_fields.include?(column)
+    check_field!(column, accepted_fields, "Colonne de tri #{column} non acceptée")
+    sql_column = accepted_fields[column]
     # Par défault, l'ordre est asc
-    if order and order.downcase == "desc"
-      dataset = dataset.order(Sequel.desc(column))
+    if direction and direction.downcase == "desc"
+      dataset = dataset.order(Sequel.desc(sql_column))
     else
-      dataset = dataset.order(Sequel.asc(column))
+      dataset = dataset.order(Sequel.asc(sql_column))
     end
 
     return dataset
@@ -73,18 +78,19 @@ module SearchHelpers
       dataset = apply_filter!(patterns, dataset, accepted_fields)
     end
 
-    column = params[:sort]
-    order = params[:order]
+    column = params[:sort_col]
+    direction = params[:sort_dir]
     if column
-      dataset = apply_sort!(column, order, dataset, accepted_fields)
-    elsif order
-      error!("Ordre de tri définit sans colonne (sort)", 400)
+      dataset = apply_sort!(column, direction, dataset, accepted_fields)
+    elsif direction
+      error!("Direction de tri définit sans colonne (sort)", 400)
     end
 
     # todo : Limit arbitraire de 500, gérer la limit max en fonction du profil ?
     page_size = params[:limit] ? params[:limit] : 500
     page_no = params[:page] ? params[:page] : 1
 
-    dataset.paginate(page_no, page_size)
+    dataset = dataset.paginate(page_no, page_size)
+    {total: dataset.pagination_record_count, page: page_no, results: dataset.naked.all}
   end
 end
