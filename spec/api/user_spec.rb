@@ -307,6 +307,92 @@ describe UserApi do
     get("user/forgot_password?adresse=test2@laclasse.com&login=testmail").status.should == 200
   end
 
+  it "Recherche simple parmis les utilisateurs" do
+    u = create_test_user("test")
+    u2 = create_test_user("autre")
+    get("user/?query=test").status.should == 200
+    #puts last_response.body
+    response = JSON.parse(last_response.body)
+    response.count.should == 2
+    get("user/?query=test+autre").status.should == 200
+    response = JSON.parse(last_response.body)
+    response.count.should == 1
+  end
+
+  it "Recherche avec pagination" do
+    5.times do |i|
+      create_test_user("test#{i}")
+    end
+
+    get("user/?query=test&page=1&limit=3").status.should == 200
+    response = JSON.parse(last_response.body)
+    response.count.should == 3
+    get("user/?query=test&page=2&limit=3").status.should == 200
+    response = JSON.parse(last_response.body)
+    response.count.should == 2
+  end
+
+  it "Recherche ordonnée" do
+    5.times do |i|
+      create_test_user("test#{i}")
+    end
+    get("user/?query=test&sort=login&order=desc").status#.should == 200
+    response = JSON.parse(last_response.body)
+    response.first[:login].should == "test4"
+    get("user/?query=test&sort=login&order=asc").status.should == 200
+    response = JSON.parse(last_response.body)
+    response.first[:login].should == "test0"
+    # Default order is ASC
+    get("user/?query=test&sort=login").status.should == 200
+    response = JSON.parse(last_response.body)
+    response.first[:login].should == "test0"
+    get("user/?query=test&sort=login&order=ascendant").status.should == 400
+    # Le tri ne marche pas sur des colonnes inexistantes
+    get("user/?query=test&sort=truc&order=asc").status.should == 400
+    # Et sur des colonnes interdites
+    get("user/?query=test&sort=password&order=asc").status.should == 400
+    # On doit forcément préciser une colonne à trier
+    get("user/?query=test&order=asc").status.should == 400
+  end
+
+  it "Recherche avec champs" do
+    u = create_test_user
+    u.update(:prenom => "rené")
+    get("user/?query=login:test+prenom:rene").status.should == 200
+    response = JSON.parse(last_response.body)
+    response.count.should == 1
+    response.first.prenom.should == "rené"
+    response.first.id.should == u.id
+    get(URI.encode("user/?query=login:test+prenom:rené")).status.should == 200
+    response = JSON.parse(last_response.body)
+    response.count.should == 1
+    get("user/?query=login:test+truc:rene").status.should == 400
+  end
+
+
+  # Todo tester ce helper quand on l'aure mis dans un module a part
+  # it "Split bien les query" do
+  #   query = "nom:\"Georges Charpack\" test jean \"asta la vista baby\" prenom:\"Jean Claude\""
+  #   expected = ["nom:Georges Charpack", "test", "jean", "asta la vista baby", "prenom:Jean Claude"]
+  #   split_query(query).should == expected
+  # end
+
+  it "Recherche avec espaces" do
+    e = Etablissement.find_or_create(:nom => "Victor Dolto")
+    u = create_test_user
+    u.add_profil(e.id, PRF_ELV)
+    # Cette élève à le prénom Victor mais n'est pas dans le collège Victor Dolto
+    u2 = create_test_user("test2")
+    u2.prenom = "Victor"
+    # Trouve que les champs qui matche les deux
+    # Comme ça on ne se trouve pas avec tous les georges et tous les charpack
+    get(URI.encode("user/?query=\"Victor Dolto\"")).status.should == 200
+    response = JSON.parse(last_response.body)
+    response.count.should == 1
+    get(URI.encode("user/?query=test+etablissement__nom:\"Victor Dolto\"")).status.should == 200
+    response = JSON.parse(last_response.body)
+    response.count.should == 1
+  end
 =begin
   it "query responds also to model instance methods" do
     # email_acadmeique is instance method and not a columns

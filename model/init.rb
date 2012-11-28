@@ -3,8 +3,7 @@
 # include file to access all models
 # generated 2012-05-21 18:00:26 +0200 by model_generator.rb
 #
-#require_relative 'monkeymodel'
-require 'bcrypt'
+Sequel.extension(:pagination)
 
 # MODELS
 # ATTENTION SERVICE DOIT POUVOIR ETRE ACCESSIBLE PAR TOUS LES AUTRES MODELS

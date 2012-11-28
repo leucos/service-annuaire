@@ -17,6 +17,7 @@ require 'nokogiri'
 require 'securerandom'
 require 'redis'
 require 'mail'
+require 'bcrypt'
 
 require __DIR__('config/init')
 # Initialize controllers and models

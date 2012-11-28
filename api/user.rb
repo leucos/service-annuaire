@@ -13,6 +13,7 @@ class UserApi < Grape::API
   rescue_from :all
 
   helpers RightHelpers
+  helpers SearchHelpers
   helpers do
     # return an array of columns 
     def model
@@ -54,6 +55,7 @@ class UserApi < Grape::API
       user.save()
     end
   end
+
 resource :user do
   desc "Renvois le profil utilisateur si on donne le bon id. Nécessite une authentification."
   get "/:user_id", :requirements => { :user_id => /.{8}/ } do
@@ -177,6 +179,9 @@ resource :user do
   post "/:user_id/relation" do
     user = check_user!("Adulte non trouvé")
     eleve = check_user!("Eleve non trouvé", :eleve_id)
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     type_rel = TypeRelationEleve[params[:type_relation_id]]
     error!("Type de relation invalide", 400) if type_rel.nil? 
     relation = user.find_relation(eleve)
@@ -195,6 +200,9 @@ resource :user do
   put "/:user_id/relation/:eleve_id" do
     user = check_user!("Adulte non trouvé")
     eleve = check_user!("Eleve non trouvé", :eleve_id)
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     type_rel = TypeRelationEleve[params[:type_relation_id]]
     relation = user.find_relation(eleve)
     error!("Type de relation invalide", 400) if type_rel.nil?
@@ -216,6 +224,9 @@ resource :user do
   delete "/:user_id/relation/:eleve_id" do 
     user = check_user!("Adulte non trouvé")
     eleve = check_user!("Eleve non trouvé", :eleve_id)
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     relation = user.find_relation(eleve)
     error!("Relation inexistante", 404) if relation.nil?
 
@@ -226,9 +237,11 @@ resource :user do
 
   desc "recuperer la liste des emails"
   get "/:user_id/emails" do 
-    u = check_user!()
+    user = check_user!()
 
-    emails = u.email
+    authorize_activites!(ACT_READ, user.ressource)
+
+    emails = user.email
     emails.map  do |email|
       {:id => email.id, :adresse => email.adresse, :academique => email.academique, :principal => email.principal}
     end
@@ -241,6 +254,9 @@ resource :user do
   end
   post ":user_id/email" do
     user = check_user!()
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     academique = params[:academique] ? true : false 
     user.add_email(params[:adresse], academique)
 
@@ -260,6 +276,8 @@ resource :user do
     user = check_user!()
     email = check_email!(user)
     
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     email.adresse = params[:adresse] if params[:adresse]
     email.academique = params[:academique] if params[:academique]
     email.principal = params[:principal] if params[:principal]
@@ -277,6 +295,9 @@ resource :user do
   delete ":user_id/email/:email_id" do
     user = check_user!()
     email = check_email!(user)
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     email.destroy()
 
     present user, with: API::Entities::User
@@ -291,6 +312,8 @@ resource :user do
     user = check_user!()
     email = check_email!(user)
 
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     email.send_validation_mail()
   end
 
@@ -303,6 +326,8 @@ resource :user do
     user = check_user!()
     email = check_email!(user)
 
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     valide = email.check_validation_key(params[:validation_key])
     error!("Clé de validation invalide ou périmée", 404) unless valide
   end
@@ -311,6 +336,9 @@ resource :user do
   desc "recuperer les telephones"
   get ":user_id/telephones" do
     user = check_user!()
+    
+    authorize_activites!(ACT_READ, user.ressource)
+
     user.telephone.map{|tel| {id: tel.id, numero: tel.numero, type: tel.type_telephone_id} } 
   end 
   
@@ -322,6 +350,9 @@ resource :user do
   end
   post ":user_id/telephone"do
     user = check_user!()
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     numero = params["numero"]
     if !params["type_telephone_id"].nil? and ["MAIS", "PORT", "TRAV", "AUTR"].include?(params["type_telephone_id"])
       type_telephone_id = params["type_telephone_id"]
@@ -340,6 +371,9 @@ resource :user do
   end
   put ":user_id/telephone/:telephone_id"  do 
     user = check_user!()
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     tel = user.telephone_dataset[params[:telephone_id]]  
     error!("ressource non trouvée", 404) if tel.nil?
     
@@ -357,6 +391,9 @@ resource :user do
   desc "suppression d'un telephone"
   delete ":user_id/telephone/:telephone_id"  do
     user = check_user!()
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     if params["telephone_id"].nil? or params["telephone_id"].empty? 
       error!("mouvaise requete", 400)
     elsif !user.telephone.map{|tel| tel.id}.include?(params["telephone_id"].to_i)  
@@ -372,6 +409,9 @@ resource :user do
   desc "Récupère les préférences d'une application d'un utilisateur"
   get ":user_id/application/:application_id/preferences" do 
     user = check_user!()
+    
+    authorize_activites!(ACT_READ, user.ressource)
+
     application_id = params["application_id"]
     application = Application[:id => application_id]
     user.preferences(application_id)
@@ -381,6 +421,9 @@ resource :user do
   desc "Modifier une(des) preferecne(s)"
   put ":user_id/application/:application_id/preferences" do
     user = check_user!()
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     application_id = params["application_id"]
     application = Application[:id => application_id]
     
@@ -413,6 +456,9 @@ resource :user do
   desc "Remettre la valeure par défaut pour toutes les préférences"
   delete ":user_id/application/:application_id/preferences" do 
     user = check_user!()
+
+    authorize_activites!(ACT_UPDATE, user.ressource)
+
     application_id = params["application_id"]
     application = Application[:id => application_id]
 
@@ -452,5 +498,33 @@ resource :user do
     # send_password_mail va générer une erreur si l'email n'appartient pas à l'utilisateur ou à ses parents
     user.send_password_mail(params[:adresse])
   end
-end
+
+  desc "Service de recherche d'utilisateurs"
+  params do
+    optional :query, type: String, desc: "pattern de recherche. Possibilité de spécifié la colonne sur laquelle faire la recherche ex: 'nom:Chackpack prenom:Georges'"
+    optional :limit, type: Integer, desc: "Nombre maximum de résultat renvoyés"
+    optional :page, type: Integer, desc: "Dans le cas d'une requète paginée"
+    optional :sort, type: String, desc: "Nom de la colonne sur laquelle faire le tri"
+    optional :order, type: String, regexp: /^(asc|desc)$/i, desc: "Ordre de tri : ASC ou DESC"
+    group :advanced do
+      optional :prenom, type: String
+      optional :nom, type: String
+      optional :login, type: String
+      optional :etablissement, type: String, desc: "Nom de l'établissement dans lequel est l'utilisateur"
+      optional :user_id, type: String
+    end
+  end
+  get "" do
+    authorize_activites!(ACT_READ, Ressource.laclasse, SRV_USER)
+    # todo : manque user_id et etablissement
+    accepted_fields = [:prenom, :user__nom, :login, :etablissement__nom, :user__id]
+    dataset = User.
+      select(:user__nom, :user__prenom, :login, :user__id).
+      join_table(:left, :profil_user, :profil_user__user_id => :user__id).
+      join_table(:left, :etablissement, :etablissement__id => :etablissement_id)
+
+    super_search!(dataset, accepted_fields)
+  end
+  
+end #resource 
 end
