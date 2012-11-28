@@ -95,7 +95,7 @@ class User < Sequel::Model(:user)
   def self.search_all_dataset
     # Attention, la fonction group_concat est spécifique à MySQL !
     dataset = User.
-      select(:user__nom___nom, :user__prenom, :login, :user__id, :etablissement__nom___etab).
+      select(:user__nom, :user__prenom, :login, :user__id).
       #select_json_array(:emails, {:email__id => "i_id", :email__adresse => "adresse"}).
       left_join(:email, :email__user_id => :user__id).
       left_join(:profil_user, :profil_user__user_id => :user__id).
@@ -209,6 +209,14 @@ class User < Sequel::Model(:user)
   # Pas super mais il faut réfléchir à cette notion de profil_actif
   def profil_actif
     profil_user.first
+  end
+
+  # Renvois seulement le libelle de profil et le nom de l'établissement de chaque profil
+  def profil_user_display
+    self.profil_user_dataset.
+      join(:etablissement, :id => :etablissement_id).
+      join(:profil, :id => :profil_user__profil_id).
+      select(:profil__libelle, :etablissement__nom)
   end
 
   #Change le profil de l'utilisateur
@@ -342,10 +350,6 @@ class User < Sequel::Model(:user)
   # Ajoute un téléphone à l'utilisateur
   # type par défaut Maison mais détecte si c'est un portable
   def add_telephone(numero, type_telephone_id = TYP_TEL_MAIS)
-    # On ne détecte le téléphone portable que si on a le type par défaut
-    if type_telephone_id == TYP_TEL_MAIS and (numero[0,2] == "06" or numero[0,5] == "+33 6")
-      type_telephone_id = TYP_TEL_PORT
-    end
     Telephone.create(:numero => numero, :user => self, :type_telephone_id => type_telephone_id)
   end
 

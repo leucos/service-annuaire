@@ -375,9 +375,11 @@ describe UserApi do
   end
 
   it "Recherche avec espaces" do
-    e = Etablissement.find_or_create(:nom => "Victor Dolto")
+    e = create_test_etablissement("Victor Dolto")
+    e2 = create_test_etablissement("autre")
     u = create_test_user
     u.add_profil(e.id, PRF_ELV)
+    u.add_profil(e2.id, PRF_ENS)
     # Cette élève à le prénom Victor mais n'est pas dans le collège Victor Dolto
     u2 = create_test_user("test2")
     u2.prenom = "Victor"
@@ -389,20 +391,45 @@ describe UserApi do
     get(URI.encode("user/?query=test+etablissement:\"Victor Dolto\"")).status.should == 200
     response = JSON.parse(last_response.body)
     response["results"].count.should == 1
+    get(URI.encode("user/?query=test+etablissement:autre"))
+    response = JSON.parse(last_response.body)
+    response["results"].count.should == 1
   end
 
-  it "Renvois tous les mails de l'utilisateur" do
+  it "Renvois tous les mails, telephones et profils de l'utilisateur" do
     u = create_test_user
+    e = create_test_etablissement("Victor Dolto")
+    e2 = create_test_etablissement("autre")
     u.add_email("test@laclasse.com")
     u.add_email("test@yahoo.fr")
+    u.add_telephone("0404040404")
+    u.add_telephone("0604040404")
+    u.add_profil(e.id, PRF_ELV)
+    u.add_profil(e2.id, PRF_ENS)
     get("user/?query=login:test")
     response = JSON.parse(last_response.body)
-    #puts last_response.body
     response["results"].count.should == 1
     # Il faut reparser les emails vu que c'est du json
     #puts response["results"].first["emails"]
-    response["results"].first["emails"].count.should == 2
+    user = response["results"].first
+    user["emails"].count.should == 2
+    user["telephones"].count.should == 2
+    user["profils"].count.should == 2
   end
+=begin
+  it "benchmark 500 user" do
+    500.times do |i|
+      login = "test#{i}"
+      u = create_test_user(login)
+      u.add_email("#{login}@laclasse.com")
+    end
+    require 'benchmark'
+    include Benchmark
+    Benchmark.benchmark(Benchmark::CAPTION, 7, Benchmark::FORMAT, ">total:", ">avg:") do |x|
+      x.report("get 500 user: ") { 50.times do get("user/") end}
+    end
+  end
+=end
 =begin
   it "query responds also to model instance methods" do
     # email_acadmeique is instance method and not a columns

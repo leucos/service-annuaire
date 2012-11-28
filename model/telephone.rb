@@ -27,6 +27,16 @@ class Telephone < Sequel::Model(:telephone)
     self.numero.gsub!(' ', '')
     self.numero.gsub!('-', '')
   end
+
+  def before_create
+    # On ne détecte le téléphone portable que si on a le type par défaut
+    pref = self.numero[0,2]
+    pref_int = self.numero[0,5]
+    if self.type_telephone_id == TYP_TEL_MAIS and (pref == "06" or pref_int == "+336" or pref == "07" or pref_int == "+337")
+      self.type_telephone_id = TYP_TEL_PORT
+    end
+  end
+
   # Not nullable cols
   def validate
     super

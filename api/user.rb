@@ -525,7 +525,17 @@ class UserApi < Grape::API
     results = super_search!(dataset, accepted_fields)
 
     results[:results].each do |u|
-      u[:emails] = User[u[:id]].email_dataset.naked.all
+      user = User[u[:id]]
+      u[:emails] = user.email_dataset.naked.all
+      u[:telephones] = user.telephone_dataset.naked.all
+      u[:profils] = user.profil_user_display.naked.all
+      # Il y a moyen de faire tout ça en une seule requète
+      # mais faut tout de même parser le json car on fait par la suite un to_json dessus...
+      # if u[:emails]
+      #   u[:emails] = JSON.parse(u[:emails])
+      # else
+      #   u[:emails] = []
+      # end
     end
 
     results
