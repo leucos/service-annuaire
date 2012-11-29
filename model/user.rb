@@ -73,11 +73,16 @@ class User < Sequel::Model(:user)
     User[:login => login].nil?
   end
 
-  def self.find_available_login(prenom, nom)
-    #On lui créer un login/mot de passe par défaut de type 1ere lettre prenom + nom
+  # Renvois un login composé de 1ere lettre prenom + nom 
+  #tout en minuscule, sans espace et sans accents
+  def self.get_default_login(prenom, nom)
     login = "#{prenom.strip[0].downcase}#{nom.gsub(/\s+/, "").downcase}"
     #On fait ici de la transliteration (joli hein :) pour éviter d'avoir des accents dans les logins
     login = I18n.transliterate(login)
+  end
+
+  def self.find_available_login(prenom, nom)
+    login = get_default_login(prenom, nom)
     #Si homonymes, on utilise des numéros à la fin
     #todo prendre la deuxième lettre du prenom pour éviter les numéros ?
     login_number = 1
@@ -96,10 +101,14 @@ class User < Sequel::Model(:user)
     # Attention, la fonction group_concat est spécifique à MySQL !
     dataset = User.
       select(:user__nom, :user__prenom, :login, :user__id).
-      #select_json_array(:emails, {:email__id => "i_id", :email__adresse => "adresse"}).
+      select_json_array!(:emails, {:email__id => "i_id", :email__adresse => "adresse"}).
+      select_json_array!(:telephones, {:telephone__id => "i_id", :telephone__numero => "numero"}).
+      select_json_array!(:profils, {:profil__libelle => "libelle", :etablissement__nom => "nom"}).
       left_join(:email, :email__user_id => :user__id).
+      left_join(:telephone, :telephone__user_id => :user__id).
       left_join(:profil_user, :profil_user__user_id => :user__id).
       left_join(:etablissement, :etablissement__id => :etablissement_id).
+      left_join(:profil, :id => :profil_user__profil_id).
       group(:user__id)
   end
 

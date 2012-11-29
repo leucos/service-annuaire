@@ -91,6 +91,6 @@ module SearchHelpers
     page_no = params[:page] ? params[:page] : 1
 
     dataset = dataset.paginate(page_no, page_size)
-    {total: dataset.pagination_record_count, page: page_no, results: dataset.naked.all}
+    {total: dataset.pagination_record_count, page: page_no, results: dataset.naked!.all}
   end
 end

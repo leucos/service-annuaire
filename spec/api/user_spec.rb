@@ -384,7 +384,7 @@ describe UserApi do
     u2 = create_test_user("test2")
     u2.prenom = "Victor"
     # Trouve que les champs qui matche les deux
-    # Comme ça on ne se trouve pas avec tous les georges et tous les charpack
+    # Comme ça on ne se trouve pas avec tous les georges et tous les charpak
     get(URI.encode("user/?query=\"Victor Dolto\"")).status.should == 200
     response = JSON.parse(last_response.body)
     response["results"].count.should == 1
@@ -408,10 +408,12 @@ describe UserApi do
     u.add_profil(e2.id, PRF_ENS)
     get("user/?query=login:test")
     response = JSON.parse(last_response.body)
+    #puts response
     response["results"].count.should == 1
     # Il faut reparser les emails vu que c'est du json
     #puts response["results"].first["emails"]
     user = response["results"].first
+    #puts user
     user["emails"].count.should == 2
     user["telephones"].count.should == 2
     user["profils"].count.should == 2
