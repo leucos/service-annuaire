@@ -69,8 +69,14 @@ class User < Sequel::Model(:user)
     !!(id.class == String and id.length == 8 and id[0] == 'V' and id[3] == '6' and id[1..2] =~ /[a-zA-Z]{2}/ and id[4..7] =~ /\d{4}/)
   end
 
-  def self.is_login_available(login)
+  def self.is_login_available?(login)
     User[:login => login].nil?
+  end
+
+  def self.is_login_valid?(login)
+    #On créé un utilisateur fictif et on regarde si la validation passe avec ce login
+    u = User.new(:login => login, :password => 'a', :nom => 'a', :prenom => 'a')
+    return u.valid?
   end
 
   # Renvois un login composé de 1ere lettre prenom + nom 
@@ -87,7 +93,7 @@ class User < Sequel::Model(:user)
     #todo prendre la deuxième lettre du prenom pour éviter les numéros ?
     login_number = 1
     final_login = login
-    while !is_login_available(final_login)
+    while !is_login_available?(final_login)
       final_login = "#{login}#{login_number}"
       login_number += 1
     end

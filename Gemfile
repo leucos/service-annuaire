@@ -1,5 +1,5 @@
 source :rubygems
-source 'http://gems.erasme.org'
+#source 'http://gems.erasme.org'
 
 gem 'ramaze'
 gem 'sequel'

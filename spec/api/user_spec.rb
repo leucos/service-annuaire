@@ -418,6 +418,22 @@ describe UserApi do
     user["telephones"].count.should == 2
     user["profils"].count.should == 2
   end
+
+  it "Dis si un login est dispo et valide" do
+    get("user/login_available?login=test").status.should == 200
+    response = JSON.parse(last_response.body)
+    response["message"].should_not == nil
+    create_test_user("test")
+    get("user/login_available?login=test")
+    response = JSON.parse(last_response.body)
+    response["error"].should_not == nil
+    get("user/login_available?login=2test")
+    response = JSON.parse(last_response.body)
+    response["error"].should_not == nil
+    get("user/login_available?login=test+2")
+    response = JSON.parse(last_response.body)
+    response["error"].should_not == nil
+  end
 =begin
   it "benchmark 500 user" do
     500.times do |i|
