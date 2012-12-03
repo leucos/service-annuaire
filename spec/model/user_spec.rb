@@ -82,10 +82,9 @@ describe User do
   end
 
   it "knows if a login is available or not" do
-    User.is_login_available("test").should == true
-    create_test_user()
-    User.is_login_available("test").should == false
-    delete_test_users()
+    User.is_login_available?("test").should == true
+    create_test_user("test")
+    User.is_login_available?("test").should == false
   end
 
   it "find the right next available login" do
@@ -99,7 +98,14 @@ describe User do
     User.find_available_login("test", "test").should == "ttest1"
     create_test_user("ttest1")
     User.find_available_login("test", "test").should == "ttest2"
-    delete_test_users()
+  end
+
+  it "sait si un login est bon ou pas" do
+    User.is_login_valid?(" test").should == false
+    User.is_login_valid?("2test").should == false
+    User.is_login_valid?("test 2").should == false
+    User.is_login_valid?("test2").should == true
+    User.is_login_valid?("test_ounet").should == true
   end
 
   it "create and destroy a ressource on creation/deletion" do

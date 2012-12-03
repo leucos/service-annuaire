@@ -499,6 +499,25 @@ class UserApi < Grape::API
       user.send_password_mail(params[:adresse])
     end
 
+    desc "Simple service permettant de savoir si un login est disponible et valide"
+    params do
+      requires :login, type: String
+    end
+    get "login_available" do
+      login = params[:login]
+      result = {}
+      if User.is_login_valid?(login)
+        if User.is_login_available?(login)
+          result[:message] = "Login disponible"
+        else
+          result[:error] = "Login non disponible"
+        end
+      else
+        result[:error] = "Login invalide"
+      end
+      result
+    end
+
     desc "Service de recherche d'utilisateurs"
     params do
       optional :query, type: String, desc: "pattern de recherche. Possibilité de spécifier la colonne sur laquelle faire la recherche ex: 'nom:Chackpack prenom:Georges'"

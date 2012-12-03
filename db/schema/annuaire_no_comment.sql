@@ -211,7 +211,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`enseigne_regroupement` (
     REFERENCES `annuaire`.`matiere_enseignee` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = Inno;
+ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
