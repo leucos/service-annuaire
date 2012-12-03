@@ -1,5 +1,3 @@
-#encoding: utf-8
-
 #coding: utf-8
 require_relative '../../../helper'
 

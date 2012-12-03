@@ -1,7 +1,8 @@
 #coding: utf-8
 module Sequel
   module Plugins
-    # Tentative de faire simplement de la recherche multi champs sur un model Sequel
+    # Permet de faire simplement de la recherche multi-champs et multi-pattern
+    # Sur un model Sequel
     module FuzzySearch
 
       module DatasetMethods
@@ -12,6 +13,7 @@ module Sequel
           dataset = self
           patterns.each do |p|
             or_expression = []
+            # On fait simplement un OR ILIKE sur chaque champs
             fields.each {|f| or_expression.push([f.ilike("%#{p}%"), true])}
             dataset = dataset.filter(Sequel.or(or_expression))
           end

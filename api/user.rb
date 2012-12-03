@@ -525,7 +525,7 @@ class UserApi < Grape::API
 
       results = super_search!(dataset, accepted_fields)
 
-      # Code à décommenté si search_all_dataset n'utilise plus select_json_array!
+      # Code à décommenter si search_all_dataset n'utilise plus select_json_array!
       # results[:results].each do |u|
       #   user = User[u[:id]]
       #   u[:emails] = user.email_dataset.naked.all

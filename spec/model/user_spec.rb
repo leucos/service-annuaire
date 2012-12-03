@@ -420,9 +420,15 @@ describe User do
     e = u.add_email("test@laclasse.com")
     u.add_email("test2@laclasse.com")
     dataset = User.search_all_dataset()
-    hash = dataset.filter(:login => u.login).naked.first
-    # emails = JSON.parse(hash[:emails])
-    # emails.count.should == 2
-    # emails.first["id"].should == e.id
+    hash = dataset.filter(:login => u.login).first
+    emails = hash[:emails]
+    emails.count.should == 2
+    emails.first["id"].should == e.id
+  end
+
+  it "Effectue un recollement utilisateur si possible" do
+    u = create_test_user
+    
+    u2 = create_test_user("test2")
   end
 end

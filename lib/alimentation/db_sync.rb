@@ -9,8 +9,8 @@ module Alimentation
     #ne sont pas référencés dans les hash par des id mais par d'autres hash
     #Cette fonction remplace donc les hash par des id
     def clean_data(table, hash)
-      #Hash représentant les changements a effectuer sur les données
-      #Nécessaire car on ne peut pas supprimer ou rajouter des clés pendant un each
+      # Hash représentant les changements a effectuer sur les données
+      # Nécessaire car on ne peut pas supprimer ou rajouter des clés pendant un each
       to_change = {}
       columns = MODEL_MAP[table].columns()
       hash.each do |k, v|

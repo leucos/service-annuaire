@@ -1,7 +1,7 @@
 #coding: utf-8
 module Sequel
   module Plugins
-    # Tentative de faire simplement de la recherche multi champs sur un model Sequel
+    # 
     module SelectJsonArray
 
       # Simple class qui va contenir tous les champs JSON d'un dataset
@@ -16,14 +16,23 @@ module Sequel
           @fields_to_parse.push(field)
         end
 
+        # fait un JSON.parse sur les champs créés via select_json_array!
+        # Appelé lorsque l'on fait un each sur les champs du dataset
         def call(values)
-          values.each do |k, v|
-            values[k] = JSON.parse(v) if @fields_to_parse.include?(k) and v
+          @fields_to_parse.each do |k|
+            v = values[k]
+            values[k] = JSON.parse(v) if v
           end
+
+          return values
         end
       end
 
       module DatasetMethods
+        # Ptit hack de derrière les fagots : on surcharge naked et naked!
+        # Comme ça si l'utilisateur à utilisé select_json_array sur son dataset
+        # Il récupère toujours les champs json parsé même après avoir fait un naked!
+        # Je ne sais pas si ça plaira à Jeremy Evans mais bon ça marche :)
         def naked!
           self.row_proc.is_a?(JsonParseRowProc) ? self : super
         end
@@ -46,6 +55,9 @@ module Sequel
         # parsé lors d'un each ou autre
         # Le dataset n'est donc plus un dataset de Model mais un dataset simple (comme "naked" mais avec mon row_proc)
         def select_json_array!(name, attributes_hash)
+          # ATTENTION aussi à la valeur par défaut de la variable global
+          # group_concat_max_len = 1024
+          # L'équivalent postgresql est semble-t-il string_agg, à tester!
           raw_sql = "CONCAT('[',GROUP_CONCAT(DISTINCT "
 
           i = 0
