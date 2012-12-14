@@ -18,6 +18,7 @@ require 'securerandom'
 require 'redis'
 require 'mail'
 require 'bcrypt'
+require 'rack/contrib/try_static'
 
 require __DIR__('config/init')
 # Initialize controllers and models

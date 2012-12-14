@@ -14,6 +14,10 @@
 # 'start.rb' and use `ruby start.rb` instead.
 require ::File.expand_path('../app', __FILE__)
 
+use Rack::TryStatic,
+  :root => File.expand_path('../public', __FILE__),
+  :urls => %w[/], :try => ['.html', 'index.html', '/index.html']
+
 run UserApi
 run AuthApi 
 run EtabApi
@@ -26,6 +30,6 @@ map "/" do
 	run Root
 end
 
-#Ramaze.start(:root => Ramaze.options.roots, :started => true)
+#Ramaze.start(:root => Ramaze.options.roots, :adapter => :thin, :started => true)
 
 #run Ramaze

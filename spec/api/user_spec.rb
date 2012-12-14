@@ -434,6 +434,11 @@ describe UserApi do
     response = JSON.parse(last_response.body)
     response["error"].should_not == nil
   end
+
+  it "OPTIONS Request work as expected" do
+    options("user/").status.should == 204
+    options("user/?session_key=Test").status.should == 204
+  end
 =begin
   it "benchmark 500 user" do
     500.times do |i|
