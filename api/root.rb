@@ -1,8 +1,8 @@
 require 'grape-swagger'
 
 class Root < Grape::API
-	mount UserApi
+  mount UserApi
   mount EtabApi
-  #mount AuthApi 
+  mount AuthApi 
   add_swagger_documentation
 end
