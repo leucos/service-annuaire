@@ -14,9 +14,9 @@
 # 'start.rb' and use `ruby start.rb` instead.
 require ::File.expand_path('../app', __FILE__)
 
-#use Rack::TryStatic,
-#  :root => File.expand_path('../public', __FILE__),
-#  :urls => %w[/], :try => ['.html', 'index.html', '/index.html']
+
+
+use Rack::Static, :urls => ["/dojo"], :root => File.expand_path('../public', __FILE__)
 
 
 run UserApi
