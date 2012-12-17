@@ -28,8 +28,8 @@ end
 def clean_annuaire()
   puts "TRUNCATE ALL USER RELATED TABLES"
   [
-    :last_uid, :telephone, :email, :relation_eleve,
-    :enseigne_regroupement, :user, :regroupement, :role_user
+    :last_uid, :telephone, :email, :relation_eleve, :ressource,
+    :enseigne_regroupement, :role_user, :profil_user, :user, :regroupement
   ].each do |table|
     if table == :ressource
       truncate_ressource()
@@ -48,7 +48,7 @@ def bootstrap_annuaire()
   # TODO : supprimer les ressources en faisant attention aux parents
   [
   :last_uid, :activite_role, :role_user, :activite, :role, :param_application, :type_param, :ressource, :service, :email,
-  :telephone, :etablissement, :enseigne_regroupement, :regroupement, :application_etablissement,
+  :telephone, :profil_user, :etablissement, :enseigne_regroupement, :regroupement, :application_etablissement,
   :user, :type_telephone, :type_regroupement, :type_relation_eleve, :profil, :niveau, :relation_eleve
   ].each do |table|
     if table == :ressource
@@ -256,7 +256,7 @@ def bootstrap_annuaire()
 
   #On va créer pour chaque établissement 100 utilisateurs
   # 2.times do |nb|
-  2.times do |nb|
+  0.times do |nb|
     etb = nb == 0 ? etb1 : etb2
     100.times do |ind|
       #Création aléatoire d'un nom et d'un utilisateur

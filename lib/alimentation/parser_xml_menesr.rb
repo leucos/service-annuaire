@@ -421,7 +421,7 @@ module Alimentation
             new_id = last_id[:id] + 1
             m = MatiereEnseignee.create(:id => new_id, :libelle_long => mat,
               :libelle_edition => mat, :famille_matiere_id => 0)
-            Ramaze::Log.info("Matière #{mat} inconnue nouvel id #{m.id}")
+            Laclasse::Log.info("Matière #{mat} inconnue nouvel id #{m.id}")
           end
           id = m.id unless m.nil?
         end
@@ -567,7 +567,7 @@ module Alimentation
             parse_file(name)
           end
         else
-          Ramaze::Log.error("Plus de 4 fichiers pour l'établissement #{uai} : #{file_list}")
+          Laclasse::Log.error("Plus de 4 fichiers pour l'établissement #{uai} : #{file_list}")
         end
       end
 

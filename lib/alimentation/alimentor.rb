@@ -41,12 +41,12 @@ module Alimentation
       Zlib::GzipReader.open(@archive_name) do |tgz|
         #Unpack the tar, this way it will be easier to work with xml files
         #This may take a while...
-        Ramaze::Log.info("#{@archive_name} is good")
+        Laclasse::Log.info("#{@archive_name} is good")
         Archive::Tar::Minitar.unpack(tgz, @temp_dir)
       end
 
       ok = Dir.exists?(@temp_dir)
-      Ramaze::Log.error("Temp dir not created abording alimentation") unless ok
+      Laclasse::Log.error("Temp dir not created abording alimentation") unless ok
       return ok
     end
 
@@ -70,7 +70,7 @@ module Alimentation
     end
 
     def prepare_alimentation
-      Ramaze::Log.info("prepare_alimentation")
+      Laclasse::Log.info("prepare_alimentation")
       ok = unpack_archive()
       list_all_etb() if ok
 
@@ -81,19 +81,19 @@ module Alimentation
     def parse_all_etb
       @etb_file_map.each do |uai, file_list|
         begin
-          Ramaze::Log.info("Start parsing etablissement #{uai}")
+          Laclasse::Log.info("Start parsing etablissement #{uai}")
           parser = Parser.new
           cur_etb_data = parser.parse_etb(uai, file_list)
           unless cur_etb_data.nil?
-            Ramaze::Log.info("Generate diff")
+            Laclasse::Log.info("Generate diff")
             diff_generator = DiffGenerator.new(uai, cur_etb_data, @is_complet)
             diff = diff_generator.generate_diff_etb()
 
-            Ramaze::Log.info("Generate diff_view")
+            Laclasse::Log.info("Generate diff_view")
             diff_view = DiffView.new
             diff_view.generate_html(uai, diff, @date_alim, @is_complet)
 
-            Ramaze::Log.info("Synchronize DB")
+            Laclasse::Log.info("Synchronize DB")
             sync = DbSync.new
             sync.sync_db(diff)
           end

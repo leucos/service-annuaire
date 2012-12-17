@@ -43,7 +43,7 @@ module Alimentation
       # Ensuite on s'assure que le login n'est pas présent dans la BDD
       # Ou dans les utilisateurs en train d'être créés
       # Si c'est le cas, on incrémente le nombre
-      while !User.is_login_available(final_login) or !@cur_etb_data[:user].find({:login => final_login}).nil?
+      while !User.is_login_available?(final_login) or !@cur_etb_data[:user].find({:login => final_login}).nil?
         final_login = "#{login}#{login_number}"
         login_number += 1
       end

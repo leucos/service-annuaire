@@ -1,7 +1,6 @@
 source :rubygems
 #source 'http://gems.erasme.org'
 
-gem 'ramaze'
 gem 'sequel'
 gem 'mysql2'
 gem 'thin'
