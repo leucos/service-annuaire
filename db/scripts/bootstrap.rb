@@ -256,7 +256,7 @@ def bootstrap_annuaire()
 
   #On va créer pour chaque établissement 100 utilisateurs
   # 2.times do |nb|
-  0.times do |nb|
+  2.times do |nb|
     etb = nb == 0 ? etb1 : etb2
     100.times do |ind|
       #Création aléatoire d'un nom et d'un utilisateur
@@ -293,14 +293,11 @@ def bootstrap_annuaire()
           filter(:role_user => RoleUser.filter(:role_id => ROL_ELV_ETB)).
           filter({:type_relation_eleve_id => nil}).first
         if eleve
-          RelationEleve.create(:user_id => usr.id, :eleve_id => eleve.id, :type_relation_eleve_id => rel)
+          usr.add_enfant(eleve, rel)
         end
       end
-      role_id = Profil[profil].role_id
-      # Temp ne marche pas pour l'instant
-      res_etb = Ressource[:service_id => SRV_ETAB, :id => etb.id]
-      RoleUser.create(:user_id => usr.id, :role_id => role_id,
-        :ressource_id => res_etb.id, :ressource_service_id => SRV_ETAB)
+
+      usr.add_profil(etb.id, profil)
     end
   end
 end

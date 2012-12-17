@@ -15,7 +15,6 @@ gem 'rest-client'
 gem 'redis'
 gem 'mail'
 gem 'grape-swagger'
-gem 'rack-try_static'
 
 group :development do
   gem 'rack-test'
