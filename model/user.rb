@@ -69,20 +69,31 @@ class User < Sequel::Model(:user)
     !!(id.class == String and id.length == 8 and id[0] == 'V' and id[3] == '6' and id[1..2] =~ /[a-zA-Z]{2}/ and id[4..7] =~ /\d{4}/)
   end
 
-  def self.is_login_available(login)
+  def self.is_login_available?(login)
     User[:login => login].nil?
   end
 
-  def self.find_available_login(prenom, nom)
-    #On lui créer un login/mot de passe par défaut de type 1ere lettre prenom + nom
+  def self.is_login_valid?(login)
+    #On créé un utilisateur fictif et on regarde si la validation passe avec ce login
+    u = User.new(:login => login, :password => 'a', :nom => 'a', :prenom => 'a')
+    return u.valid?
+  end
+
+  # Renvois un login composé de 1ere lettre prenom + nom 
+  #tout en minuscule, sans espace et sans accents
+  def self.get_default_login(prenom, nom)
     login = "#{prenom.strip[0].downcase}#{nom.gsub(/\s+/, "").downcase}"
     #On fait ici de la transliteration (joli hein :) pour éviter d'avoir des accents dans les logins
     login = I18n.transliterate(login)
+  end
+
+  def self.find_available_login(prenom, nom)
+    login = get_default_login(prenom, nom)
     #Si homonymes, on utilise des numéros à la fin
     #todo prendre la deuxième lettre du prenom pour éviter les numéros ?
     login_number = 1
     final_login = login
-    while !is_login_available(final_login)
+    while !is_login_available?(final_login)
       final_login = "#{login}#{login_number}"
       login_number += 1
     end
@@ -93,14 +104,40 @@ class User < Sequel::Model(:user)
   # Renvois un dataset utilisé pour faire une recherche sur tous les utilisateurs
   # Et formaté pour renvoyé le résultat en JSON
   def self.search_all_dataset
-    # Attention, la fonction group_concat est spécifique à MySQL !
+    # Utilise pour l'instant select_json_array!
+    # Pour s'en passer, il faudra boucler sur tous les users
+    # Et faire une requète pour récupérer les email, puis une pour les téléphones
+    # et une pour les profils
+    # Surement beaucoup plus lent mais plus standard
     dataset = User.
       select(:user__nom, :user__prenom, :login, :user__id).
-      #select_json_array(:emails, {:email__id => "i_id", :email__adresse => "adresse"}).
+      select_json_array!(:emails, {:email__id => "i_id", :email__adresse => "adresse"}).
+      select_json_array!(:telephones, {:telephone__id => "i_id", :telephone__numero => "numero"}).
+      select_json_array!(:profils, {:profil__libelle => "libelle", :etablissement__nom => "nom"}).
       left_join(:email, :email__user_id => :user__id).
+      left_join(:telephone, :telephone__user_id => :user__id).
       left_join(:profil_user, :profil_user__user_id => :user__id).
       left_join(:etablissement, :etablissement__id => :etablissement_id).
+      left_join(:profil, :id => :profil_user__profil_id).
       group(:user__id)
+  end
+
+  # Service de recollement d'un utilisateur pour un établissement
+  # param Hash données de l'utilisateur reflétant la structure de la table
+  # return nil si 0 ou plusieurs personnes correspondent aux critères
+  # return User si seulement une personne correspond aux critères
+  def match(user_hash, code_uai)
+    # Si le hash provient de l'alimentation automatique
+    # On a un id_jointure_aaf
+    u = User[:id_jointure_aaf => user_hash[:id_jointure_aaf]] if user_hash[:id_jointure_aaf]
+    if u.nil?
+      # On utilise les autres infos que l'on a sur l'utilisateur pour le trouver
+      # On limite tout de même notre périmètre à l'établissement concerné par l'alimentation
+      User.
+        filter(:nom.ilike(user[:nom]), :prenom.ilike(user[:prenom]),
+        :sexe => user[:sexe], :date_naissance => user[:date_naissance], :id_jointure_aaf => nil,
+        :profil_user => ProfilUser.filter(:etablissement => Etablissement.filter(:code_uai => code_uai)))
+    end
   end
 
   # Très important : Hook qui génère l'id unique du user avant de l'inserer dans la BDD

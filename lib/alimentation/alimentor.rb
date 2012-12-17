@@ -86,8 +86,8 @@ module Alimentation
           cur_etb_data = parser.parse_etb(uai, file_list)
           unless cur_etb_data.nil?
             Ramaze::Log.info("Generate diff")
-            diff_generator = DiffGenerator.new
-            diff = diff_generator.generate_diff_etb(uai, cur_etb_data, @is_complet)
+            diff_generator = DiffGenerator.new(uai, cur_etb_data, @is_complet)
+            diff = diff_generator.generate_diff_etb()
 
             Ramaze::Log.info("Generate diff_view")
             diff_view = DiffView.new

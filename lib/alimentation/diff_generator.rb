@@ -1,17 +1,49 @@
 #!ruby
 #coding: utf-8
 module Alimentation
+  # Classe d'erreur quand on a une donnée d'update qui n'a pas les mêmes id
+  class MismatchUpdateIdError < StandardError
+  end
+  # raisé quand on essait de créer une donnée d'update sans données provenant de la base
+  class NoDbEntryError < StandardError
+  end
+  # Quand on utilise une table inexistante
+  class WrongTableError <  StandardError
+  end
+
+  class NoIdError < StandardError
+  end
+
   class DiffGenerator
+
+    def initialize(uai, etb_data, is_complet)
+      @is_complet = is_complet
+      @cur_etb_uai = uai
+      @cur_etb_data = etb_data
+      init_diff_array()
+      @removed_elv_list = []
+    end
+
+    def init_diff_array
+      @cur_etb_diff = {}
+      @cur_etb_data.each_key do |table|
+        #Sur chaque table, il y a ces 3 opérations possibles
+        #Et on va stocker toutes les infos nécessaires pour les réaliser
+        #Ensuite on pourra aisément réaliser un fichier de diff et/ou mettre à jour la BDD
+        @cur_etb_diff[table] = {create: [], update: [], delete: []}
+      end
+    end
+
     def find_available_login(user)
-      # Va nous trouver le prochain login dispo dans la base de donnée
-      # Mais pas forcément dans les utilisateurs à créer
-      login = User.find_available_login(user[:prenom], user[:nom])
+      # Construction du login par défaut
+      login = User.get_default_login(user[:prenom], user[:nom])
       #Si homonymes, on utilise des numéros à la fin
       login_number = 1
       final_login = login
-      # On est obligé de refaire une recherche parmis les utilisateurs
-      # pas encore créés
-      while !User[:login => final_login].nil? or !@cur_etb_data[:user].find({:login => final_login}).nil?
+      # Ensuite on s'assure que le login n'est pas présent dans la BDD
+      # Ou dans les utilisateurs en train d'être créés
+      # Si c'est le cas, on incrémente le nombre
+      while !User.is_login_available(final_login) or !@cur_etb_data[:user].find({:login => final_login}).nil?
         final_login = "#{login}#{login_number}"
         login_number += 1
       end
@@ -26,28 +58,41 @@ module Alimentation
     def clean_data_to_update(data, db_entry, id_fields)
       #On ne supprime pas les champs d'identifiant car on en a de toute façon
       #besoin pour faire l'update
-      data.delete_if {|k, v| !id_fields.include?(k) and v == db_entry[k]}
+      id_fields.each {|id| raise NoIdError.new unless data.keys.sort.include?(id)}
+      data.delete_if do |k, v|
+        # On ne peut pas accepter des id différents
+        raise MismatchUpdateIdError.new if id_fields.include?(k) and v != db_entry[k]
+        !id_fields.include?(k) and v == db_entry[k]
+      end
+
       #S'il ne reste plus que les clé primaires dans les données c'est qu'il n'y a plus rien a updater
       return data.keys.sort != id_fields.sort
     end
 
     def add_data(table_name, mode, data, db_entry=nil)
+      raise WrongTableError.new("#{table_name} inexistante") if @cur_etb_diff[table_name].nil?
+
       table_operation = @cur_etb_diff[table_name][mode]
+
       if mode == :update
-        raise "Update without db_entry" if db_entry.nil?
+        raise NoDbEntryError.new("Update without db_entry") if db_entry.nil?
+        # On stocke aussi les données actuelles pour générer des diffs plus complets
+        # ex : Rene renommé en René
         to_add = {current: db_entry, updated: data}
       else
         to_add = data
       end
 
+      # On s'assurce que les données ne sont pas déjà présentent
+      # ex : d'une relation élève qui peut se trouver 2 fois supprimé car on passe 2 fois
+      # dans le traitement
       unless table_operation.include?(to_add)
         table_operation.push(to_add)
       end
     end
-    #todo : checker pour les create, update, delete si les données qu'on pousse
-    # ne sont pas déjà présente dans les diffs ?
-    # ex : d'une relation élève qui peut se trouver 2 fois supprimé car on passe 2 fois
-    # dans le traitement
+    
+    # S'assure que les données ont vraiment besoin d'être mise à jour
+    # avant de les rajouter
     def add_data_to_update(table_name, data, db_entry, id_fields = [:id])
       need_update = clean_data_to_update(data, db_entry, id_fields)
       if need_update
@@ -64,7 +109,7 @@ module Alimentation
     end
 
     def diff_etablissement(etab)
-      # create : quand l'id n'existe pas
+      # create : quand l'uia n'existe pas
       # update : quand des données sont MAJ
       # delete : PAS DE DELETE
       db_entry = Etablissement[:code_uai => etab[:code_uai]]
@@ -539,19 +584,10 @@ module Alimentation
     end
 
     #Cette fonction génère une structure intermédiaire représentant les changements à effectuer
-    def generate_diff_etb(uai, etb_data, is_complet)
-      @is_complet = is_complet
-      @cur_etb_uai = uai
-      @cur_etb_data = etb_data
-      @cur_etb_diff = {}
-      @removed_elv_list = []
+    def generate_diff_etb
       #Je n'utilise pas le each du Hash cur_etb_data car j'ai besoin d'être sûr de l'ordre
       #d'appel (user doit être en premier)
       @cur_etb_data.each_key do |table|
-        #Sur chaque table, il y a ces 3 opérations possibles
-        #Et on va stocker toutes les infos nécessaires pour les réaliser
-        #Ensuite on pourra aisément réaliser un fichier de diff et/ou mettre à jour la BDD
-        @cur_etb_diff[table] = {create: [], update: [], delete: []}
         @cur_etb_data[table].each do |data|
           case table
             when :etablissement
@@ -570,7 +606,7 @@ module Alimentation
                   unless user.nil?
                     data[:id] = user.id
                   else
-                    #Ce cas n'arrive normalement que pour les parents (alimentation précédente qui a foirée)
+                    # Ce cas n'arrive normalement que pour les parents (alimentation précédente qui a foirée)
                     # et donc delta qui n'a pas toutes les infos, il faut supprimer les références à cet utilisateur
                     # dans les tables relation_eleve et profil_user pour éviter d'avoir des erreurs SQL...
                     remove_unknown_parent_references(data[:id_jointure_aaf])

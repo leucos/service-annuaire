@@ -1,5 +1,5 @@
 source :rubygems
-source 'http://gems.erasme.org'
+#source 'http://gems.erasme.org'
 
 gem 'ramaze'
 gem 'sequel'
@@ -15,7 +15,11 @@ gem 'rest-client'
 gem 'redis'
 gem 'mail'
 gem 'grape-swagger'
+
 gem 'rack-cors', :require => 'rack/cors'
+
+gem 'rack-try_static'
+
 
 group :development do
   gem 'rack-test'

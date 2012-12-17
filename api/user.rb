@@ -499,6 +499,25 @@ class UserApi < Grape::API
       user.send_password_mail(params[:adresse])
     end
 
+    desc "Simple service permettant de savoir si un login est disponible et valide"
+    params do
+      requires :login, type: String
+    end
+    get "login_available" do
+      login = params[:login]
+      result = {}
+      if User.is_login_valid?(login)
+        if User.is_login_available?(login)
+          result[:message] = "Login disponible"
+        else
+          result[:error] = "Login non disponible"
+        end
+      else
+        result[:error] = "Login invalide"
+      end
+      result
+    end
+
     desc "Service de recherche d'utilisateurs"
     params do
       optional :query, type: String, desc: "pattern de recherche. Possibilité de spécifier la colonne sur laquelle faire la recherche ex: 'nom:Chackpack prenom:Georges'"
@@ -525,19 +544,13 @@ class UserApi < Grape::API
 
       results = super_search!(dataset, accepted_fields)
 
-      results[:results].each do |u|
-        user = User[u[:id]]
-        u[:emails] = user.email_dataset.naked.all
-        u[:telephones] = user.telephone_dataset.naked.all
-        u[:profils] = user.profil_user_display.naked.all
-        # Il y a moyen de faire tout ça en une seule requète
-        # mais faut tout de même parser le json car on fait par la suite un to_json dessus...
-        # if u[:emails]
-        #   u[:emails] = JSON.parse(u[:emails])
-        # else
-        #   u[:emails] = []
-        # end
-      end
+      # Code à décommenter si search_all_dataset n'utilise plus select_json_array!
+      # results[:results].each do |u|
+      #   user = User[u[:id]]
+      #   u[:emails] = user.email_dataset.naked.all
+      #   u[:telephones] = user.telephone_dataset.naked.all
+      #   u[:profils] = user.profil_user_display.naked.all
+      # end
 
       results
     end
