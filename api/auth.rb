@@ -16,6 +16,7 @@ class AuthApi < Grape::API
       requires :user_id, type: String
     end     
     post do
+      puts params.inspect
       # user can have only one session
       # todo : check that user exists ?
       key = AuthSession.create(params[:user_id])

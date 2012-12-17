@@ -13,7 +13,9 @@
 require ::File.expand_path('../app', __FILE__)
 
 
+
 use Rack::Static, :urls => ["/dojo"], :root => File.expand_path('../public', __FILE__)
+
 
 run UserApi
 run AuthApi 
