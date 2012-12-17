@@ -15,10 +15,7 @@ gem 'rest-client'
 gem 'redis'
 gem 'mail'
 gem 'grape-swagger'
-
-gem 'rack-cors', :require => 'rack/cors'
-
-gem 'rack-try_static'
+#gem 'rack-try_static'
 
 
 group :development do
