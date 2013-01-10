@@ -10,7 +10,6 @@
 # libelle                       | varchar(255)        | true     |          |            | 
 # description                   | varchar(1024)       | true     |          |            | 
 # url                           | varchar(1024)       | true     |          |            | 
-# api                           | tinyint(1)          | false    |          |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
 class Service < Sequel::Model(:service)
@@ -45,7 +44,6 @@ class Service < Sequel::Model(:service)
   # Not nullable cols and unicity validation
   def validate
     super
-    validates_presence [:api]
   end
 
   def before_destroy

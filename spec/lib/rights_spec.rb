@@ -2,11 +2,6 @@
 require_relative '../helper'
 
 describe Rights do
-  #in case something went wrong
-  delete_test_ressources_tree()
-  delete_test_role()
-  delete_test_users()
-  
   it "return create_user rights for user in ressource etablissement if user has role on etab" do
     r = create_test_role()
     ressource_etab = create_test_ressources_tree()
@@ -15,8 +10,6 @@ describe Rights do
     admin = create_user_with_role(r.id, ressource_etab)
     Rights.get_rights(admin.id, SRV_ETAB, ressource_etab.id, SRV_USER).should == [ACT_CREATE]
     Rights.get_rights(admin.id, SRV_ETAB, e2.id, SRV_USER).should == []
-    delete_test_ressources_tree()
-    delete_test_role()
   end
 
   it "return create_user rights for user in ressource etablissement if user has role on laclasse" do
@@ -27,8 +20,6 @@ describe Rights do
     admin = create_user_with_role(r.id)
     Rights.get_rights(admin.id, SRV_ETAB, ressource_etab.id, SRV_USER).should == [ACT_CREATE]
     Rights.get_rights(admin.id, SRV_ETAB, e2.id, SRV_USER).should == [ACT_CREATE]
-    delete_test_ressources_tree()
-    delete_test_role()
   end
 
   it "should return create rights for user on resource class if user has role on etab " do
@@ -37,8 +28,6 @@ describe Rights do
     admin = create_user_with_role(r.id, e.ressource)
     classe = e.add_regroupement({:type_regroupement_id => TYP_REG_CLS})
     Rights.get_rights(admin.id, SRV_CLASSE, classe.id).should == [ACT_DELETE]
-    delete_test_ressources_tree()
-    delete_test_role()
   end
 
   it "should handle merge similar rights" do
@@ -50,8 +39,6 @@ describe Rights do
       :ressource_id => e.ressource.id, :ressource_service_id => e.ressource.service_id,
       :role_id => r.id)
     Rights.get_rights(admin.id, SRV_ETAB, e.ressource.id, SRV_USER).should == [ACT_CREATE]
-    delete_test_ressources_tree()
-    delete_test_role()
   end
 
   it "should return create rights on service user for laclasse admin" do
@@ -59,8 +46,6 @@ describe Rights do
     admin = create_user_with_role(r.id)
     laclasse_id = Ressource[:service_id => SRV_LACLASSE].id
     Rights.get_rights(admin.id, SRV_LACLASSE, laclasse_id, SRV_USER).should == [ACT_CREATE]
-    delete_test_role()
-    delete_test_users()
   end
 
   it "cumulate rights from different role" do
@@ -85,8 +70,6 @@ describe Rights do
     Rights.get_rights(admin.id, SRV_CLASSE, classe.id).sort.should == [ACT_DELETE, ACT_UPDATE]
 
     r.destroy()
-    delete_test_ressources_tree()
-    delete_test_role()
   end
 
   # todo : Tester que l'on puisse accéder aux fichiers d'un établissement mais pas à celui des classes

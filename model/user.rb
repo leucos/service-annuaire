@@ -10,12 +10,10 @@
 # id_sconet                     | int(11)             | true     | UNI      |            | 
 # id_jointure_aaf               | int(11)             | true     | UNI      |            | 
 # login                         | varchar(45)         | false    |          |            | 
-# password                      | char(32)            | true     |          |            | 
+# password                      | char(60)            | true     |          |            | 
 # nom                           | varchar(45)         | false    |          |            | 
 # prenom                        | varchar(45)         | false    |          |            | 
 # sexe                          | varchar(1)          | true     |          |            | 
-# question_secrete              | varchar(512)        | true     |          |            | 
-# reponse_question_secrete      | char(32)            | true     |          |            | 
 # date_naissance                | date                | true     |          |            | 
 # adresse                       | varchar(255)        | true     |          |            | 
 # code_postal                   | char(6)             | true     |          |            | 
@@ -25,7 +23,7 @@
 # date_fin_activation           | date                | true     |          |            | 
 # date_derniere_connexion       | date                | true     |          |            | 
 # bloque                        | tinyint(1)          | false    |          | 0          | 
-# date_last_maj_aaf             | date                | true     |          |            | 
+# change_password               | tinyint(1)          | false    |          | 0          | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
 class User < Sequel::Model(:user)

@@ -90,7 +90,7 @@ def bootstrap_annuaire()
 
   #Tout d'abord, on créer des services (api)
   # service laclasse.com (les super admin y sont reliés)
-  Service.create(:id => SRV_LACLASSE, :libelle => "Laclasse.com", :description => "Service auquel tout est rattaché", :url => "/", :api => true)
+  Service.create(:id => SRV_LACLASSE, :libelle => "Laclasse.com", :description => "Service auquel tout est rattaché", :url => "/")
 
   # TODO : Rajouter les roles de prof et eleve dans une classe (cela sera des constantes)
   # TODO : Rajouter le role de documentaliste qui a comme une role de prof sur toutes les classes
@@ -106,12 +106,12 @@ def bootstrap_annuaire()
   #
   # service /user
   #
-  Service.create(:id => SRV_USER, :libelle => "Gestion utilisateur", :description => "Service de gestion des utilisateurs de laclasse.com", :url => "/user", :api => true)
+  Service.create(:id => SRV_USER, :libelle => "Gestion utilisateur", :description => "Service de gestion des utilisateurs de laclasse.com", :url => "/user")
 
   #
   # service /etablissement
   #
-  Service.create(:id => SRV_ETAB, :libelle => "Gestion etablissement", :description => "Service de gestion des etablissements de laclasse.com", :url => "/etablissement", :api => true)
+  Service.create(:id => SRV_ETAB, :libelle => "Gestion etablissement", :description => "Service de gestion des etablissements de laclasse.com", :url => "/etablissement")
 
   # Et des Role et ActiviteRole
   Role.create(:id => ROL_PROF_ETB, :libelle => "Professeur", :service_id => SRV_ETAB)
@@ -136,16 +136,16 @@ def bootstrap_annuaire()
   #
   # service /classe
   #
-  Service.create(:id => SRV_CLASSE, :libelle => "Service de gestion des classes", :url => "/classe", :api => true)
+  Service.create(:id => SRV_CLASSE, :libelle => "Service de gestion des classes", :url => "/classe")
 
   Role.create(:id => ROL_PROF_CLS, :libelle => "Professeur", :description => "Professeur enseignant dans une classe", :service_id => SRV_CLASSE)
   Role.create(:id => ROL_PRFP_CLS, :libelle => "Professeur Principal", :description => "Professeur principal d'une classe", :service_id => SRV_CLASSE)
   Role.create(:id => ROL_ELV_CLS, :libelle => "Elève", :service_id => SRV_CLASSE)
 
   # service /groupe
-  Service.create(:id => SRV_GROUPE, :libelle => "Service de gestion des groupes d'élèves", :url => "/groupe", :api => true)
+  Service.create(:id => SRV_GROUPE, :libelle => "Service de gestion des groupes d'élèves", :url => "/groupe")
   # service /libre
-  Service.create(:id => SRV_LIBRE, :libelle => "Service de gestion des groupes libres", :url => "/libre", :api => true)
+  Service.create(:id => SRV_LIBRE, :libelle => "Service de gestion des groupes libres", :url => "/libre")
   # service /rights
 
   # service /alimentation
@@ -261,8 +261,8 @@ def bootstrap_annuaire()
     100.times do |ind|
       #Création aléatoire d'un nom et d'un utilisateur
       r = Random.new
-      pren = prenom_list[r.rand(prenom_list.length)]
-      nom = nom_list[r.rand(nom_list.length)]
+      pren = prenom_list[r.rand(prenom_list.length)].capitalize
+      nom = nom_list[r.rand(nom_list.length)].capitalize
       sexe = r.rand(2) == 0 ? "M" : "F"
 
       login = User.find_available_login(pren, nom)
@@ -298,6 +298,10 @@ def bootstrap_annuaire()
       end
 
       usr.add_profil(etb.id, profil)
+      usr.add_email("#{usr.login}@laclasse.com")
+      usr.add_email("#{usr.login}@gmail.com")
+      usr.add_telephone("0472540000")
+      usr.add_telephone("0662540000")
     end
   end
 end
