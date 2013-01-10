@@ -58,11 +58,11 @@ describe UserApi do
     get("/user/#{u.id}/relations", :session_key => @stored_session).status.should == 200
   end  
 
-  it "On prend en premier le header de session, puis le cookie, puis le parametre" do
+  it "On prend en premier le cookie, puis le parametre et enfin le header de session" do
     u = create_test_user
-    get("/user/#{u.id}", nil, {"X-Auth" => @session}).status.should == 403
     set_cookie("session_key=#{@stored_session}")
-    get("/user/#{u.id}", nil, {"X-Auth" => @session}).status.should == 200
-    get("/user/#{u.id}?session_key=#{@session}", nil, {"X-Auth" => @session}).status.should == 403
+    get("/user/#{u.id}", nil).status.should == 200
+    get("/user/#{u.id}?session_key=#{@session}", nil).status.should == 403
+    get("/user/#{u.id}?session_key=#{@session}", nil, {"X-Auth" => @stored_session}).status.should == 200
   end
 end
