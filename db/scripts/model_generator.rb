@@ -1,7 +1,7 @@
 # Sequel Basic Scafolding Model Generator for MySQL 
 # Requires sequel-3.34.0 and above.
 #
-# This routine takes all the table of a database, en generates all Sequel models for Ramaze
+# This routine takes all the table of a database, en generates all Sequel models
 # For each table model we put :
 # - A header that reminds you the table structure
 # - the plugin list you wrote in 'plugin_to_add' array
@@ -10,7 +10,7 @@
 # - Generates init.rb to be include in the project
 #
 # Note : config/database should already exists. Create it using Rake
-# WARNING !
+# WARNING :
 # This script is a very very very partial implementation of Sequel features
 # It is only usefull at the beginning of a project to create all Sequel models of a database.
 #

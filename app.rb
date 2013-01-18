@@ -4,10 +4,6 @@
 #
 # It will be required from either `config.ru` or `start.rb`
 require 'rubygems'
-require 'ramaze'
-
-# Make sure that Ramaze knows where you are
-Ramaze.options.roots = [__DIR__]
 
 require 'sequel'
 require 'grape'
@@ -18,7 +14,15 @@ require 'securerandom'
 require 'redis'
 require 'mail'
 require 'bcrypt'
+require 'logger'
 
+def __DIR__(*args)
+  filename = caller[0][/^(.*):/, 1]
+  dir = File.expand_path(File.dirname(filename))
+  ::File.expand_path(::File.join(dir, *args.map{|a| a.to_s}))
+end
+
+require __DIR__('lib/laclasse')
 require __DIR__('config/init')
 # Initialize controllers and models
 require __DIR__('lib/init')
@@ -28,8 +32,3 @@ require __DIR__('helper/init')
 require __DIR__('api/init')
 
 AuthSession.init()
-#Rack::RouteExceptions.route(Exception,  MainController.r(:my_error_handler))
-
-
-
-

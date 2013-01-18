@@ -13,7 +13,7 @@ class AuthSession
   def self.init
     AuthConfig::STORED_SESSION.each do |user_id, session_id|
       if User[user_id].nil?
-        Ramaze::Log.error("Attention utilisateur #{user_id} inexistant pour la session #{session_id}")
+        Laclasse::Log.error("Attention utilisateur #{user_id} inexistant pour la session #{session_id}")
       end
       # La clé d'une session stockée est l'utilisateur car on ne peut
       # pas avoir plusieurs session pour un même utilisateur stocké

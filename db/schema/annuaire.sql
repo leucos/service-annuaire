@@ -19,8 +19,6 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`user` (
   `nom` VARCHAR(45) NOT NULL ,
   `prenom` VARCHAR(45) NOT NULL ,
   `sexe` VARCHAR(1) NULL COMMENT 'M ou F' ,
-  `question_secrete` VARCHAR(512) NULL ,
-  `reponse_question_secrete` CHAR(32) NULL COMMENT 'Réponse à la question secrète. Encodé en MD5 comme un password.' ,
   `date_naissance` DATE NULL ,
   `adresse` VARCHAR(255) NULL ,
   `code_postal` CHAR(6) NULL ,
@@ -30,8 +28,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`user` (
   `date_fin_activation` DATE NULL COMMENT 'La désactivation d\'un compte peut-être prévue (ie compte d\'inspecteur académique)' ,
   `date_derniere_connexion` DATETIME NULL ,
   `bloque` TINYINT(1)  NOT NULL DEFAULT 0 COMMENT 'Si oui ou non le compte est bloqué (plus d\'accès à l\'établissement et autre).' ,
-  `date_last_maj_aaf` DATETIME NULL ,
-  `change_password` TINYINT(1)  NULL DEFAULT 1 ,
+  `change_password` TINYINT(1)  NULL DEFAULT 0 COMMENT 'doit changer son password' ,
   PRIMARY KEY (`id`) ,
   UNIQUE INDEX `id_jointure_aaf_UNIQUE` (`id_jointure_aaf` ASC) ,
   UNIQUE INDEX `id_sconet_UNIQUE` (`id_sconet` ASC) ,
@@ -313,7 +310,6 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`service` (
   `libelle` VARCHAR(255) NULL ,
   `description` VARCHAR(1024) NULL ,
   `url` VARCHAR(1024) NULL ,
-  `api` TINYINT(1)  NOT NULL COMMENT 'est-ce une api ou une application ?' ,
   PRIMARY KEY (`id`) )
 ENGINE = InnoDB;
 

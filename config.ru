@@ -1,7 +1,5 @@
 #!/usr/bin/env rackup
 #
-# config.ru for ramaze apps
-#
 # Rackup is a useful tool for running Rack applications, which uses the
 # Rack::Builder DSL to configure middleware and build up applications easily.
 #
@@ -31,7 +29,3 @@ end
 map "/" do
 	run Root
 end
-
-#Ramaze.start(:root => Ramaze.options.roots, :adapter => :thin, :started => true)
-
-#run Ramaze

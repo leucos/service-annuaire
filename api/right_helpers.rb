@@ -3,12 +3,15 @@
 module RightHelpers
   def authorize_activites!(activites, ressource, service_id = ressource.service_id)
     # Récupèration de la session
-    # En cherchant d'abord dans l'en-tête
-    session = request.env[AuthConfig::HTTP_HEADER] if request.env[AuthConfig::HTTP_HEADER]
-    # Puis dans les cookies
+
+    # En cherchant d'abord dans les cookies
     session = cookies[:session_key] if cookies[:session_key]
-    # Puis enfin dans les paramètres GET/POST
+    # Puis dans les paramètres GET/POST
     session = params[:session_key] if params[:session_key]
+    # Puis enfin dans l'en-tête 
+    # comme ça si on veut se faire passer pour quelqu'un, on change juste le header et pas les requètes
+    # Technique de Daniel ;)
+    session = request.env[AuthConfig::HTTP_HEADER] if request.env[AuthConfig::HTTP_HEADER]
 
     error!("Clé de session introuvable", 401) if  session.nil?
 
