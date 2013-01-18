@@ -1,0 +1,9 @@
+<ul class="clearfix">
+<% this.each( function( etab ) { %>
+  <li <%= (el) -> el.data( 'etab', etab ) %> >
+    <%= etab.attr( 'nom' ) %>
+    <a href="javascript://" class="destroy">X</a>
+  </li>
+<% } ) %>
+<% console.log(this)%>
+</ul>

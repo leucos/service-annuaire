@@ -16,8 +16,9 @@ require ::File.expand_path('../app', __FILE__)
 
 
 
-use Rack::Static, :urls => ["/dojo"], :root => File.expand_path('../public', __FILE__)
-
+use Rack::Static, :urls => ["/canjs"], :root => File.expand_path('../public', __FILE__)
+use Rack::Static, :urls => ["/backbone"], :root => File.expand_path('../public', __FILE__)
+use Rack::Static, :urls => ["/app"], :root => File.expand_path('../public/angularJS', __FILE__)
 
 run UserApi
 run AuthApi 

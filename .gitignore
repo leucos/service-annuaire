@@ -26,7 +26,13 @@ config/auth.rb
 config/redis.rb
 config/mail.rb
 
-#Mysql Workbench backup files
+#Mysql Workbench backup files/home/bashar/Téléchargements/PhpProject1/css
+/home/bashar/Téléchargements/PhpProject1/img
+/home/bashar/Téléchargements/PhpProject1/js
+/home/bashar/Téléchargements/PhpProject1/node_modules
+/home/bashar/Téléchargements/PhpProject1/views
+/home/bashar/Téléchargements/PhpProject1/index.html
+/home/bashar/Téléchargements/PhpProject1/static_server.js
 *.bak
 
 #Temp spec files

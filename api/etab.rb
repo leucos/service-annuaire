@@ -119,7 +119,12 @@ class EtabApi < Grape::API
       rescue Sequel::ValidationFailed
         error!("Validation failed", 400)
       end 
-    end 
+    end
+
+    desc "get la liste desetablissement"
+    get  do
+      Etablissement.all
+    end   
 
 
     ##########################################

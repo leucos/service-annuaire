@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+  <title>CanJS Panel admin </title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/contacts.css">
+    <link rel="stylesheet" type="text/css" href="themes/default/easyui.css">
+  </head>
+  <body>
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+
+        <div class="container-fluid">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Panel d'Administation</a>
+          <div class="btn-group pull-right">
+
+            <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+              <i class="icon-user"></i> Admin - #{user.nom}
+              <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+              <li><a href="#">Profil</a></li>
+              <li class="divider"></li>
+              <li><a href="/logout">Déconnecté</a></li>
+
+            </ul>
+          </div>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li class="active"><a href="/">Home</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+  <div class="container">
+    <div class="page-header">
+      <!-- <h1> <small>etablissement XXXXX</small></h1> -->
+    </div>
+  </div>
+    <div class="container-fluid">
+      <div class="well span25">
+        <ul class="nav nav-list">
+            <li class="nav-header">
+              <img src="img/glyphicons/glyphicons_003_user.png"></img>Utilisateurs
+            </li>
+                <li>
+                  <a href="/user">Tous les utilisateurs</a>
+                </li>
+                <li>
+                  <a href="/alimentor">Alimentation automatique</a>
+                </li>
+                <!--li>
+                  <a href="#alim_man">Alimentation manuelle</a>
+                </li-->
+                
+                <li>
+                  <a href="/user/add">Ajouter</a>
+                </li>
+            <li class="nav-header">
+              <img src="img/glyphicons/glyphicons_305_temple_buddhist.png"></img>Etablissements
+            </li>
+              <li>
+                <a id = "show_etablissements" href="javascript://">Tous les établissements</a>
+              </li>
+              <li>
+                <a href="/etablissement/add">Ajouter</a>
+              </li>
+            <li class="nav-header">
+                <img src="img/glyphicons/glyphicons_280_settings.png"></img>Applications
+            </li>
+                <li>
+                    <a href="/app">Toutes les applications</a>
+                </li>
+                <li>
+                    <a href="/app/add">Ajouter</a>
+                </li>
+        </ul>
+    </div>
+    <div class='span95'>
+      <div class="alert">
+        <button type="button" class="close" data-dismiss="alert">×</button>
+        Vous etes authentifié  Comme <strong>  #{user.nom}</strong>
+      </div>
+      
+      <div id="panel-content">
+      </div>
+      <div id ="etablissement">  
+      
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="row">
+        <div class="span2">
+          <ul>
+              <li><a href="#">Contact</a></li>
+          </ul>
+        </div>
+        <div class="span2 offset1">
+          <ul>
+            <li><a href="#">FAQ</a></li>
+            <li><a href="#">Support</a></li>
+          </ul>
+        </div>
+        &#169; 2012 Laclasse.com
+      </div>
+    </div>
+  </footer>
+  <script src="js/jquery-1.8.3.js"></script>
+  <script src="js/can.jquery-1.1.2.js"></script>
+  <!--<script src="js/todos.js"></script> -->
+  <script src="js/jquery.easyui.min.js"></script>
+   
+  <script src="js/etablissement.js"></script>
+
+
+</body>
