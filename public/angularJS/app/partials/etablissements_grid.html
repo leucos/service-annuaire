@@ -1,3 +1,4 @@
+
 <div id = "grid_header_toolbar" class="row"> 
 
     <div class="span4">
@@ -5,7 +6,7 @@
         <input type="search" ng-model="searchPhrase" class="input-medium search-query" placeholder="chercher">
         <button type="submit" class="btn"><i class="icon-search"></i></button>
     </div>
-    <div> number of pages: <span ng-bind="noOfPages"> </span><br/>
+    <div> number of pages: <span>{{Math.ceil(total/rpp)}} </span><br/>
     	record par page : {{rpp}} <br/>
     	total : {{total}}
     </div>
@@ -28,15 +29,15 @@
                 </li>
             </ul>
         </div>
-    	-->
-        
+    	-->   
     </div>
     <div class = "span4">
         <label> Record par page: </label>
         <select ng-model="rpp" ng-options="v for v in recordParPage"></select>
     </div>
 </div> 
-	<table  id="etablissementGrid" class="table table-bordered table-striped">
+
+	<table  id="etablissementGrid" class="table table-bordered table-striped" angrid>
 	  <thead> 
 	    <tr>
 	     <th>Uai</th>
@@ -97,4 +98,7 @@
 	<pagination num-pages="noOfPages" current-page="currentPage" class="pagination-large"></pagination>
 	<a href="#" class="btn btn-primary"><i class="icon-plus icon-white"></i>ajouter un etablissement</a>
 </div> 
+<div  ng-grid="gridOptions"></div>
+
 -->
+

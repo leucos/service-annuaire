@@ -18,7 +18,7 @@ describe UserApi do
 
   it "return user profile when given the good id" do
     u = create_test_user()
-    get("/user/#{u.id}").status.should == 200
+    get("/user/#{u.id}?session_key=#{@stored_session}").status.should == 200
     JSON.parse(last_response.body)["login"].should == 'test'
   end
 

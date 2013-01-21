@@ -1,1 +1,46 @@
-<p>show user grid and actions</p>
+<div id = "grid_header_toolbar" class="row"> 
+
+    <div class="span4">
+        <label>Chercher: </label>    
+        <input type="search" ng-model="searchPhrase" class="input-medium search-query" placeholder="chercher">
+        <button type="submit" class="btn"><i class="icon-search"></i></button>
+    </div>
+    <div class="span4">
+    	
+    </div>
+    <div class = "span4">
+        <label> Record par page: </label>
+        <select ng-model="limit" ng-options="v for v in recordParPage"></select>
+    </div>
+</div> 
+
+	<table  id="UserGrid" class="table table-bordered table-striped">
+	  <thead> 
+	    <tr>
+			<th>Nom</th>
+			<th>Prenom</th>
+			<th>Login</th>
+			<th>Sexe</th>
+			<th>Adresse</th>
+			<th>Emails</th>
+			<th>Action</th>
+	    </tr>
+	  </thead>
+	  <tbody>
+	    <tr  ng-repeat="user in users.results">
+	        <td>{{user.nom}}</td>
+	        <td>{{user.prenom}}</td>
+	        <td>{{user.login}}</td>
+	        <td>{{user.sexe}}</td>
+	        <td>{{user.adresse}}</td>
+	        <td>{{user.emails}}</td>
+	        <td>
+	            <a href="#" class="btn" id="edit_user"><i class="icon-edit"></i>editer</a>
+	            </br> </br><a href="#" class="btn" id="login" ><i class="icon-cog"></i> login </a>
+	        </td>
+	    </tr>
+	  </tbody>
+	</table>
+
+	<pagination num-pages="noOfPages" current-page="currentPage" class="pagination-large"></pagination>
+	<a href="#" class="btn btn-primary"><i class="icon-plus icon-white"></i>ajouter un utilisateur</a>

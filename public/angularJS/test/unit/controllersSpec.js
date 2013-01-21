@@ -51,7 +51,7 @@ describe('myApp controllers', function(){
     var scope, ctrl, $httpBackend;
     beforeEach(inject(function(_$httpBackend_, $rootScope, $controller) {
       $httpBackend = _$httpBackend_;
-      $httpBackend.expectGET('../etablissement').respond([{"json_class":"Etablissement","id":1,"code_uai":null,"nom":"ERASME","siren":null,"adresse":null,"code_postal":null,"ville":null,"telephone":null,"fax":null,"longitude":null,"latitude":null,"date_last_maj_aaf":null,"nom_passerelle":null,"ip_pub_passerelle":null,"type_etablissement_id":1},
+      $httpBackend.expectGET('/etablissement').respond([{"json_class":"Etablissement","id":1,"code_uai":null,"nom":"ERASME","siren":null,"adresse":null,"code_postal":null,"ville":null,"telephone":null,"fax":null,"longitude":null,"latitude":null,"date_last_maj_aaf":null,"nom_passerelle":null,"ip_pub_passerelle":null,"type_etablissement_id":1},
         {"json_class":"Etablissement","id":2,"code_uai":"0691670R","nom":"Victor Dolto","siren":null,"adresse":null,"code_postal":null,"ville":null,"telephone":null,"fax":null,"longitude":null,"latitude":null,"date_last_maj_aaf":null,"nom_passerelle":null,"ip_pub_passerelle":null,"type_etablissement_id":2},
         {"json_class":"Etablissement","id":3,"code_uai":"0690016T","nom":"FranÃ§oise Kandelaft","siren":null,"adresse":null,"code_postal":null,"ville":null,"telephone":null,"fax":null,"longitude":null,"latitude":null,"date_last_maj_aaf":null,"nom_passerelle":null,"ip_pub_passerelle":null,"type_etablissement_id":2}]);
       

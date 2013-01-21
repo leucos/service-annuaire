@@ -70,6 +70,7 @@ class EtabApi < Grape::API
     get "/:id" do
       etab = Etablissement[:id => params[:id]]
       #authorize_activites!(ACT_READ,etab.ressource)
+      # construct etablissement entity.
       if !etab.nil? 
         etab
       else

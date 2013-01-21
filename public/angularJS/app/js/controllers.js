@@ -3,8 +3,57 @@
 /* Controllers */
 
 
-function MyCtrl1($scope, Etablissement) {
-	//$scope.etablissements = Etablissement.query();
+function MyCtrl1($scope, $http) {
+	$scope.filterOptions = {
+        filterText: "",
+        useExternalFilter: true
+    };
+    $scope.pagingOptions = {
+        pageSizes: [10, 20, 30],
+        pageSize: 10,
+        totalServerItems: 0,
+        currentPage: 1
+    };  
+    $scope.setPagingData = function(data, page, pageSize){	
+        var pagedData = data.slice((page - 1) * pageSize, page * pageSize);
+        $scope.myData = pagedData;
+        $scope.pagingOptions.totalServerItems = data.length;
+        if (!$scope.$$phase) {
+            $scope.$apply();
+        }
+    };
+    $scope.getPagedDataAsync = function (pageSize, page, searchText) {
+        setTimeout(function () {
+            var data;
+            if (searchText) {
+                var ft = searchText.toLowerCase();
+                $http.get('../etablissement?page='+page+'&limit='+pageSize+'&search='+searchText).success(function (largeLoad) {		
+                    data = largeLoad;
+                    $scope.setPagingData(data,page,pageSize);
+                });            
+            } else {
+                $http.get('../etablissement?page='+page+'&limit='+pageSize).success(function (largeLoad) {
+                    $scope.setPagingData(largeLoad,page,pageSize);
+                });
+            }
+        }, 100);
+    };
+	
+    $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage);
+	
+    $scope.$watch('pagingOptions', function () {
+        $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
+    }, true);
+    $scope.$watch('filterOptions', function () {
+        $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
+    }, true);   
+	
+    $scope.gridOptions = {
+        data: 'myData',
+        enablePaging: true,
+        pagingOptions: $scope.pagingOptions,
+        filterOptions: $scope.filterOptions
+    };	
     
 }
 //MyCtrl1.$inject = [];
@@ -12,16 +61,19 @@ function MyCtrl1($scope, Etablissement) {
 
 function EtabCtrl($scope, Etablissement, $filter){
 	
+	$scope.myData = [{name: "Moroni", age: 50},
+                     {name: "Tiancum", age: 43},
+                     {name: "Jacob", age: 27},
+                     {name: "Nephi", age: 29},
+                     {name: "Enos", age: 34}];
+
+    $scope.gridOptions = { data: 'myData' };
+
+	// query etablissements depending on page, limit
 	$scope.etablissements = Etablissement.query(function(result){
 		$scope.total = result.length; 
 	}); 
 
-	var etabs = Etablissement.query(function(){
-		var length = etabs.length; 
-	});
- 
-    console.log($scope.etablissements instanceof Array);
-    console.log($scope.etablissements); 
 	
 	//console.log(etabs.length);
 	// why etab.length does not work. 
@@ -30,6 +82,7 @@ function EtabCtrl($scope, Etablissement, $filter){
  		//console.log(etab.nom); 
  		//console.log(etab.id); 
  	});
+ 	$scope.total = $scope.etablissements.length; 
     console.log($scope.total);  
  	//console.log(etab.id); 
 
@@ -135,6 +188,44 @@ function EtabCtrl($scope, Etablissement, $filter){
 	//$scope.search(); 
 	//console.log($scope.recordParPage);  
 }
+
+function UserCtrl($scope, $http){
+
+	$scope.url = '../user';
+	$scope.params = {"session_key": "3qauE3IohE3yxdYX4pznOg", "limit": $scope.limit, "page": $scope.currentPage}
+	$scope.limit = 10;
+	$scope.currentPage = 1;
+	$scope.recordParPage = [10, 25, 50, 100];    
+    // query friends method
+    $scope.noOfPages = 1; 
+    $scope.listUsers = function() {
+      // call GET http method
+      $http.get($scope.url+"?session_key=3qauE3IohE3yxdYX4pznOg&limit=10&page=2", {"session_key": "3qauE3IohE3yxdYX4pznOg", "limit":10, "page":2}).success(function (data) {
+        $scope.users = data;
+        $scope.noOfPages = Math.ceil(data.total/$scope.limit);
+      }).error(function(err) {
+        console.log("get error : "+err);
+      });
+    };
+
+    $scope.setSelectedUser = function(user) {
+      $scope.selectedUser = user;
+    };
+    // first, query all friends to intialize $scope.friends
+    $scope.listUsers();
+
+    $scope.setPage = function(){
+    	$scope.currentPage =  page ; 
+    }
+    
+
+
+} 
+
+UserCtrl.$inject=['$scope', '$http']; 
+
+  
+
 
 
 function MyCtrl2() {

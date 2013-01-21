@@ -117,12 +117,12 @@ class UserApi < Grape::API
     desc "a service to search users according to certiain informations"
     # look at tests to see some examples about parameters
     get "/query/users"  do
-      authorize_activites!(ACT_READ, Ressource.laclasse, SRV_USER)
+      #authorize_activites!(ACT_READ, Ressource.laclasse, SRV_USER)
       params["columns"].nil? ? columns = User.columns : columns = symbolize_array(params["columns"].split(","))
       #filter_params
       filter = params["where"].nil? ? {} : params["where"].to_hash
       symblize_hash(filter)
-
+      
       filter.keys.each do |k|
         # key is of a pattern ex. user_profil.etablissement_id  where user_profil is an association and etablissment_id is a column in the association table
         if(k =~ /\w*[.][a-z]+/) 
