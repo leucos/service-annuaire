@@ -24,11 +24,8 @@ end
 
 require __DIR__('lib/laclasse')
 require __DIR__('config/init')
-# Initialize controllers and models
 require __DIR__('lib/init')
 require __DIR__('model/init')
-#require __DIR__('config/abilities')
-require __DIR__('helper/init')
 require __DIR__('api/init')
 
 AuthSession.init()
