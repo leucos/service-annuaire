@@ -5,6 +5,7 @@
 # It will be required from either `config.ru` or `start.rb`
 require 'rubygems'
 
+require 'oci8'
 require 'sequel'
 require 'grape'
 require 'i18n'
@@ -27,5 +28,7 @@ require __DIR__('config/init')
 require __DIR__('lib/init')
 require __DIR__('model/init')
 require __DIR__('api/init')
+# TEMP : En attendant que l'annuaire soit le seul à être utilisé, on récupère les données de prod d'Oracle
+require __DIR__('oracle/init')
 
 AuthSession.init()

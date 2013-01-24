@@ -22,6 +22,7 @@ doc/
 
 #Config files
 config/database.rb
+config/oracle.rb
 config/auth.rb
 config/redis.rb
 config/mail.rb

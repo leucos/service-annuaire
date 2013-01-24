@@ -2,7 +2,7 @@
 
 class UserApi < Grape::API
   format :json
-  error_format :json
+  default_error_formatter :json
   default_error_status 400
 
   # Tout erreur de validation est gérée à ce niveau

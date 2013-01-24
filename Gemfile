@@ -3,6 +3,7 @@ source :rubygems
 
 gem 'sequel'
 gem 'mysql2'
+gem 'ruby-oci8'
 gem 'thin'
 gem 'bcrypt-ruby'
 gem 'grape'

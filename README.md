@@ -10,11 +10,14 @@ Ensemble de service web pour manipuler les données d'annuaire dans laclasse.com
 
   bundle install
   bundle exec rake db:configure
+  # Dans le cas d'utilisation d'oracle
+  bundle exec rake db:configure_oracle
   bundle exec rake db:bootstrap
   bundle exec rake db:bootstrap_matiere
   bundle exec rake spec
 
 Si tous les tests passent, on est bon :).
+Note : les tests ne passeront tous que si la base de donnée vient d'être "bootstrapée", si vous avez rajouté des utilisateurs, certains tests ne passeront pas.
 
 # Documentation de l'API
 

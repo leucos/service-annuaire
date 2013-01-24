@@ -1,0 +1,11 @@
+require 'logger'
+
+# Database connection string
+
+ORACLE = Sequel.oracle(
+  '<%= print("Database name: "); STDOUT.flush; STDIN.gets.chomp %>', 
+  :user=>'<%= print("Username: "); STDOUT.flush; STDIN.gets.chomp %>', 
+  :password=>'<%= print("Password: "); STDOUT.flush; STDIN.gets.chomp %>')
+
+#Uncomment this if you want to log all DB querries
+#ORACLE.loggers << Logger.new($stdout)
