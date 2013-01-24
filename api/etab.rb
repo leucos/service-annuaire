@@ -122,7 +122,8 @@ class EtabApi < Grape::API
       end 
     end
 
-    desc "get la liste desetablissement"
+    # get all etablissements and  add search capability to that
+    desc "get la liste des etablissements and search"
     get  do
       Etablissement.all
     end   
