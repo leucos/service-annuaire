@@ -14,6 +14,13 @@ namespace :db do
     end
   end
 
+  task :configure_oracle do
+    require 'erb'
+    File.open(File.join(RAMAZE_ROOT,'config', 'oracle.rb'), 'w') do |new_file|
+      new_file.write ERB.new(File.read(File.join(RAMAZE_ROOT, 'config', 'oracle.erb'))).result(binding)
+    end
+  end
+
   desc "Dumps the schema to db/schema/sequel_schema.db"
   task :schemadump => :load_config do
     #foreign_key dump is sometimes wrong with non autoincrmente type (ie char)

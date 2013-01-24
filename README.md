@@ -6,6 +6,19 @@ ATTENTION : CE PROJET COMMENCE A PEINE ET N'EST PAS DU TOUT A UN STADE UTILISABL
 
 Ensemble de service web pour manipuler les données d'annuaire dans laclasse.com
 
+# Configuration
+
+  bundle install
+  bundle exec rake db:configure
+  # Dans le cas d'utilisation d'oracle
+  bundle exec rake db:configure_oracle
+  bundle exec rake db:bootstrap
+  bundle exec rake db:bootstrap_matiere
+  bundle exec rake spec
+
+Si tous les tests passent, on est bon :).
+Note : les tests ne passeront tous que si la base de donnée vient d'être "bootstrapée", si vous avez rajouté des utilisateurs, certains tests ne passeront pas.
+
 # Documentation de l'API
 
 ATTENTION, il ne s'agit pas forcément de l'api actuelle mais de ce que l'on aimerait avoir
@@ -15,8 +28,8 @@ ATTENTION, il ne s'agit pas forcément de l'api actuelle mais de ce que l'on aim
 //l'usage de 401 et 403 est inspiré de l'API google drive
 400 => La syntaxe de la requète est mauvaise. Soit il manque des paramètres, soit le format des paramètres n'est pas valide (String à la place d'Integer ou Sql Validation failed)
 401 => Ce service requiert une authentification et l'utilisateur n'est pas authentifié
-403 => L'utilisateur est authentifié mais n'a pas les droits d'accédé à ce service
-404 => La ressource n'est pas trouvé. La syntaxe de la requète est bonne mais les paramètres ne correspondent pas à une ressource existante (ex : user non existant) ou ne sont pas logique par rapport au path. Ex : l'email n'appartient pas à l'utilisateur dans /user/:user_id/email/:email_id
+403 => L'utilisateur est authentifié mais n'a pas les droits d'accéder à ce service
+404 => La ressource n'est pas trouvée. La syntaxe de la requète est bonne mais les paramètres ne correspondent pas à une ressource existante (ex : user non existant) ou ne sont pas logique par rapport au path. Ex : l'email n'appartient pas à l'utilisateur dans /user/:user_id/email/:email_id
 405 => Si le verbe HTTP utilisé pour un path n'existe pas (exemple appel de DELETE pour un url disponible uniquement en GET) et quand l'url n'existe pas.
 
 ## /user et /users

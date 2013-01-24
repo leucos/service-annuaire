@@ -1,10 +1,7 @@
 require 'grape-swagger'
 class EtabApi < Grape::API
   format :json
-  error_format :json
-  
-
-
+  default_error_formatter :json
 
   helpers RightHelpers 
   helpers do 

@@ -26,7 +26,7 @@ describe AuthApi do
 
   it "create a session based on user id " do
     post('/auth',:user_id => @user_id ).status.should == 201
-    puts last_response.body
+    #puts last_response.body
     session = JSON.parse(last_response.body)["session_key"]
     session.empty?.should_not == true
   end

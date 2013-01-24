@@ -1,0 +1,9 @@
+- Mettre les classes dans des modules pour éviter la collision de nom (ex : Etablissement et EtablissementOracle), ça serait plus propre et plus Ruby ?
+- Finir la partie alimentation automatique
+  - tester encore plus la génération des diffs, la DbSync
+  - En redéveloppant le système de log pour qu'il soit plus simple et qu'il stocke tout dans une structure JSON séparée en 2 catégories : les modifs liées au regroupement (ajout d'un élève dans une classe, ajout d'un prof, renommage d'un groupe, nouveau groupe, ajout d'une matière enseignée...) et les modifs liées aux utilisateurs (nouvel utilisateur, suppression d'un user de l'établissement, changement des données, ajout de téléphone, de mail, changement dans les parents etc.)
+   - Ajouter aussi des logs similaire à laclasse.com actuelle ou sont stocké toutes les données parsées du XML ?
+   - Créer les stuctures de données pour stocker tout ça
+   - Coder une API pour piloter l'alimentation (voir README pour plus de détails, peut-être faire ça sous /etablissement/alimentation plutôt ?)
+   - S'assurer qu'on puisse alimenter avec seulement un fichier (pose problème juste pour les eleves et leurs parents je pense)
+   - Gérer proprement les erreurs aux parsing et rajouter ça dans les logs

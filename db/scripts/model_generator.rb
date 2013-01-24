@@ -200,7 +200,6 @@ if !init.nil?
 MODEL_MAP = {}
 DB.tables.each do |table|
   capitalize_name = table.to_s.split(/[^a-z0-9]/i).map{|w| w.capitalize}.join
-  puts capitalize_name
   MODEL_MAP[table] = Kernel.const_get(capitalize_name) 
 end
   "

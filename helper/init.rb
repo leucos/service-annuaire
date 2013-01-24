@@ -1,1 +1,0 @@
-require __DIR__('get_param')
