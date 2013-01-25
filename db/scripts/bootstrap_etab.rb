@@ -1,6 +1,8 @@
 #coding: utf-8
 require_relative "../../app"
 
+# Code temporaire pour remplir la base des établissement avec les données d'oracle
+
 # Correspondance des type id
 # 
 def get_type_etablissement_id(oracle_id)
