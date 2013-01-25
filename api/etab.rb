@@ -146,9 +146,8 @@ class EtabApi < Grape::API
       #dataset = ds.all
       dataset = Etablissement.dataset
       results = super_search!(dataset, accepted_fields)
-
+      
       results
-
     end   
 
 

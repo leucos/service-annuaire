@@ -44,7 +44,7 @@ describe EtabApi do
 
   it "should short the results by column name and a direction desc or asc"  do 
     get('/etablissement?sort_col=nom&sort_dir=desc').status.should == 200
-    //puts last_response.body
+    #puts last_response.body
 
   end 
 
