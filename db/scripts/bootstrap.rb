@@ -231,7 +231,22 @@ def bootstrap_annuaire()
 
   #Des établissements
   #Les id d'établissement correspondent à des vrais identifiant pour tester l'alimentation automatique
-  type_etb = TypeEtablissement.create(:nom => 'Collège', :type_contrat => 'PU', :libelle => 'Collège publique')
+  TypeEtablissement.create(:nom => 'Ecole', :type_contrat => 'PR', :libelle => 'Ecole privée')
+  TypeEtablissement.create(:nom => 'Ecole', :type_contrat => 'PU', :libelle => 'Ecole publique')
+  TypeEtablissement.create(:nom => 'Collège', :type_contrat => 'PR', :libelle => 'Collège privé')
+  type_etb = TypeEtablissement.create(:nom => 'Collège', :type_contrat => 'PU', :libelle => 'Collège public')
+  TypeEtablissement.create(:nom => 'Lycée', :type_contrat => 'PR', :libelle => 'Lycée privé')
+  TypeEtablissement.create(:nom => 'Lycée', :type_contrat => 'PU', :libelle => 'Lycée public')
+  TypeEtablissement.create(:nom => 'Bâtiment', :type_contrat => 'PU', :libelle => 'Bâtiment public')
+  TypeEtablissement.create(:nom => 'Lycée professionnel', :type_contrat => 'PR', :libelle => 'Lycée professionnel privé')
+  TypeEtablissement.create(:nom => 'Lycée professionnel', :type_contrat => 'PU', :libelle => 'Lycée professionnel public')
+  TypeEtablissement.create(:nom => 'Maison Familiale Rurale', :type_contrat => 'PU', :libelle => 'Maison Familiale Rurale')
+  TypeEtablissement.create(:nom => 'Campus', :type_contrat => 'PU', :libelle => 'Campus public')
+  TypeEtablissement.create(:nom => 'CRDP', :type_contrat => 'PU', :libelle => 'Centre Régional de Documentation Pédagogique')
+  TypeEtablissement.create(:nom => 'CG Jeunes', :type_contrat => 'PU', :libelle => 'CG Jeunes')
+  TypeEtablissement.create(:nom => 'Cité scolaire', :type_contrat => 'PR', :libelle => 'Cité scolaire privée')
+  TypeEtablissement.create(:nom => 'Cité scolaire', :type_contrat => 'PU', :libelle => 'Cité scolaire publique')
+
   etb1 = Etablissement.create(:code_uai => '0691670R', :nom => 'Victor Dolto', :type_etablissement_id =>type_etb.id)
   etb2 = Etablissement.create(:code_uai => '0690016T', :nom => 'Françoise Kandelaft', :type_etablissement_id =>type_etb.id)
 
