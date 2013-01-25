@@ -1,9 +1,12 @@
+#coding: utf-8
 require 'grape-swagger'
 class EtabApi < Grape::API
   format :json
   default_error_formatter :json
 
   helpers RightHelpers 
+  helpers SearchHelpers
+
   helpers do 
     def exclude_hash(params, excluded_items)
       parameters = params
@@ -67,6 +70,7 @@ class EtabApi < Grape::API
     get "/:id" do
       etab = Etablissement[:id => params[:id]]
       #authorize_activites!(ACT_READ,etab.ressource)
+      # construct etablissement entity.
       if !etab.nil? 
         etab
       else
@@ -116,7 +120,36 @@ class EtabApi < Grape::API
       rescue Sequel::ValidationFailed
         error!("Validation failed", 400)
       end 
-    end 
+    end
+
+    # get all etablissements and  add search capability to that
+    desc "get la liste des etablissements and search"
+    params do
+      optional :query, type: String, desc: "pattern de recherche. Possibilite de specifier la colonne sur laquelle faire la recherche ex: 'nom:college code_postal:69000'"
+      optional :limit, type: Integer, desc: "Nombre maximum de resultat renvoyes"
+      optional :page, type: Integer, desc: "Dans le cas d'une requete paginee"
+      optional :sort_col, type: String, desc: "Nom de la colonne sur laquelle faire le tri"
+      optional :sort_dir, type: String, regexp: /^(asc|desc)$/i, desc: "Direction de tri : ASC ou DESC"
+      group :advanced do
+        optional :type_etablissement, type: Integer
+        optional :code_uai, type: String
+        optional :adresse, type: String
+        optional :nom, type: String, desc: "Nom de l'etablissement"
+      end
+    end
+    get  do
+      accepted_fields = {
+        nom: :nom, code_uai: :code_uai, adresse: :adresse, type_etablissement_id: :type_etablissement_id
+      }
+
+      ds = DB[:etablissement]
+      #dataset = ds.all
+      dataset = Etablissement.dataset
+      results = super_search!(dataset, accepted_fields)
+
+      results
+
+    end   
 
 
     ##########################################

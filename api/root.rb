@@ -5,4 +5,4 @@ class Root < Grape::API
   mount EtabApi
   mount AuthApi 
   add_swagger_documentation
-end
+end	

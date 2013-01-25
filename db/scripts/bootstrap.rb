@@ -270,8 +270,8 @@ def bootstrap_annuaire()
   nom_list = ['dupond', 'dupont', 'duchamp', 'deschamps', 'leroy', 'lacroix', 'sarkozy', 'zidane', 'bruni', 'hollande', 'levy', 'khadafi', 'chirac']
 
   #On va créer pour chaque établissement 100 utilisateurs
-  # 2.times do |nb|
-  0.times do |nb|
+  2.times do |nb|
+  #0.times do |nb|
     etb = nb == 0 ? etb1 : etb2
     100.times do |ind|
       #Création aléatoire d'un nom et d'un utilisateur
