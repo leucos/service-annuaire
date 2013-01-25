@@ -7,7 +7,7 @@ ATTENTION : CE PROJET COMMENCE A PEINE ET N'EST PAS DU TOUT A UN STADE UTILISABL
 Ensemble de service web pour manipuler les données d'annuaire dans laclasse.com
 
 # Configuration
-
+  export NLS_LANG=FRENCH_FRANCE.UTF8
   bundle install
   bundle exec rake db:configure
   # Dans le cas d'utilisation d'oracle
