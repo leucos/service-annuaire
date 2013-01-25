@@ -26,6 +26,28 @@ describe EtabApi do
 
   end
 
+  it "should return all etablissements if no arguments are passed" do
+    get('/etablissement').status.should == 200
+    #puts last_response.body
+  end 
+
+  it "should search etablissements by nom, code_uai, etablissement type id , code postal, nom de la commune" do
+    get('/etablissement?query=type_etablissement_id:3').status.should == 200
+    #puts last_response.body  
+
+  end
+
+  it "should return paginated results"  do 
+    get('/etablissement?page=1&limit=2').status.should == 200
+    #puts last_response.body
+  end
+
+  it "should short the results by column name and a direction desc or asc"  do 
+    get('/etablissement?sort_col=nom&sort_dir=desc').status.should == 200
+    //puts last_response.body
+
+  end 
+
   it "modify the attributes of an establishement" do
     etab = create_test_etablissement
     params = {:ville => "Lyon"}

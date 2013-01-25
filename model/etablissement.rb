@@ -28,6 +28,7 @@ class Etablissement < Sequel::Model(:etablissement)
   plugin :validation_helpers
   plugin :json_serializer
   plugin :ressource_link, :service_id => SRV_ETAB
+  plugin :fuzzy_search
 
   # Referential integrity
   one_to_many :application_etablissement
