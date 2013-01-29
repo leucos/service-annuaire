@@ -3,45 +3,27 @@
 
     <div class="span4">
         <label>Chercher: </label>    
-        <input type="search" ng-model="searchPhrase" class="input-medium search-query" placeholder="chercher">
-        <button type="submit" class="btn"><i class="icon-search"></i></button>
+        <input type="search" ng-model="searchText" class="input-medium search-query" placeholder="chercher">
     </div>
     <div> number of pages: <span>{{Math.ceil(total/rpp)}} </span><br/>
-    	record par page : {{rpp}} <br/>
-    	total : {{total}}
+    	record par page : {{limit}} <br/>
+    	total : {{total}} <br/>
     </div>
     <div class="span4">
-    	<!--
-		<pagination  num-pages="noOfPages" current-page="currentPage" class="pagination-large"></pagination>
-    	<div class="pagination pull-right">
-            <ul>
-                <li ng-class="{disabled: currentPage == 0}">
-                    <a href ng-click="prevPage()">« Prev</a>
-                </li>
-                
-                <li ng-repeat="n in range(pages+1)"
-                    ng-class="{active: n == currentPage}"
-                	ng-click="setPage()">
-                    <a href ng-bind="n + 1">{{n}}</a>
-                </li>
-                <li ng-class="{disabled: currentPage == pages- 1}">
-                    <a href ng-click="nextPage()">Next »</a>
-                </li>
-            </ul>
-        </div>
-    	-->   
+    	
     </div>
     <div class = "span4">
         <label> Record par page: </label>
-        <select ng-model="rpp" ng-options="v for v in recordParPage"></select>
+        <select ng-model="limit" ng-options="v for v in recordParPage"></select>
     </div>
 </div> 
 
-	<table  id="etablissementGrid" class="table table-bordered table-striped" angrid>
+
+	<table  id="etablissementGrid" class="table table-bordered table-striped"  style = "hight: 100px; overflow: auto">
 	  <thead> 
 	    <tr>
 	     <th>Uai</th>
-	     <th>Nom</th>
+	     <th>Nom&nbsp;<a><i class="icon-sort" ng-click=sort_by('nom')></i></th>
 	     <th>Contacts</th>
 	     <th>Alimenté ?</th>
 	     <th>Domaine</th>
@@ -54,7 +36,7 @@
 	    </tr>
 	  </thead>
 	  <tbody>
-	    <tr  ng-repeat="etab in etablissements">
+	    <tr  ng-repeat="etab in etabs.results">
 	        <td>{{etab.code_uai}}</td>
 	        <td>{{etab.nom}}</td>
 	        <td> contacts(to be added to etab entity or api)</td>
@@ -91,8 +73,9 @@
 	  </tbody>
 	</table>
 
-	<pagination num-pages="noOfPages" current-page="currentPage" class="pagination-large"></pagination>
+	<pagination num-pages="noOfPages" current-page="currentPage" class="pagination-large" max-size="maxSize"></pagination>
 	<a href="#" class="btn btn-primary"><i class="icon-plus icon-white"></i>ajouter un etablissement</a>
+
 <!--
 <div id = "grid_footer_toolbar" class= "row">
 	<pagination num-pages="noOfPages" current-page="currentPage" class="pagination-large"></pagination>

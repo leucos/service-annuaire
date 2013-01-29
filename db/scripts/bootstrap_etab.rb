@@ -30,7 +30,7 @@ end
 
 EtablissementOracle.each do |e|
   type_id = get_type_etablissement_id(e.tpe_id)
-  Etablissement.create(:nom => e.nom, :adresse => e.adr, 
+  Etablissement.create(:nom => e.nom, :adresse => e.adr,:code_uai => e.code_rne, 
     :longitude => e.longitude, :latitude => e.latitude,
     :telephone => e.tel, :fax => e.fax, :code_postal => e.cp, :type_etablissement_id => type_id)
 end

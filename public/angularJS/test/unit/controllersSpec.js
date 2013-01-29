@@ -92,7 +92,7 @@ describe('myApp controllers', function(){
 
     }); 
 
-
+    /* */
 
     /*
     it('should show test value', function(){

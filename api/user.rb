@@ -486,7 +486,9 @@ class UserApi < Grape::API
       #   u[:profils] = user.profil_user_display.naked.all
       # end
 
+
       results
+      
     end
 
   end #resource

@@ -59,36 +59,138 @@ function MyCtrl1($scope, $http) {
 //MyCtrl1.$inject = [];
 
 
-function EtabCtrl($scope, Etablissement, $filter){
-	
-	$scope.sort_dir = 'asc'; 
-	$scope.sortc_col = 'id'; 
-
-
-	
+function EtabCtrl($scope, $http){
 
 	$scope.session_key = ""; 
 	$scope.url = '../etablissement'; 
-	$scope.limit = 10 ; 
-	$scope.currnetPage = 1; 
-	$scope.recordParPage= [10, 25, 50, 100]; 
+	$scope.limit = 500 ; 
+	$scope.currentPage = 1; 
+	$scope.recordParPage= [250, 500, 1000]; 
 	$scope.params = {"session_key": $scope.session_key, "limit": $scope.limit, "page": $scope.currentPage}; 
 	$scope.noOfPages = 1; 
+	$scope.searchText = ""; 
+	$scope.maxSize = 10; //maximum number of pages to display
 	$scope.request = $scope.url+"?session_key="+$scope.session_key+"&limit="+$scope.limit+"&page="+$scope.currentPage;
 	$scope.listeEtablissements = function(){
 		$http.get($scope.request).success(function(data){
-			$scope.etabs = data; 
-			$scope.noOfPages = Math.ceil(data.total/$scope.limit);
+			$scope.etabs = data;
+			$scope.total = data.total; 
+			$scope.noOfPages = Math.ceil($scope.total/$scope.limit);
 		}).error(function(err){
 			console.log("get error"+err); 
 		});
-	}
+	}; 
+
+	$scope.setselectedEtab = function(etab){
+		$scope.selectedEtab = etab; 
+	}; 
+	$scope.listeEtablissements(); 
+
+	$scope.sortingOrder = 'nom'; 
+	$scope.reverse = false ;
+	$scope.$watch('currentPage', function(newValue, oldValue) {  
+		console.log('current page changed from '+oldValue+' to '+newValue);
+    	
+    	if ( newValue <= 0 )
+    	{ 
+    		newValue = 1;
+    		
+    	}
+    	$scope.request = $scope.url+"?session_key="+$scope.session_key+"&limit="+$scope.limit+"&page="+newValue+"&query="+$scope.searchText;
+    	$scope.request += "&sort_col="+$scope.sortingOrder+"&sort_dir="+($scope.reverse ? "asc" : "desc"); 
+    	console.log($scope.request);  
+    	$http.get($scope.request).
+	    	success(function(data, status){ 
+	    		$scope.etabs = data;
+	    		$scope.status = status;   
+	    	}).
+	    	error(function(data, status){ 
+	    		$scope.data = data || "request failed"; 
+	    		$scope.status = status; 
+	    	});
+
+	});
+	$scope.$watch('searchText', function(newValue, oldValue) {
+    	console.log('search Text changed from '+oldValue+' to '+ newValue);
+    	$scope.request = $scope.url+"?session_key="+$scope.session_key+"&limit="+$scope.limit+"&page="+$scope.currentPage+"&query="+newValue;
+    	console.log($scope.request);
+    	$http.get($scope.request).
+	    	success(function(data, status){ 
+	    		$scope.etabs = data;
+	    		$scope.total = data.total; 
+	    		if (data.total == 0){
+	    			//$scope.currentPage = 1 ; 
+	    			$scope.noOfPages = 1;
+	    		}
+	    		else{
+	    			$scope.noOfPages = Math.ceil(data.total/$scope.limit);
+	    		}
+	    		$scope.status = status;   
+	    	}).
+	    	error(function(data, status){ 
+	    		$scope.data = data || "request failed"; 
+	    		$scope.status = status; 
+	    	});
+
+    });
+    $scope.$watch('limit', function(newValue, oldValue){
+    	console.log('limit page changed from '+oldValue+' to '+newValue);
+    	$scope.request = $scope.url+"?session_key="+$scope.session_key+"&limit="+newValue+"&page="+$scope.currentPage+"&query="+$scope.searchText;
+    	console.log($scope.request);  
+    	$http.get($scope.request).
+	    	success(function(data, status){ 
+	    		$scope.etabs = data;
+	    		$scope.noOfPages = Math.ceil(data.total/newValue);
+	    		$scope.status = status;   
+	    	}).
+	    	error(function(data, status){ 
+	    		$scope.data = data || "request failed"; 
+	    		$scope.status = status; 
+	    	});
+    });
+
+    $scope.sort_by = function(newSortingOrder) {
+    	console.log("sorting column changed from"+$scope.sortingOrder+" to "+newSortingOrder); 
+        console.log("sorting direction"+ $scope.reverse); 
+        if ($scope.sortingOrder == newSortingOrder)
+            $scope.reverse = !$scope.reverse; 
+
+        $scope.sortingOrder = newSortingOrder;
+
+        // icon setup
+        $('th i').each(function(){
+            // icon reset
+            $(this).removeClass().addClass('icon-sort');
+        });
+        if ($scope.reverse)
+            $('th.'+newSortingOrder+' i').removeClass().addClass('icon-caret-up');
+        else
+            $('th.'+newSortingOrder+' i').removeClass().addClass('icon-caret-down');
+
+        //get data
+        $scope.request = $scope.url+"?session_key="+$scope.session_key+"&limit="+$scope.limit+"&page="+$scope.currentPage+"&query="+$scope.searchText;
+        $scope.request += "&sort_col="+newSortingOrder+"&sort_dir="+($scope.reverse ? "asc" : "desc"); 
+    	console.log($scope.request);
+    	$http.get($scope.request).
+	    	success(function(data, status){ 
+	    		$scope.etabs = data;
+	    		$scope.status = status;   
+	    	}).
+	    	error(function(data, status){ 
+	    		$scope.data = data || "request failed"; 
+	    		$scope.status = status; 
+	    	});
+    }; 
 
 }
+
+EtabCtrl.$inject=['$scope', '$http'];
+
 
 function UserCtrl($scope, $http){
 
 	// find the cookie value
+	//$scope.session_key = ""; 
 	$scope.session_key = "3qauE3IohE3yxdYX4pznOg"; 
 	$scope.url = '../user'; 
 	$scope.limit = 10;
@@ -119,7 +221,7 @@ function UserCtrl($scope, $http){
     // first, query all friends to intialize $scope.friends
     $scope.listUsers();
 
-    $scope.setPage = function(){
+    $scope.setPage = function(page){
     	$scope.currentPage =  page ; 
     }
 
@@ -241,22 +343,46 @@ function UserCtrl($scope, $http){
 } 
 
 UserCtrl.$inject=['$scope', '$http']; 
-
-/* 
-window.LoginCtrl = ($scope, $location, User) ->
-    $scope.login = ->
-        User.login $scope.username, $scope.password, (result) ->
-            if !result
-                window.alert('Authentication failed!')
-            else
-                $scope.$apply -> $location.path('/assignments')
  
-window.AssignmentListCtrl = ($scope, User) ->
-    $scope.User = User  
+/* 
+function LoginCtrl($scope, $location, User){
+	// add router to login page 
+	$scope.login = User.login($scope.usernamej, $scope.password, function(result){
+		if !result 
+			window.alert('Authentication failed!'); 
+		else 
+			$scope.$apply($location.path('/index.html')); 
+	});
+
+	$scope.User = User;  
+}
 */
-
-
 
 function MyCtrl2() {
 }
 MyCtrl2.$inject = [];
+
+
+function HeaderCtrl($scope, $location, $route, currentUser, breadcrumbs, notifications, httpRequestTracker) {
+  $scope.location = $location;
+  $scope.currentUser = currentUser;
+  $scope.breadcrumbs = breadcrumbs;
+
+  $scope.home = function () {
+    if ($scope.currentUser.isAuthenticated()) {
+      $location.path('/etablissements');
+    } else {
+      $location.path('/');
+    }
+  };
+
+  $scope.isNavbarActive = function (navBarPath) {
+    return navBarPath === breadcrumbs.getFirst().name;
+  };
+
+  $scope.hasPendingRequests = function () {
+    return httpRequestTracker.hasPendingRequests();
+  };
+}
+
+HeaderCtrl.$inject = ['$scope', '$location', '$route', 'currentUser', 'breadcrumbs', 'notifications', 'httpRequestTracker']; 

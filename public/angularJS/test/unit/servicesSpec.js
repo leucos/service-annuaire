@@ -12,7 +12,6 @@ describe('service', function() {
     }));
   });
 
-
   describe('Etablissement', function(){
   	it('should return an Etablissement factory', inject(function(Etablissement){
   		var etab = Etablissement.get({id: '1'}); 

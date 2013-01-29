@@ -34,7 +34,7 @@ class User < Sequel::Model(:user)
 
   # Plugins
   plugin :validation_helpers
-  #plugin :json_serializer
+  plugin :json_serializer
   plugin :ressource_link, :service_id => SRV_USER
   plugin :fuzzy_search
   plugin :select_json_array
