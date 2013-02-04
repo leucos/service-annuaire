@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ficAlimMENESR SYSTEM "ficAlimMENESR.dtd">
+<ficAlimMENESR>
+<!-- versionAF="AAF-VE1301" -->
+
+<addRequest>
+<operationalAttributes><attr name="categoriePersonne"><value>PersEducNat</value></attr></operationalAttributes>
+<identifier><id>2463000</id></identifier>
+<attributes>
+<attr name="ENTPersonJointure"><value>2463000</value></attr>
+<attr name="ENTPersonDateNaissance"><value>22/11/1972</value></attr>
+<attr name="ENTPersonNomPatro"><value>DHAENENS</value></attr>
+<attr name="sn"><value>COUBES</value></attr>
+<attr name="givenName"><value>MARIELLE</value></attr>
+<attr name="personalTitle"><value>Mme</value></attr>
+<attr name="mail"><value/></attr>
+<attr name="ENTPersonStructRattach"><value/></attr>
+<attr name="ENTAuxEnsCategoDiscipline"><value/></attr>
+<attr name="ENTAuxEnsDisciplinesPoste"><value/></attr>
+<attr name="ENTAuxEnsMEF"><value/></attr>
+<attr name="ENTAuxEnsMatiereEnseignEtab"><value/></attr>
+<attr name="ENTAuxEnsClasses"><value/></attr>
+<attr name="ENTAuxEnsGroupes"><value/></attr>
+<attr name="ENTAuxEnsClassesMatieres"><value/></attr>
+<attr name="ENTAuxEnsGroupesMatieres"><value/></attr>
+<attr name="ENTAuxEnsClassesPrincipal"><value/></attr>
+<attr name="ENTPersonFonctions"><value/></attr>
+<attr name="PersEducNatPresenceDevantEleves"><value>N</value></attr>
+</attributes>
+</addRequest>
+
+<addRequest>
+<operationalAttributes><attr name="categoriePersonne"><value>PersEducNat</value></attr></operationalAttributes>
+<identifier><id>2953004</id></identifier>
+<attributes>
+<attr name="ENTPersonJointure"><value>2953004</value></attr>
+<attr name="ENTPersonDateNaissance"><value>04/05/1963</value></attr>
+<attr name="ENTPersonNomPatro"><value>COULOT</value></attr>
+<attr name="sn"><value>DEMET</value></attr>
+<attr name="givenName"><value>OLIVIA</value></attr>
+<attr name="personalTitle"><value>Mme</value></attr>
+<attr name="mail"><value/></attr>
+<attr name="ENTPersonStructRattach"><value/></attr>
+<attr name="ENTAuxEnsCategoDiscipline"><value/></attr>
+<attr name="ENTAuxEnsDisciplinesPoste"><value/></attr>
+<attr name="ENTAuxEnsMEF"><value/></attr>
+<attr name="ENTAuxEnsMatiereEnseignEtab"><value/></attr>
+<attr name="ENTAuxEnsClasses"><value/></attr>
+<attr name="ENTAuxEnsGroupes"><value/></attr>
+<attr name="ENTAuxEnsClassesMatieres"><value/></attr>
+<attr name="ENTAuxEnsGroupesMatieres"><value/></attr>
+<attr name="ENTAuxEnsClassesPrincipal"><value/></attr>
+<attr name="ENTPersonFonctions"><value/></attr>
+<attr name="PersEducNatPresenceDevantEleves"><value>N</value></attr>
+</attributes>
+</addRequest>
+
+<modifyRequest>
+<operationalAttributes><attr name="categoriePersonne"><value>PersEducNat</value></attr></operationalAttributes>
+<identifier><id>2953028</id></identifier>
+<modifications>
+<modification name="ENTPersonJointure" operation="replace"><value>2953028</value></modification>
+<modification name="ENTPersonDateNaissance" operation="replace"><value>26/05/1969</value></modification>
+<modification name="ENTPersonNomPatro" operation="replace"><value>DEMET</value></modification>
+<modification name="sn" operation="replace"><value>DEMET</value></modification>
+<modification name="givenName" operation="replace"><value>BAHRAM</value></modification>
+<modification name="personalTitle" operation="replace"><value>Mme</value></modification>
+<modification name="mail" operation="replace"><value/></modification>
+<modification name="ENTPersonStructRattach" operation="replace"><value/></modification>
+<modification name="ENTAuxEnsCategoDiscipline" operation="replace"><value/></modification>
+<modification name="ENTAuxEnsDisciplinesPoste" operation="replace"><value/></modification>
+<modification name="ENTAuxEnsMEF" operation="replace"><value/></modification>
+<modification name="ENTAuxEnsMatiereEnseignEtab" operation="replace"><value/></modification>
+<modification name="ENTAuxEnsClasses" operation="replace"><value/></modification>
+<modification name="ENTAuxEnsGroupes" operation="replace"><value/></modification>
+<modification name="ENTAuxEnsClassesMatieres"><value/></attr>
+<modification name="ENTAuxEnsGroupesMatieres"><value/></attr>
+<modification name="ENTAuxEnsClassesPrincipal" operation="replace"><value/></modification>
+<modification name="ENTPersonFonctions" operation="replace"><value/></modification>
+<modification name="PersEducNatPresenceDevantEleves" operation="replace"><value>N</value></modification>
+</modifications>
+</modifyRequest>
+
+<modifyRequest>
+<operationalAttributes><attr name="categoriePersonne"><value>PersEducNat</value></attr></operationalAttributes>
+<identifier><id>2953051</id></identifier>
+<modifications>
+<modification name="ENTPersonJointure" operation="replace"><value>2953051</value></modification>
+<modification name="ENTPersonDateNaissance" operation="replace"><value>29/12/1982</value></modification>
+<modification name="ENTPersonNomPatro" operation="replace"><value>AMADOU HAMIDOU</value></modification>
+<modification name="sn" operation="replace"><value>BAHON</value></modification>
+<modification name="givenName" operation="replace"><value>ANNE HELENE</value></modification>
+<modification name="personalTitle" operation="replace"><value>Mme</value></modification>
+<modification name="mail" operation="replace"><value/></modification>
+<modification name="ENTPersonStructRattach" operation="replace"><value/></modification>
+<modification name="ENTAuxEnsCategoDiscipline" operation="replace"><value/></modification>
+<modification name="ENTAuxEnsDisciplinesPoste" operation="replace"><value/></modification>
+<modification name="ENTAuxEnsMEF" operation="replace"><value/></modification>
+<modification name="ENTAuxEnsMatiereEnseignEtab" operation="replace"><value/></modification>
+<modification name="ENTAuxEnsClasses" operation="replace"><value/></modification>
+<modification name="ENTAuxEnsGroupes" operation="replace"><value/></modification>
+<modification name="ENTAuxEnsClassesMatieres"><value/></attr>
+<modification name="ENTAuxEnsGroupesMatieres"><value/></attr>
+<modification name="ENTAuxEnsClassesPrincipal" operation="replace"><value/></modification>
+<modification name="ENTPersonFonctions" operation="replace"><value/></modification>
+<modification name="PersEducNatPresenceDevantEleves" operation="replace"><value>N</value></modification>
+</modifications>
+</modifyRequest>
+
+<deleteRequest>
+<operationalAttributes><attr name="categoriePersonne"><value>PersEducNat</value></attr></operationalAttributes> 
+<identifier><id>2964009</id></identifier>
+</deleteRequest>
+
+<deleteRequest>
+<operationalAttributes><attr name="categoriePersonne"><value>PersEducNat</value></attr></operationalAttributes> 
+<identifier><id>2964064</id></identifier>
+</deleteRequest>
+
+</ficAlimMENESR>

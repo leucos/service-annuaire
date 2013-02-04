@@ -9,7 +9,7 @@ require_relative '../app'
 # que l'on a pas a supprimer quoique ce soit, sequel le fait pour nous :)
 RSpec.configure do |c|
   c.around(:each) do |example|
-    DB.transaction(:rollback=>:always){example.run}
+    Sequel.transaction([DB, ORACLE], :rollback=>:always){example.run}
   end
 end
 

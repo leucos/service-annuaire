@@ -15,6 +15,9 @@ test/version_tmp
 tmp
 *.log
 
+# MAC users.
+.DS_Store
+
 # YARD artifacts
 .yardoc
 _yardoc

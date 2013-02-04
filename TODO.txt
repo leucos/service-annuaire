@@ -7,3 +7,5 @@
    - Coder une API pour piloter l'alimentation (voir README pour plus de détails, peut-être faire ça sous /etablissement/alimentation plutôt ?)
    - S'assurer qu'on puisse alimenter avec seulement un fichier (pose problème juste pour les eleves et leurs parents je pense)
    - Gérer proprement les erreurs aux parsing et rajouter ça dans les logs
+   - Gérer les mots de passe temporaires
+- Se poser la question du fonctionnement du module "suivi des élèves malades" et comment l'intégrer dans le nouvel annuaire.
