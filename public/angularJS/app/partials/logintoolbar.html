@@ -1,7 +1,8 @@
 <ul class="nav pull-right">
   <li class="divider-vertical"></li>
-  <li ng-show="currentUser">
-      <a href="#">{{userInfo().firstName}} {{userInfo().lastName}}</a>
+  <li ng-show="currentUser.isAuthenticated()">
+      <a href="#">{{currentUser.info().prenom}} {{currentUser.info().nom}}</a>
+      <a href="#">Session: {{currentUser.getSession()}}</a>
   </li>
   <li ng-show="isAuthenticated()">
       <form class="navbar-form">

@@ -3,11 +3,17 @@
 
 // Declare app level module which depends on filters, and services
 angular.module('myApp', ['myApp.filters', 'myApp.services', 'myApp.directives', 'ngGrid', 'ui.bootstrap', 'services.breadcrumbs', 
-  'services.authentication.current-user', 'services.i18nNotifications', 'services.notifications', 'services.httpRequestTracker']).
-  config(['$routeProvider', function($routeProvider) {
-    $routeProvider.when('/etablissements', {templateUrl: 'partials/etablissements_grid.html', controller: EtabCtrl});
+  'services.authentication.current-user', 'services.i18nNotifications', 'services.notifications', 'services.httpRequestTracker','services.authentication']).
+  config(['$routeProvider', function($routeProvider, AuthenticationService) {
+    var AuthenticatedUser =  ['AuthenticationService', function(AuthenticationService) {
+      return AuthenticationService.requireAuthenticatedUser();
+    }];
+    $routeProvider.when('/', {templateUrl: 'partials/home.html', controller: HomeCtrl});
+    $routeProvider.when('/admin_laclasse', {templateUrl:'partials/admin_laclasse.html'}); 
+    $routeProvider.when('/admin_etab', {templateUrl:'partials/admin_etab.html'}); 
+    $routeProvider.when('/admin_laclasse/etablissements', {templateUrl: 'partials/etablissements_grid.html', controller: EtabCtrl, resolve: { user: AuthenticatedUser}});
     $routeProvider.when('/etablissement/add', {templateUrl: 'partials/add_etablissemenet.html', controller: EtabCtrl});
-    $routeProvider.when('/users', {templateUrl: 'partials/users.html', controller: UserCtrl });
+    $routeProvider.when('/admin_laclasse/users', {templateUrl: 'partials/users.html', controller: UserCtrl });
     $routeProvider.when('/user/add', {templateUrl: 'partials/add_users.html', controller:UserCtrl });
     $routeProvider.when('/applications', {templateUrl: 'partials/applications.html', controller:MyCtrl1 });
     $routeProvider.when('/applications/add', {templateUrl: 'partials/add_application.html', controller:MyCtrl1 });  
@@ -108,7 +114,7 @@ angular.module('myApp', ['myApp.filters', 'myApp.services', 'myApp.directives', 
       scope.$broadcast('event:loginConfirmed');
     });
   }
-  ping();
+  //ping();
  
 }]);
 

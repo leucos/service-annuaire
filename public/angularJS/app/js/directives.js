@@ -55,7 +55,7 @@ angular.module('myApp.directives', ['services.authentication', 'services.localiz
             }
             break;
           default:
-            message = "";
+            message = "Error happend";
             break;
           }
         return message;
@@ -72,6 +72,7 @@ angular.module('myApp.directives', ['services.authentication', 'services.localiz
 
       $scope.login = function() {
         $scope.authError = null;
+        console.log('user.login :', $scope.user.email); 
         AuthenticationService.login($scope.user.email, $scope.user.password).then(function(loggedIn) {
           if ( !loggedIn ) {
             $scope.authError = "Login failed.  Please check your credentials and try again.";

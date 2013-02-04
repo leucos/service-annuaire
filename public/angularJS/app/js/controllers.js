@@ -385,4 +385,10 @@ function HeaderCtrl($scope, $location, $route, currentUser, breadcrumbs, notific
   };
 }
 
-HeaderCtrl.$inject = ['$scope', '$location', '$route', 'currentUser', 'breadcrumbs', 'notifications', 'httpRequestTracker']; 
+HeaderCtrl.$inject = ['$scope', '$location', '$route', 'currentUser', 'breadcrumbs', 'notifications', 'httpRequestTracker'];
+
+function HomeCtrl($scope, $location, currentUser){
+    $scope.currentUser = currentUser;
+} 
+HomeCtrl.$inject = ['$scope', '$location', 'currentUser']; 
+

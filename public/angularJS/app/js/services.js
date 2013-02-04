@@ -86,10 +86,10 @@ angular.module('services.localizedMessages', []).factory('localizedMessages', ['
 }]);
 
 // Based loosely around work by Witold Szczerba - https://github.com/witoldsz/angular-http-auth
-angular.module('services.authentication', ['services.authentication.current-user', 'services.authentication.interceptor', 'services.authentication.retry-queue']);
+angular.module('services.authentication', ['services.authentication.current-user', 'services.authentication.interceptor', 'services.authentication.retry-queue', 'ngCookies']);
 
 // The AuthenticationService is the public API for this module.  Application developers should only need to use this service and not any of the others here.
-angular.module('services.authentication').factory('AuthenticationService', ['$http', '$location', '$q', 'AuthenticationRetryQueue', 'currentUser', function($http, $location, $q, queue, currentUser) {
+angular.module('services.authentication').factory('AuthenticationService', ['$http', '$location', '$q', 'AuthenticationRetryQueue', 'currentUser', '$cookies', function($http, $location, $q, queue, currentUser, $cookies) {
 
   // TODO: We need a way to refresh the page to clear any data that has been loaded when the user logs out
   //  a simple way would be to redirect to the root of the application but this feels a bit inflexible.
@@ -103,6 +103,9 @@ angular.module('services.authentication').factory('AuthenticationService', ['$ht
     if ( !!user ) {
       queue.retry();
     }
+  }
+  function setCurrentUserSession(session){
+    currentUser.setSession(session);
   }
 
   var service = {
@@ -119,12 +122,20 @@ angular.module('services.authentication').factory('AuthenticationService', ['$ht
       queue.push({ retry: function() {}, cancel: function() {}, reason: 'user-request' });
     },
 
-    login: function(email, password) {
-      var request = $http.post('user/login', {email: email, password: password});
+    login: function(login, password) {
+      var request = $http.post('../auth/login', {login: login, password: password});
       return request.then(function(response) {
         updateCurrentUser(response.data.user);
+        console.log('login .. \n'); 
+        console.log('CurrentUser after login:', currentUser.info());
+        console.log('location:', $location); 
+        setCurrentUserSession(response.data.session_key);
+        $cookies.appSession = response.data.session_key; 
         return currentUser.isAuthenticated();
-      });
+      }, function(raison){
+         console.log('login error: \n', raison);  
+      } 
+      );
     },
 
     cancelLogin: function(redirectTo) {
@@ -133,22 +144,27 @@ angular.module('services.authentication').factory('AuthenticationService', ['$ht
     },
 
     logout: function(redirectTo) {
-      $http.post('/logout').then(function() {
+      $http.post('../auth/logout', {"session_key": currentUser.getSession()}).then(function() {
+        console.log('Logout .. '); 
         currentUser.clear();
+        $cookies.appSession = null; 
         redirect(redirectTo);
       });
     },
 
-    // Ask the backend to see if a users is already authenticated - this may be from a previous session.
+    // Ask the backend to see if a user is already authenticated - this may be from a previous session.
     // The app should probably do this at start up
     requestCurrentUser: function() {
       if ( currentUser.isAuthenticated() ) {
         return $q.when(currentUser);
       } else {
-        return $http.get('/current-user').then(function(response) {
-          updateCurrentUser(response.data.user);
-          return currentUser;
-        });
+        console.log('request current user:'); 
+        if ($cookies.appSession)
+          return $http.get('../auth/user/'+$cookies.appSession).then(function(response) {
+            updateCurrentUser(response.data.user);
+            setCurrentUserSession(response.data.session_key);
+            return currentUser;
+          });
       }
     },
 
@@ -172,27 +188,48 @@ angular.module('services.authentication').factory('AuthenticationService', ['$ht
   };
 
   // Get the current user when the service is instantiated
+  //Request current  User : in a real situation 
   service.requestCurrentUser();
 
   return service;
 }]);
 
 
-// current user service.
+// current user provides a way to track logged user
 angular.module('services.authentication.current-user', []);
 // The current user.  You can watch this for changes due to logging in and out
 angular.module('services.authentication.current-user').factory('currentUser', function() {
   var userInfo = null;
+  var sessionKey = ""; 
   var currentUser = {
     update: function(info) { userInfo = info; },
-    clear: function() { userInfo = null; },
+    clear: function() { userInfo = null; sessionKey = ""; },
     info: function() { return userInfo; },
     isAuthenticated: function(){ return !!userInfo; },
-    isAdmin: function() { return !!(userInfo && userInfo.admin); }
+    isAdmin: function() { return !!(userInfo && userInfo.admin); },
+    setSession: function(session){sessionKey = session;},
+    getSession: function(){ return sessionKey;}
+
   };
   return currentUser;
 });
 
+
+//session key service.
+/*
+angular.module('services.authentication.session-key', []); 
+angular.module('services.authentication.session-key').factory('sessionKey', function(){
+  var session = "";
+  session 
+  var sessionkey = {
+    update: function(key){session = key;}, 
+    clear:  function(){session = ""}, 
+    info: function(){ return session}    
+  };
+
+  return sessionKey; 
+});
+*/
 // interceptor  which i dont know why? 
 
 angular.module('services.authentication.interceptor', ['services.authentication.retry-queue']);

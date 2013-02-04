@@ -10,11 +10,49 @@
         tbody { display:block; overflow:auto; height:500px; }
         th { height:50px; width:80px; }
         td { height:50px; width:80px; }
+        /* Sticky footer styles
+        -------------------------------------------------- */
+
+        html,
+        body {
+          height: 100%;
+          /* The html and body elements cannot have any padding or margin. */
+        }
+
+        /* Wrapper for page content to push down footer */
+        #wrap {
+          min-height: 100%;
+          height: auto !important;
+          height: 100%;
+          /* Negative indent footer by it's height */
+          margin: 0 auto -60px;
+        }
+
+        /* Set the fixed height of the footer here */
+        #push,
+        #footer {
+          height: 60px;
+        }
+        #footer {
+          background-color: #f5f5f5;
+        }
+
+        /* Lastly, apply responsive CSS fixes as necessary */
+        @media (max-width: 767px) {
+          #footer {
+            margin-left: -20px;
+            margin-right: -20px;
+            padding-left: 20px;
+            padding-right: 20px;
+          }
+        }
     </style>
   </head>
   <body>
-  <!--
-    <div class="navbar navbar-fixed-top">
+
+  <div id="wrap">
+
+    <div class="navbar navbar-fixed-top" ng-controller="HeaderCtrl">
       <div class="navbar-inner">
 
         <div class="container-fluid">
@@ -24,30 +62,31 @@
             <span class="icon-bar"></span>
           </a>
           <a class="brand" href="#">Panel d'Administation</a>
-          <div class="btn-group pull-right">
-
+          <div class="btn-group pull-right" ng-show ="currentUser.isAuthenticated">
             <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-              <i class="icon-user"></i> Admin - #{user.nom}
+              <i class="icon-user"></i> {{currentUser.nom}}
               <span class="caret"></span>
             </a>
             <ul class="dropdown-menu">
               <li><a href="#">Profil</a></li>
               <li class="divider"></li>
               <li><a href="/logout">Déconnecté</a></li>
-
             </ul>
           </div>
+          <div class="btn-group pull-right" ng-hide ="currentUser.isAuthenticated">
+            <login-toolbar></login-toolbar>
+          </div> 
           <div class="nav-collapse">
             <ul class="nav">
-              <li class="active"><a href="/">Home</a></li>
+              <li class="active"><a href="/app/index.html">Home</a></li>
             </ul>
           </div>
         </div>
       </div>
     </div>
-  -->
-
-
+    <login-form></login-form>
+  
+<!--
   <div class="navbar" ng-controller="HeaderCtrl">
     <div class="navbar-inner">
         <a class="brand" ng-click="home()">AScrum</a>
@@ -71,7 +110,7 @@
         </ul>
         <login-toolbar></login-toolbar>
     </div>
-    <login-form></login-form>
+    <login-form></login-form> 
     <div>
         <ul class="breadcrumb">
             <li ng-repeat="breadcrumb in breadcrumbs.getAll()">
@@ -84,13 +123,15 @@
         </ul>
     </div>
 </div>
+-->
 
   <div class="container">
     <div class="page-header">
       <!-- <h1> <small>etablissement XXXXX</small></h1> -->
     </div>
   </div>
-    <div class="container-fluid">
+<!--
+  <div class="container-fluid">
       <div class="well span25">
         <ul class="nav nav-list">
             <li class="nav-header">
@@ -102,9 +143,9 @@
                 <li>
                   <a href="#/alimentor">Alimentation automatique</a>
                 </li>
-                <!--li>
+                <li>
                   <a href="#alim_man">Alimentation manuelle</a>
-                </li-->
+                </li>
                 
                 <li>
                   <a href="#/user/add">Ajouter</a>
@@ -129,39 +170,29 @@
                 </li>
         </ul>
     </div>
+
     <div class='span95'>
       <div class="alert">
         <button type="button" class="close" data-dismiss="alert">×</button>
-        Vous etes authentifié  Comme <strong>  #{user.nom}</strong>
+        Vous etes authentifié  Comme <strong>  {{currentUser.nom}}</strong>
       </div>
-
+  --> 
       <div id="content" ng-view></div>
       
-      <div id="panel-content">
-      </div>
-      <div id ="etablissement">  
-      </div>
     </div>
   </div>
 
-  <footer class="footer">
+  <div id="footer">
     <div class="container">
-      <div class="row">
-        <div class="span2">
-          <ul>
-              <li><a href="#">Contact</a></li>
-          </ul>
-        </div>
-        <div class="span2 offset1">
-          <ul>
-            <li><a href="#">FAQ</a></li>
-            <li><a href="#">Support</a></li>
-          </ul>
-        </div>
-        &#169; 2012 Laclasse.com
-      </div>
+        <p>
+           &#169; 2013 Laclasse.com &ensp;
+          <a href="#">Contact</a> &ensp;
+          <a href="#">FAQ</a> &ensp;
+          <a href="#">Support</a>
+        </p>
     </div>
-  </footer>
+  </div>
+</div>
 
   <!-- In production use:
   <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js"></script>
@@ -169,6 +200,7 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
   <script src="lib/angular/angular.js"></script>
   <script src="lib/angular/angular-resource.js"></script>
+  <script src="lib/angular/angular-cookies.js"></script>
   <script src="http://angular-ui.github.com/bootstrap/ui-bootstrap-tpls-0.1.0-SNAPSHOT.js"></script>
   <script src="js/app.js"></script>
   <script src="js/services.js"></script>
