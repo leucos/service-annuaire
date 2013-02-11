@@ -194,7 +194,7 @@ class User < Sequel::Model(:user)
       # pas comment autrement
       raise e if e.message.index(/Duplicate entry '.*' for key 'PRIMARY'/).nil?
 
-      Ramaze::log.error(e.message)
+      #Ramaze::log.error(e.message)
       # On récupère le hash de l'objet en cours de construction
       hash = self.values
       # Et on enlève l'id et la date de création qui seront

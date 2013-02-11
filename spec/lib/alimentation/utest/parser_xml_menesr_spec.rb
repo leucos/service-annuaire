@@ -173,6 +173,7 @@ describe Alimentation::ParserXmlMenesr do
   CATEGORIE_ELEVE = "Eleve"
   CATEGORIE_REL_ELEVE = "PersRelEleve"
   CATEGORIE_PEN = "PersEducNat"
+  CATEGORIE_MEF = "MefEducNat"
 
   it "parse well an eleve user" do
     p = ParserTest.new
@@ -306,7 +307,7 @@ describe Alimentation::ParserXmlMenesr do
     p.get_multiple_attr_etb(node, "ENTEleveClasses").should == ["4E3"]
   end
 
-  it "Parse well a PerdRelEleve" do
+  it "Parse well a PersRelEleve" do
     p = ParserTest.new
     node = get_rel_eleve_xml
     rel_eleve = p.parse_user(node, CATEGORIE_REL_ELEVE)
@@ -354,5 +355,27 @@ describe Alimentation::ParserXmlMenesr do
     p.parse_pen(node, pen)
     p.cur_etb_data[:enseigne_regroupement].length.should == 0
     p.cur_etb_data[:profil_user].filter({:profil_id => 'ORI'}).length.should == 1
+  end
+
+  it "parses an Eleve file and fill memory_db with correct number of records" do 
+    p = ParserTest.new
+    # write data to file maybe
+    #befor parsing
+    p.cur_etb_data[:user].length.should == 0
+    p.parse_file('file_Eleve_test.xml')
+    #after parsing  => add 2 users(eleve)
+    # add all users ids to the memory db 
+    p.cur_etb_data[:user].length.should == 8
+    #puts p.cur_etb_data.inspect
+  end
+
+  it "parses an EtabEducNat(etablissement) and fill memory_db with correct data and number of records"  do
+    p = ParserTest.new
+    #befor parsing
+    p.cur_etb_data[:etablissement].length.should == 1
+    p.parse_file('file_EtabEducNat_test.xml')
+    #after parsing  => add 2 etablissements
+    p.cur_etb_data[:etablissement].length.should == 3
+    #puts p.cur_etb_data[:etablissement].inspect  
   end
 end

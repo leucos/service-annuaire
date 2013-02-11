@@ -15,6 +15,7 @@ module Alimentation
   end
 
   class DiffGenerator
+    attr_accessor :cur_etb_diff
 
     def initialize(uai, etb_data, is_complet)
       @is_complet = is_complet
@@ -34,9 +35,11 @@ module Alimentation
       end
     end
 
+    # generate or find  available login in the database to give to new user
     def find_available_login(user)
       # Construction du login par défaut
       login = User.get_default_login(user[:prenom], user[:nom])
+    
       #Si homonymes, on utilise des numéros à la fin
       login_number = 1
       final_login = login

@@ -22,6 +22,7 @@
 # }
 
 # ELEVE = {
+#   ENTEleveStructRattachId: user[:id_sconet]
 #   ENTEleveAutoriteParentale: RelationEleve, #Faire lien avec id de jointure
 #   ENTElevePere: TypeRelationEleve, #Obsolète apparement 
 #   ENTEleveMere: TypeRelationEleve, #Obsolète apparement 
@@ -59,6 +60,16 @@
 #   telephoneNumber: Etablissement.telephone,
 #   facsimileTelephoneNumber: Etablissement.fax
 # }
+
+# MATIERE = {
+#  
+# }
+
+# MEF( module élémentaire de formation) ={
+#  
+#}
+
+
 module Alimentation
   # Classe d'erreur quand il manque des données pour un profil
   class MissingDataError < StandardError
@@ -69,6 +80,7 @@ module Alimentation
   end
 
   class ParserXmlMenesr
+    attr_accessor :cur_etb_data
     CATEGORIE_ELEVE = "Eleve"
     CATEGORIE_REL_ELEVE = "PersRelEleve"
     CATEGORIE_PEN = "PersEducNat"
@@ -169,6 +181,7 @@ module Alimentation
 
       #L'utilisateur peut déjà avoir été créer temporairement (cas d'un enfant dont les parents sont déclarés)
       parsed_user = @cur_etb_data[:user].find_or_add({:id_jointure_aaf => id_jointure})
+      #parsed_user = @cur_etb_data[:user].push({:id_jointure_aaf => id_jointure})
       #   ENTPersonDateNaissance: User[:date_naissance], #Nécessite conversion date
       date_naissance = get_attr(node, "ENTPersonDateNaissance")
       #puts "#{date_naissance}"
@@ -390,8 +403,12 @@ module Alimentation
 
     def parse_all_eleves(xml_doc)
       xml_doc.css("addRequest, modifyRequest").each do |node|
-        eleve = parse_user(node, CATEGORIE_ELEVE)
-        parse_eleve(node, eleve) unless eleve.nil?
+        begin 
+          eleve = parse_user(node, CATEGORIE_ELEVE)
+          parse_eleve(node, eleve) unless eleve.nil?
+        rescue => e 
+          #puts "#{e.message}"
+        end  
       end
     end
 
@@ -475,8 +492,13 @@ module Alimentation
     def parse_etab_educ_nat(xml_doc)
       #TODO créer les établissements quand ils n'existent pas ?
       xml_doc.css("addRequest, modifyRequest").each do |node|
+        #get id Etablissement which is different from UAI
+        #This id will facilitate the research to find the UAI
+        id = get_attr(node, 'ENTStructureJointure')
+
         uai = get_attr(node, 'ENTEtablissementUAI')
         etb = @cur_etb_data[:etablissement].find_or_add({:code_uai => uai})
+        etb[:structure_jointure] = id 
         etb[:siren] = get_attr(node, 'ENTStructureSIREN')
         #Le nom est apparement toujours sous cette forme
         # TYPE DE STRUCTURE-NOM DE L'ETAB-ac-lyon
@@ -521,6 +543,7 @@ module Alimentation
     end
 
     def parse_file(name)
+      start = Time.now
       f = File.open(name)
       doc = Nokogiri::XML(f)
 
@@ -538,6 +561,8 @@ module Alimentation
       unless name =~ /_EtabEducNat_/
         find_deleted_users(doc)
       end
+      fin = Time.now
+      Laclasse::Log.info("file parsing took #{fin-start} seconds") 
     end
 
     def init_memory_db
@@ -563,6 +588,7 @@ module Alimentation
         if file_list.length == 4
           @cur_etb = @cur_etb_data[:etablissement].find_or_add({:code_uai => uai})
           file_list.each do |name|
+            Laclasse::Log.info("Parsing du fichier #{name}")
             #puts "Parsing du fichier #{name}"
             parse_file(name)
           end
@@ -573,5 +599,20 @@ module Alimentation
 
       return @cur_etb_data
     end
+
+    # (v2) parse files by category(Etablissement, Eleve)
+    def parse_categorie(categorie, file_list)
+      # initialize memory db
+      init_memory_db()
+
+      #parse files
+      file_list.each do |name|
+        Laclasse::Log.info("Parsing file #{name} categorie")
+        #puts "Parsing du fichier #{name}"
+        parse_file(name)
+      end
+      return @cur_etb_data
+    end
+
   end
 end

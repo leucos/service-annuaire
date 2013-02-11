@@ -38,23 +38,31 @@ describe Alimentation::DiffGenerator do
     data = {id: 1, nom: "test", prenom: "test"}
     db = {id: 1, nom: "testa", prenom: "test"}
     @diff_gen.clean_data_to_update(data, db, [:id]).should == true
+
+    #puts data.inspect
     data.keys.include?(:nom).should == true
     data[:nom].should == "test"
+    
     # L'id est toujours gardé car on en a besoin pour l'update
     data.keys.include?(:id).should == true
+    
     # En revanche, le prenom n'est pas mis à jour
     data.keys.include?(:prenom).should == false
     
     data = {id: 1, nom: "test", prenom: "test"}
     @diff_gen.clean_data_to_update(data, db, [:id, :prenom]).should == true
+    
     # Sauf s'il considéré comme Primary key
     data.keys.include?(:prenom).should == true
+    
     expect{
         @diff_gen.clean_data_to_update({id: 1}, {id: 2}, [:id])
     }.to raise_error(Alimentation::MismatchUpdateIdError)
+    
     expect{
       @diff_gen.clean_data_to_update({id: 1, plop: 1}, {id: 2, plop: 1}, [:id, :plop])
     }.to raise_error(Alimentation::MismatchUpdateIdError)
+    
     expect{
       @diff_gen.clean_data_to_update({nom: "test"}, {nom: "test"}, [:id])  
     }.to raise_error(Alimentation::NoIdError)
@@ -62,28 +70,35 @@ describe Alimentation::DiffGenerator do
   end
 
   it "add_data ajoute bien les données à inserer/modifier/détruire dans la BDD" do
+
     @diff_gen.add_data(:user, :create, {nom: "test"})
     @diff_gen.cur_etb_diff[:user][:create].count.should == 1
+    
     expect{
       @diff_gen.add_data(:user, :update, {nom: "test"})
     }.to raise_error(Alimentation::NoDbEntryError)
+    
     expect{
       @diff_gen.add_data(:truc, :create, {nom: "test"})
     }.to raise_error(Alimentation::WrongTableError)
 
+    # no update
     @diff_gen.add_data_to_update(:user, {id: 1, nom: "test"}, {id: 1, nom: "test"})
     puts @diff_gen.cur_etb_diff[:user][:update]
     @diff_gen.cur_etb_diff[:user][:update].count.should == 0
 
+    # one update nom: test_modifié => test
     @diff_gen.add_data_to_update(:user, {id:1, nom: "test_modifié"}, {id: 1, nom: "test"})
     @diff_gen.cur_etb_diff[:user][:update].count.should == 1
   end
 
   it "Gère les diff d'établissement" do
     @diff_gen.diff_etablissement({code_uai: "TEST", :nom => "test"})
+    
     @diff_gen.cur_etb_diff[:etablissement][:create].count.should == 1
     e = create_test_etablissement()
     e.update(:code_uai => "TEST2")
+    
     @diff_gen.diff_etablissement({code_uai: "TEST2", :nom => "test2"})
     @diff_gen.cur_etb_diff[:etablissement][:update].count.should == 1
   end

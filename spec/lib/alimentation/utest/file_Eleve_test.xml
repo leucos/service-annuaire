@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!DOCTYPE ficAlimMENESR SYSTEM "ficAlimMENESR.dtd">
+<ficAlimMENESR>
+<!-- versionAF="AAF-VE1102" -->
+
+<addRequest>
+<operationalAttributes><attr name="categoriePersonne"><value>Eleve</value></attr></operationalAttributes>
+<identifier><id>164593</id></identifier>
+<attributes>
+<attr name="ENTPersonJointure"><value>164593</value></attr>
+<attr name="ENTEleveStructRattachId"><value>796318</value></attr>
+<attr name="ENTPersonDateNaissance"><value>07/04/1998</value></attr>
+<attr name="ENTPersonNomPatro"><value>JUPPET</value></attr>
+<attr name="sn"><value>JUPPET</value></attr>
+<attr name="givenName"><value>Laura</value></attr>
+<attr name="ENTPersonAutresPrenoms"><value>Laura</value></attr>
+<attr name="personalTitle"><value>Mlle</value></attr>
+<attr name="ENTEleveParents"><value>1604345</value><value>1604351</value></attr>
+<attr name="ENTElevePere"><value>1604345</value></attr>
+<attr name="ENTEleveMere"><value>1604351</value></attr>
+<attr name="ENTEleveAutoriteParentale"><value>1604345</value><value>1604351</value></attr>
+<attr name="ENTElevePersRelEleve1"><value/></attr>
+<attr name="ENTEleveQualitePersRelEleve1"><value/></attr>
+<attr name="ENTElevePersRelEleve2"><value/></attr>
+<attr name="ENTEleveQualitePersRelEleve2"><value/></attr>
+<attr name="ENTEleveBoursier"><value>N</value></attr>
+<attr name="ENTEleveRegime"><value>DEMI-PENSIONNAIRE DANS L&apos;ETABLISSEMENT 4</value></attr>
+<attr name="ENTEleveTransport"><value>N</value></attr>
+<attr name="ENTEleveStatutEleve"><value>SCOLAIRE</value></attr>
+<attr name="ENTEleveMEF"><value>10110001110</value></attr>
+<attr name="ENTEleveLibelleMEF"><value>5EME</value></attr>
+<attr name="ENTEleveNivFormation"><value>5EME</value></attr>
+<attr name="ENTEleveFiliere"><value>5EME</value></attr>
+<attr name="ENTEleveEnseignements"><value>ANGLAIS LV1</value><value>ARTS PLASTIQUES</value><value>EDUCATION CIVIQUE</value><value>EDUCATION MUSICALE</value><value>EDUCATION PHYSIQUE ET SPORTIVE</value><value>FRANCAIS</value><value>HISTOIRE ET GEOGRAPHIE</value><value>ITINERAIRE DECOUVERTE (ARTS HUMANITE)</value><value>ITINERAIRE DECOUVERTE (AUTRES)</value><value>ITINERAIRE DECOUVERTE (CREATION TECHNIQ)</value><value>ITINERAIRE DECOUVERTE (LANGUES CIVILIS.)</value><value>ITINERAIRE DECOUVERTE (NATURE CORPS HUM)</value><value>MATHEMATIQUES</value><value>PHYSIQUE-CHIMIE</value><value>SCIENCES DE LA VIE ET DE LA TERRE</value><value>TECHNOLOGIE</value><value>VIE DE CLASSE</value><value>VIE SCOLAIRE</value></attr>
+<attr name="ENTPersonStructRattach"><value>4773</value></attr>
+<attr name="ENTEleveClasses"><value>4773$5B</value></attr>
+<attr name="ENTEleveGroupes"><value/></attr>
+</attributes>
+</addRequest>
+
+<addRequest>
+<operationalAttributes><attr name="categoriePersonne"><value>Eleve</value></attr></operationalAttributes>
+<identifier><id>217153</id></identifier>
+<attributes>
+<attr name="ENTPersonJointure"><value>217153</value></attr>
+<attr name="ENTEleveStructRattachId"><value>369080</value></attr>
+<attr name="ENTPersonDateNaissance"><value>29/06/1995</value></attr>
+<attr name="ENTPersonNomPatro"><value>CHIBOUT</value></attr>
+<attr name="sn"><value>CHIBOUT</value></attr>
+<attr name="givenName"><value>Sihem</value></attr>
+<attr name="ENTPersonAutresPrenoms"><value>Sihem</value></attr>
+<attr name="personalTitle"><value>Mlle</value></attr>
+<attr name="ENTEleveParents"><value>381358</value><value>381359</value></attr>
+<attr name="ENTElevePere"><value>381358</value></attr>
+<attr name="ENTEleveMere"><value>381359</value></attr>
+<attr name="ENTEleveAutoriteParentale"><value>381358</value><value>381359</value></attr>
+<attr name="ENTElevePersRelEleve1"><value>381360</value></attr>
+<attr name="ENTEleveQualitePersRelEleve1"><value>CONTACT</value></attr>
+<attr name="ENTElevePersRelEleve2"><value>557482</value></attr>
+<attr name="ENTEleveQualitePersRelEleve2"><value>CONTACT</value></attr>
+<attr name="ENTEleveBoursier"><value>N</value></attr>
+<attr name="ENTEleveRegime"><value>EXTERNE LIBRE</value></attr>
+<attr name="ENTEleveTransport"><value>N</value></attr>
+<attr name="ENTEleveStatutEleve"><value>SCOLAIRE</value></attr>
+<attr name="ENTEleveMEF"><value>10310019110</value></attr>
+<attr name="ENTEleveLibelleMEF"><value>3EME</value></attr>
+<attr name="ENTEleveNivFormation"><value>3EME GENERALE</value></attr>
+<attr name="ENTEleveFiliere"><value>3EME GENERALE</value></attr>
+<attr name="ENTEleveEnseignements"><value>ANGLAIS LV1</value><value>ARTS PLASTIQUES</value><value>DECOUVERTE PROFESSIONNELLE 3 HEURES</value><value>EDUCATION CIVIQUE</value><value>EDUCATION MUSICALE</value><value>EDUCATION PHYSIQUE ET SPORTIVE</value><value>ESPAGNOL LV2</value><value>FRANCAIS</value><value>HISTOIRE ET GEOGRAPHIE</value><value>MATHEMATIQUES</value><value>PHYSIQUE-CHIMIE</value><value>SCIENCES DE LA VIE ET DE LA TERRE</value><value>TECHNOLOGIE</value><value>VIE SCOLAIRE</value></attr>
+<attr name="ENTPersonStructRattach"><value>4773</value></attr>
+<attr name="ENTEleveClasses"><value>4773$3A</value></attr>
+<attr name="ENTEleveGroupes"><value/></attr>
+</attributes>
+</addRequest>
+</ficAlimMENESR>
