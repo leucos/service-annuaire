@@ -45,3 +45,6 @@ spec/lib/alimentation/alimentor.rb
 spec/lib/alimentation/db_sync.rb
 spec/lib/alimentation/diff_generator.rb
 spec/lib/alimentation/parser_xml_menesr.rb
+lib/alimentation/diff
+tmp/
+db/data
