@@ -8,6 +8,7 @@ require __DIR__('diff_generator')
 require __DIR__('diff_view')
 require __DIR__('db_sync')
 
+# TODO = distinguish between delta and complete alimentation
 #Super classe qui prend un fichier targz (complet ou delta) de l'académie et alimente automatiquement
 #Tous les établissements présents dans l'archive
 module Alimentation
@@ -16,7 +17,9 @@ module Alimentation
     #Attribut présent dans le nom des fichiers
     @@complet_name = "Complet"
     @@delta_name = "Delta"
-
+    
+     
+    #-------------------------------------------------------------#   
     def initialize(archive_name)
       @archive_name = archive_name
       @is_complet = File.basename(@archive_name).index(@@complet_name) != nil
@@ -26,7 +29,8 @@ module Alimentation
       @date_alim = Date.parse(name_split[1]) if name_split.length > 1
       @temp_dir = "tmp"
     end
-
+     
+    #-------------------------------------------------------------# 
     def clean_tmp_dir
       if Dir.exists?(@temp_dir)
         Dir.foreach(@temp_dir) do |f|
@@ -34,7 +38,8 @@ module Alimentation
         end
       end
     end
-
+     
+    #-------------------------------------------------------------# 
     def unpack_archive
       clean_tmp_dir()
 
@@ -50,6 +55,7 @@ module Alimentation
       return ok
     end
 
+    #-------------------------------------------------------------# 
     def list_all_etb
       #Then list all etablissements and xml files
       Dir.foreach(@temp_dir) do |name|
@@ -68,7 +74,9 @@ module Alimentation
         end
       end
     end
-
+     
+     
+    #-------------------------------------------------------------#  
     #(v2) list files by categorie
     def list_all_files 
       Dir.foreach(@temp_dir) do |file|
@@ -85,17 +93,21 @@ module Alimentation
             end
           end
         end  
-    end 
-
+    end
+     
+    #-------------------------------------------------------------# 
     def prepare_alimentation
       Laclasse::Log.info("prepare_alimentation")
-      ok = unpack_archive()
-      list_all_etb() if ok
+      time("prepere alimentation took") do 
+        ok = unpack_archive()
+        list_all_etb() if ok
+      end 
 
       return @etb_file_map.length > 0
     end
 
-    # (v2) of prepare_alimentation because files are anonymous 
+    # (v2) of prepare_data by categorie because files are anonymous
+    #-------------------------------------------------------------# 
     def prepare_data 
       Laclasse::Log.info("prepare data")
       start = Time.now
@@ -109,42 +121,40 @@ module Alimentation
       Laclasse::Log.info("prepering data took #{fin-start} seconds")
       return @etb_file_map.length > 0
     end 
-
-    #Parse l'ensemble des fichiers pour lequels l'id d'établissement existe déjà dans l'annuaire
+    
+    
+    # (v2) parse all etab -------------------------------------------#
     def parse_all_etb
-      @etb_file_map.each do |uai, file_list|
-        begin
-          Laclasse::Log.info("Start parsing etablissement #{uai}")
-          # i think we need to develop a generic parser XML, CSV, Oracle
-          #parser = Parser.new
-          # for the moment we use xml parser
-          parser = ParserXmlMenesr.new
-          cur_etb_data = parser.parse_etb(uai, file_list)
-          #Laclasse::Log.debug("memory DB data"+cur_etb_data.inspect)
-          unless cur_etb_data.nil?
-            Laclasse::Log.info("Generate diff")
-            diff_generator = DiffGenerator.new(uai, cur_etb_data, @is_complet)
-            diff = diff_generator.generate_diff_etb()
-
-            #puts diff
-
-            ##Laclasse::Log.info("Generate diff_view")
-            ##diff_view = DiffView.new
-            ##diff_view.generate_html(uai, diff, @date_alim, @is_complet)
-
-            Laclasse::Log.info("Synchronize DB")
-            ##sync = DbSync.new
-            ##sync.sync_db(diff)
-          end
-        rescue => e
-          puts "Erreur lors de l'alimentation de l'établissement #{uai}"
-          puts "#{e.message}"
-          puts "#{e.backtrace}"
+      begin
+        # new Mongo db parser using mongo db
+        parser = ParserXmlMongo.new
+        #cur_etb_data = parser.parse_etb(uai, file_list)
+        parser.parse_all_etb(@etb_file_map)
+        
+        
+        unless parser.db.collection_names.empty?
+          Laclasse::Log.info("Generate diff")
+          #diff_generator = DiffGenerator.new(uai, cur_etb_data, @is_complet)
+          #diff = diff_generator.generate_diff_etb()
+  
+          #puts diff
+  
+          ##Laclasse::Log.info("Generate diff_view")
+          ##diff_view = DiffView.new
+          ##diff_view.generate_html(uai, diff, @date_alim, @is_complet)
+  
+          Laclasse::Log.info("Synchronize DB")
+          ##sync = DbSync.new
+          ##sync.sync_db(diff)
         end
+      rescue => e
+        Laclasse::Log.error("#{e.message}")
+        #puts "#{e.backtrace}"
       end
     end
-
-    # (v2) parse_data 
+    
+    # (v2) parse_data
+    #-------------------------------------------------------------------# 
     # instead of parsing files by (etablissement_id ), parse_data parses files by category
     # categories include Eleve, EtabEducNat, MatiereEducNat, MefEducNat, PersEducNat, PersRelEleve
     # Parsing data must start with EtabEducNat because it is independant of other info 
@@ -192,9 +202,11 @@ module Alimentation
       if !@etb_file_map[categorie].nil?
         start = Time.now
         Laclasse::Log.info("Start parsing categorie #{categorie}")
+        
         # i think we need to develop a generic parser XML, CSV, Oracle
-        #parser = Parser.new
+        # parser = Parser.new
         # for the moment we use xml parser
+        
         Laclasse::Log.info("#{categorie} contains #{@etb_file_map[categorie].length} file")
         parser = ParserXmlMenesr.new
         cur_etb_data = parser.parse_categorie(categorie, @etb_file_map[categorie])
@@ -204,8 +216,15 @@ module Alimentation
         Laclasse::Log.error("Categorie #{categorie} does not exist")
       end
       return cur_etb_data
-    end 
-
+    end
+    #-------------------------------------------------------------------#  
+    # function to calculate the execution time
+    def time(label)
+      t1 = Time.now
+      #yield.tap{ puts "%s: %.1fs" % [ label, Time.now-t1 ] }
+      yield.tap{ Laclasse::Log.info("%s: %.1fs" % [ label, Time.now-t1 ]) }
+    end
+    
     def is_complet?
       @is_complet
     end

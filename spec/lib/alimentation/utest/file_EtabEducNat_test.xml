@@ -5,25 +5,25 @@
 
 <addRequest>
 <operationalAttributes><attr name="categorieStructure"><value>EtabEducNat</value></attr></operationalAttributes> 
-<identifier><id>52000</id></identifier> 
+<identifier><id>4144</id></identifier> 
 <attributes> 
-<attr name="ENTStructureJointure"><value>52000</value></attr>
-<attr name="ENTStructureUAI"><value>004001ZV</value></attr>
-<attr name="ENTEtablissementUAI"><value>004001ZV</value></attr>
-<attr name="ENTStructureSIREN"><value></value></attr>
-<attr name="ENTStructureNomCourant"><value>Z.REMP-DIGNE-AIX_MARS.</value></attr>
-<attr name="ENTStructureTypeStruct"><value>SANS OBJET</value></attr>
-<attr name="ENTEtablissementMinistereTutelle"><value/></attr>
+<attr name="ENTStructureJointure"><value>4144</value></attr>
+<attr name="ENTStructureUAI"><value>0011241U</value></attr>
+<attr name="ENTEtablissementUAI"><value>0011241U</value></attr>
+<attr name="ENTStructureSIREN"><value>17010431900323</value></attr>
+<attr name="ENTStructureNomCourant"><value>SCE IA-INSPECTION ACADEMIQUE AIN-ac-LYON</value></attr>
+<attr name="ENTStructureTypeStruct"><value>SERVICE DE L INSPECTION ACADEMIQUE</value></attr>
+<attr name="ENTEtablissementMinistereTutelle"><value>MINISTERE DE L&apos;EDUCATION NATIONALE</value></attr>
 <attr name="ENTEtablissementContrat"><value>PU</value></attr>
 <attr name="postOfficeBox"><value/></attr>
-<attr name="street"><value></value></attr>
-<attr name="postalCode"><value></value></attr>
-<attr name="l"><value></value></attr>
-<attr name="telephoneNumber"><value/></attr>
+<attr name="street"><value>7 AVENUE JEAN-MARIE VERNE</value></attr>
+<attr name="postalCode"><value>01000</value></attr>
+<attr name="l"><value>BOURG EN BRESSE</value></attr>
+<attr name="telephoneNumber"><value>+33 4 74 21 29 28</value></attr>
 <attr name="facsimileTelephoneNumber"><value/></attr>
 <attr name="ENTEtablissementStructRattachFctl"><value/></attr>
 <attr name="ENTEtablissementBassin"><value/></attr>
-<attr name="ENTServAcAcademie"><value>AIX-MARSEILLE</value></attr>
+<attr name="ENTServAcAcademie"><value>LYON</value></attr>
 <attr name="ENTStructureClasses"><value/></attr>
 <attr name="ENTStructureGroupes"><value/></attr>
 </attributes>
@@ -31,25 +31,51 @@
 
 <addRequest>
 <operationalAttributes><attr name="categorieStructure"><value>EtabEducNat</value></attr></operationalAttributes> 
-<identifier><id>52001</id></identifier> 
+<identifier><id>4231</id></identifier> 
 <attributes> 
-<attr name="ENTStructureJointure"><value>52001</value></attr>
-<attr name="ENTStructureUAI"><value>004002ZD</value></attr>
-<attr name="ENTEtablissementUAI"><value>004002ZD</value></attr>
+<attr name="ENTStructureJointure"><value>4231</value></attr>
+<attr name="ENTStructureUAI"><value>0019999N</value></attr>
+<attr name="ENTEtablissementUAI"><value>0019999N</value></attr>
+<attr name="ENTStructureSIREN"><value>17010431900018</value></attr>
+<attr name="ENTStructureNomCourant"><value>D.S.D.E.N.-DE L&apos;AIN-ac-LYON</value></attr>
+<attr name="ENTStructureTypeStruct"><value>INSPECTIONS ACADEMIQUES</value></attr>
+<attr name="ENTEtablissementMinistereTutelle"><value>MINISTERE DE L&apos;EDUCATION NATIONALE</value></attr>
+<attr name="ENTEtablissementContrat"><value>PU</value></attr>
+<attr name="postOfficeBox"><value>404</value></attr>
+<attr name="street"><value>10 RUE DE LA PAIX</value></attr>
+<attr name="postalCode"><value>01012</value></attr>
+<attr name="l"><value>BOURG EN BRESSE CEDEX</value></attr>
+<attr name="telephoneNumber"><value>+33 4 74 45 58 40</value></attr>
+<attr name="facsimileTelephoneNumber"><value>+33 4 74 45 58 99</value></attr>
+<attr name="ENTEtablissementStructRattachFctl"><value/></attr>
+<attr name="ENTEtablissementBassin"><value/></attr>
+<attr name="ENTServAcAcademie"><value>LYON</value></attr>
+<attr name="ENTStructureClasses"><value/></attr>
+<attr name="ENTStructureGroupes"><value/></attr>
+</attributes>
+</addRequest>
+
+<addRequest>
+<operationalAttributes><attr name="categorieStructure"><value>EtabEducNat</value></attr></operationalAttributes> 
+<identifier><id>4622</id></identifier> 
+<attributes> 
+<attr name="ENTStructureJointure"><value>4622</value></attr>
+<attr name="ENTStructureUAI"><value>0421943J</value></attr>
+<attr name="ENTEtablissementUAI"><value>0421943J</value></attr>
 <attr name="ENTStructureSIREN"><value></value></attr>
-<attr name="ENTStructureNomCourant"><value>Z.REMP-MANOSQUE-AIX_MARS.</value></attr>
-<attr name="ENTStructureTypeStruct"><value>SANS OBJET</value></attr>
-<attr name="ENTEtablissementMinistereTutelle"><value/></attr>
-<attr name="ENTEtablissementContrat"><value></value></attr>
+<attr name="ENTStructureNomCourant"><value>SCE IA-INSPECTION ACADEMIQUE LOIRE-ac-LYON</value></attr>
+<attr name="ENTStructureTypeStruct"><value>SERVICE DE L INSPECTION ACADEMIQUE</value></attr>
+<attr name="ENTEtablissementMinistereTutelle"><value>MINISTERE DE L&apos;EDUCATION NATIONALE</value></attr>
+<attr name="ENTEtablissementContrat"><value>PU</value></attr>
 <attr name="postOfficeBox"><value/></attr>
-<attr name="street"><value></value></attr>
-<attr name="postalCode"><value></value></attr>
-<attr name="l"><value></value></attr>
+<attr name="street"><value>41 RUE MONTFERRE</value></attr>
+<attr name="postalCode"><value>42100</value></attr>
+<attr name="l"><value>ST ETIENNE</value></attr>
 <attr name="telephoneNumber"><value/></attr>
 <attr name="facsimileTelephoneNumber"><value/></attr>
 <attr name="ENTEtablissementStructRattachFctl"><value/></attr>
 <attr name="ENTEtablissementBassin"><value/></attr>
-<attr name="ENTServAcAcademie"><value>AIX-MARSEILLE</value></attr>
+<attr name="ENTServAcAcademie"><value>LYON</value></attr>
 <attr name="ENTStructureClasses"><value/></attr>
 <attr name="ENTStructureGroupes"><value/></attr>
 </attributes>

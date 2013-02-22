@@ -15,7 +15,8 @@ gem 'rest-client'
 gem 'redis'
 gem 'mail'
 gem 'grape-swagger'
-
+gem 'mongo'
+gem 'bson_ext'
 
 group :development do
   gem 'rack-test'

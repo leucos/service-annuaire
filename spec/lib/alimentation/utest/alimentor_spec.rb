@@ -16,27 +16,32 @@ def time(label)
 end
 
 describe Alimentation::Alimentor do
-
-  Data_SOURCE = "/home/bashar/rubyProjects/service-annuaire/service-annuaire/spec/fixture/Complet69-TS.20120425.tgz"
-
-  it "should accept a good datasource" do
-    al = Alimentation::Alimentor.new(Data_SOURCE)
-    al.archive_name.should == Data_SOURCE
-    al.date_alim.should ==  Date.parse('20120425')
-    #puts al.inspect
+  before(:all) do
+    # Data_SOURCE is a test data source  that contains files for two etablissements
+    Data_SOURCE = "/home/bashar/rubyProjects/service-annuaire/service-annuaire/spec/fixture/Complet69-ENTTSSERVICES.20130218.tgz"
+    @al = Alimentation::Alimentor.new(Data_SOURCE)
+    @al.prepare_alimentation
   end
-
+  
+  it "should accept a good datasource" do
+    @al.archive_name.should == Data_SOURCE
+    @al.date_alim.should ==  Date.parse('20130218')
+  end
+=begin
   it "should prepare the alimentation " do
     al = Alimentation::Alimentor.new(Data_SOURCE)
     al.prepare_alimentation.should == true
   end
-
-  it "should parse and detect errors in xml files" do
-    al = Alimentation::Alimentor.new(Data_SOURCE)
-    al.prepare_alimentation
+=end
+  it "should parse and detect errors for all xml files clasified by etablissement" do
+    #one problem what do we need to test
     time("parsing all etabs") do 
-      al.parse_all_etb
+      @al.parse_all_etb
     end
+  end
+  
+  it "should parse and detect errors for a specific etablissement" do
+    @l.parse_etb(uai)
   end
 
 =begin
@@ -67,6 +72,6 @@ describe Alimentation::Alimentor do
 
   it "should also return statistics after the operation" do 
     
-  end
+  end 
 =end  
 end 
