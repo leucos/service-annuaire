@@ -162,7 +162,14 @@ module Alimentation
       return xml_id
     end
     #------------------------------------------------------#
+    #------------------------------------------------------#
+    #---------Method to compute Block exec time  ----------#
+    def time(label)
+      t1 = Time.now
+      yield.tap{Laclasse::Log.info("%s: %.1fs" % [ label, Time.now-t1 ]) }
+    end
     
+    #------------------------------------------------------#
     
     #------------------------------------------------------#
     # parse user(Eleve , PersonEducationNational, Parent)  #
@@ -513,7 +520,9 @@ module Alimentation
           count+=1 
           eleve = parse_user(node, CATEGORIE_ELEVE)
           parse_eleve(node, eleve) unless eleve.nil?
-        rescue => e 
+        rescue => e
+          #add error to database
+          @db.collection("error").save({"origin" => "eleve","message"=> e.message}) 
           Laclasse::Log.error(e.message)
         end  
       end
@@ -592,10 +601,12 @@ module Alimentation
           pen = parse_user(node, CATEGORIE_PEN)
           parse_pen(node, pen)
         rescue => e 
+          @db.collection("error").save({"origin" => "person education national", "message"=> e.message})
           Laclasse::Log.error(e.message)
         end 
       end
       #log info of treated requests
+      @statstic['count_pen'] = count
       Laclasse::Log.info("number of treated personel education national =  #{count}") 
     end
 
@@ -630,10 +641,12 @@ module Alimentation
           pers_rel_eleve = parse_user(node, CATEGORIE_REL_ELEVE)
           parse_pers_rel_eleve(node, pers_rel_eleve)
         rescue => e 
+          @db.collection("error").save({"origin" => "Relation Eleve", "message"=> e.message, "type" =>"waring or error"})
           Laclasse::Log.error(e.message)
         end 
       end
       #log info of treated requests
+      @statstic['count_pers_rel_eleve'] = count
       Laclasse::Log.info("number of treated relations #{count}") 
     end
 
@@ -690,6 +703,9 @@ module Alimentation
         etb["type_etablissement_id"] = type_etab_model.id
         @db.collection("etablissement").save(etb)
       end
+      #add count to statstics
+      @statstic['count_etabs'] = count
+      
       #log info of treated requests
       Laclasse::Log.info("number of treated Etabilssement #{count}") 
     end
@@ -704,9 +720,9 @@ module Alimentation
           deleted_user_id = deleted_user_id.content.to_i
           #Petit hack : on rajout un user avec le flag deleted
           #diff_generator sait alors qu'il faut le supprimer de l'établissement
-          found = @db.collection("user").find_one({"id_jointure_aaf"=>deleted_user_id})
+          found = @db.collection("users").find_one({"id_jointure_aaf"=>deleted_user_id})
           if !found.nil?
-            @db.collection("user").update({"id_jointure_aaf"=>deleted_user_id}, {"$set" => {"deleted"=>true}})
+            @db.collection("users").update({"id_jointure_aaf"=>deleted_user_id}, {"$set" => {"deleted"=>true}})
           end 
         end
       end
@@ -716,34 +732,36 @@ module Alimentation
     #   parse Xml File                          #   
     #-------------------------------------------#
     def parse_file(name)
-      start = Time.now
-      f = File.open(name)
-      doc = Nokogiri::XML(f)
-
-      case name
-        when /_Eleve_/
-          parse_all_eleves(doc)
-        when /_PersEducNat_/
-          parse_all_pens(doc)
-        when /_PersRelEleve_/
-          parse_all_pers_rel_eleve(doc)
-        when /_EtabEducNat_/
-          parse_etab_educ_nat(doc)
-        when /_MatiereEducNat_/
-          Laclasse::Log.info("parse matiers disactivé")
-        when /_MefEducNat_/
-          Laclasse::Log.info("parse MEF disactivé")
+      time("File parsing Time") do 
+        #start = Time.now
+        f = File.open(name)
+        doc = Nokogiri::XML(f)
+  
+        case name
+          when /_Eleve_/
+            parse_all_eleves(doc)
+          when /_PersEducNat_/
+            parse_all_pens(doc)
+          when /_PersRelEleve_/
+            parse_all_pers_rel_eleve(doc)
+          when /_EtabEducNat_/
+            parse_etab_educ_nat(doc)
+          when /_MatiereEducNat_/
+            Laclasse::Log.info("parse matiers disactivé")
+          when /_MefEducNat_/
+            Laclasse::Log.info("parse MEF disactivé")
+        end
+  
+        unless name =~ /_EtabEducNat_/
+          find_deleted_users(doc)
+        end
+        #fin = Time.now
+        #Laclasse::Log.info("file parsing took #{fin-start} seconds") 
       end
-
-      unless name =~ /_EtabEducNat_/
-        find_deleted_users(doc)
-      end
-      fin = Time.now
-      Laclasse::Log.info("file parsing took #{fin-start} seconds") 
     end
 
     #-------------------------------------------#
-    ##  initialize data base (mongo db)        ##   
+    #  initialize data base (mongo db)          #   
     #-------------------------------------------#
     def init_memory_db(config)
       #Liste de toutes les données de l'établissement
@@ -751,12 +769,20 @@ module Alimentation
       #Voila toutes les tables concernées par l'alimentation auto
       #Attention, l'ordre est important !
       ## new way db connection
-      #drop data base if exists 
-      Mongo::Connection.new(config[:server],config[:port] || 27017).drop_database(config[:db])
-      @db = Mongo::Connection.new(config[:server],config[:port] || 27017).db(config[:db])
+      #drop data base if exists
+      begin  
+        Mongo::Connection.new(config[:server],config[:port] || 27017).drop_database(config[:db])
+        @db = Mongo::Connection.new(config[:server],config[:port] || 27017).db(config[:db])
+        @statstic = {} # a hash that contains statistics$
+        #Adding indexes for database
+        @db.collection("etablissement").create_index("id_jointure_aaf")
+        @db.collection("users").create_index("id_jointure_aaf")
+      rescue
+         Laclasse::Log.error("Mongo db connection error") 
+      end 
       
       # @db contains the following ocnnections
-      # etablissement, user, regroupement, profil_user, telephone,
+      # etablissement, users, regroupement, profil_user, telephone,
       # email, relation_eleve, membre_regroupement, enseigne_regroupement,
       # and we have to process the matiere separatley.
     end
@@ -766,29 +792,31 @@ module Alimentation
     #-------------------------------------------#
     def parse_etb(uai, file_list)
       #On ne parse que les établissements existants
-      @cur_etb_uai = uai
-      @cur_etb_xml_id = find_etb_xml_id(file_list)
-      config = {:server => "localhost", :db => "mydb"}
-      if !@cur_etb_xml_id.nil?
-        ## refactoring
-        init_memory_db(config)
-        
-        #puts "Etablissement #{@cur_etb_xml_id} avec uai #{@cur_etb_uai} present"
-        if file_list.length >= 4 && file_list.length <= 6
-          @cur_etb = @db.collection("etablissement").find_one({"code_uai" => uai})
-          if @cur_etb.nil?
-            id = @db.collection("etablissement").save({"code_uai" => uai})
-            @cur_etb = @db.collection("etablissement").find_one({"_id" => id})
+      time("Total etablissement #{uai} parsing time") do 
+        @cur_etb_uai = uai
+        @cur_etb_xml_id = find_etb_xml_id(file_list)
+        config = {:server => "localhost", :db => "mydb"}
+        if !@cur_etb_xml_id.nil?
+          ## refactoring
+          init_memory_db(config)
+          
+          #puts "Etablissement #{@cur_etb_xml_id} avec uai #{@cur_etb_uai} present"
+          if file_list.length >= 4 && file_list.length <= 6
+            @cur_etb = @db.collection("etablissement").find_one({"code_uai" => uai})
+            if @cur_etb.nil?
+              id = @db.collection("etablissement").save({"code_uai" => uai})
+              @cur_etb = @db.collection("etablissement").find_one({"_id" => id})
+            end
+            file_list.each do |name|
+              Laclasse::Log.info("Parsing du fichier #{name}")
+              parse_file(name)
+            end
+          else
+            Laclasse::Log.error("Plus de 4 fichiers pour l'établissement #{uai} : #{file_list}")
           end
-          file_list.each do |name|
-            Laclasse::Log.info("Parsing du fichier #{name}")
-            parse_file(name)
-          end
-        else
-          Laclasse::Log.error("Plus de 4 fichiers pour l'établissement #{uai} : #{file_list}")
         end
-      end
-      # im not sure if we have to return something
+        # im not sure if we have to return something
+      end #time 
     end 
     
     #----------------------------------------------#
@@ -813,6 +841,7 @@ module Alimentation
           # email, relation_eleve, membre_regroupement, enseigne_regroupement
           # Error Generation
         rescue => e
+          @db.collection("error").save({"origin" => "Etablissement", "message"=> e.message, "type" =>"waring or error"})
           puts "Erreur lors de l'alimentation de l'établissement #{uai}"
           puts "#{e.message}"
           #puts "#{e.backtrace}"

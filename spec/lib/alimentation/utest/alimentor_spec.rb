@@ -15,6 +15,13 @@ def time(label)
   yield.tap{ puts "%s: %.1fs" % [ label, Time.now-t1 ] }
 end
 
+#def count_requests(label)
+  #count = 0 
+  #yield.tap
+#end 
+
+# we must create a Test Data Sources
+# modify some data
 describe Alimentation::Alimentor do
   before(:all) do
     # Data_SOURCE is a test data source  that contains files for two etablissements
@@ -32,46 +39,36 @@ describe Alimentation::Alimentor do
     al = Alimentation::Alimentor.new(Data_SOURCE)
     al.prepare_alimentation.should == true
   end
-=end
+
   it "should parse and detect errors for all xml files clasified by etablissement" do
     #one problem what do we need to test
     time("parsing all etabs") do 
       @al.parse_all_etb
     end
   end
-  
+=end   
   it "should parse and detect errors for a specific etablissement" do
-    @l.parse_etb(uai)
+    @al.parse_etb("0690078K")
+    puts "------------------\n"
+    puts "users = #{@al.parser.db.collection('users').count}"
+    puts "etablissements = #{@al.parser.db.collection('etablissement').count}" 
+    puts "regroupements = #{@al.parser.db.collection('regroupement').count}"
+    puts "------------------\n"
+    pp @al.parser.db.collection("error").find.to_a
+    
+    puts "------------------\n"
+    @al.parse_etb("0693890D")
+    puts "------------------\n"
+    puts "users = #{@al.parser.db.collection('users').count}"
+    puts "etablissements = #{@al.parser.db.collection('etablissement').count}" 
+    puts "regroupements = #{@al.parser.db.collection('regroupement').count}"
+    puts "------------------\n"
+    pp @al.parser.db.collection("error").find.to_a    
   end
 
-=begin
-  it "should parse data by categorie EtabEducNat and generate a valid number of records" do 
-    # parsing file using alimentor
-    datasource = "/home/bashar/rubyProjects/service-annuaire/service-annuaire/spec/fixture/full.tar.gz"
-    al = Alimentation::Alimentor.new(datasource)
-    al.prepare_data
-    parsed_etab = al.parse_categorie("EtabEducNat")
-    #puts parsed_etab[:etablissement].length
 
-    #read data using xml parser
-    xmlfeed = Nokogiri::XML(open("tmp/FULL_ENTTSSERVICES_Complet_20130117_EtabEducNat_0000.xml"))
-    all_etabs = xmlfeed.xpath("//addRequest")
-    #puts all_items.count
-
-    # the tow parsers must generate the same number of records(etablissement)
-    parsed_etab[:etablissement].length.should == all_etabs.count 
-
-  end
-
-  it "should parse all data in the tgz file starting with EtabEducNat" do
-    datasource = "/home/bashar/rubyProjects/service-annuaire/service-annuaire/spec/fixture/full.tar.gz"
-    al = Alimentation::Alimentor.new(datasource)
-    al.prepare_data
-    al.parse_data
-  end
 
   it "should also return statistics after the operation" do 
     
   end 
-=end  
 end 

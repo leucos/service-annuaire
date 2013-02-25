@@ -1,6 +1,7 @@
 #!ruby
 #coding: utf-8
 module Alimentation
+  
   # Classe d'erreur quand on a une donnée d'update qui n'a pas les mêmes id
   class MismatchUpdateIdError < StandardError
   end

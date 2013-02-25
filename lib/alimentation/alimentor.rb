@@ -13,7 +13,7 @@ require __DIR__('db_sync')
 #Tous les établissements présents dans l'archive
 module Alimentation
   class Alimentor
-    attr_accessor :etb_file_map, :archive_name, :date_alim, 
+    attr_accessor :etb_file_map, :archive_name, :date_alim, :parser
     #Attribut présent dans le nom des fichiers
     @@complet_name = "Complet"
     @@delta_name = "Delta"
@@ -21,6 +21,7 @@ module Alimentation
      
     #-------------------------------------------------------------#   
     def initialize(archive_name)
+      @parser = ParserXmlMongo.new
       @archive_name = archive_name
       @is_complet = File.basename(@archive_name).index(@@complet_name) != nil
       #key : code UIA de l'établissement, value: Array de fichiers d'alimentation de l'établissement
@@ -74,10 +75,9 @@ module Alimentation
         end
       end
     end
-     
-     
     #-------------------------------------------------------------#  
     #(v2) list files by categorie
+    # not necessary for our file format
     def list_all_files 
       Dir.foreach(@temp_dir) do |file|
         file_path = File.join(@temp_dir, file)
@@ -95,7 +95,9 @@ module Alimentation
         end  
     end
      
-    #-------------------------------------------------------------# 
+    #---------------------------------------------------------------# 
+    #-----Extract files and build a hash of files per etablissement
+    #---------------------------------------------------------------#
     def prepare_alimentation
       Laclasse::Log.info("prepare_alimentation")
       time("prepere alimentation took") do 
@@ -106,33 +108,16 @@ module Alimentation
       return @etb_file_map.length > 0
     end
 
-    # (v2) of prepare_data by categorie because files are anonymous
-    #-------------------------------------------------------------# 
-    def prepare_data 
-      Laclasse::Log.info("prepare data")
-      start = Time.now
-      ok = unpack_archive()
-      list_all_files if ok 
-      fin = Time.now
-      Laclasse::Log.info("folder contains #{@etb_file_map.length} categories")
-      @etb_file_map.each do |categorie, list|
-        Laclasse::Log.info("#{categorie} contains #{list.length} files")
-      end 
-      Laclasse::Log.info("prepering data took #{fin-start} seconds")
-      return @etb_file_map.length > 0
-    end 
-    
     
     # (v2) parse all etab -------------------------------------------#
     def parse_all_etb
       begin
         # new Mongo db parser using mongo db
-        parser = ParserXmlMongo.new
         #cur_etb_data = parser.parse_etb(uai, file_list)
-        parser.parse_all_etb(@etb_file_map)
+        @parser.parse_all_etb(@etb_file_map)
         
         
-        unless parser.db.collection_names.empty?
+        unless @parser.db.collection_names.empty?
           Laclasse::Log.info("Generate diff")
           #diff_generator = DiffGenerator.new(uai, cur_etb_data, @is_complet)
           #diff = diff_generator.generate_diff_etb()
@@ -153,77 +138,46 @@ module Alimentation
       end
     end
     
-    # (v2) parse_data
-    #-------------------------------------------------------------------# 
-    # instead of parsing files by (etablissement_id ), parse_data parses files by category
-    # categories include Eleve, EtabEducNat, MatiereEducNat, MefEducNat, PersEducNat, PersRelEleve
-    # Parsing data must start with EtabEducNat because it is independant of other info 
-    # options only parsing and save in memory
-    # parsing and synchronizing 
-    # parsing, synchronizing and diff generating
-    def parse_data(options={})
-      start_categorie = 'EtabEducNat'
-      cur_etb_data = parse_categorie(start_categorie)
-      parse_categorie('Eleve')
-      #manque the synchronizing
-      @etb_file_map.each do |categorie, file_list|
-        begin
-          next if (categorie == start_categorie or categorie == "Eleve")
-          Laclasse::Log.info("Start parsing categorie #{categorie}")
-          # i think we need to develop a generic parser XML, CSV, Oracle
-          #parser = Parser.new
-          # for the moment we use xml parser
-          parser = ParserXmlMenesr.new
-          cur_etb_data = parser.parse_categorie(categorie, file_list)
-          #Laclasse::Log.debug("memory DB data"+cur_etb_data.inspect)
-          if !cur_etb_data.nil? && options["PARSE_DIFF_SYNC"] = true
+    # (v2) parse une seule etab -------------------------------------------#
+    def parse_etb(uai)
+      begin
+        # new Mongo db parser using mongo db
+        if @etb_file_map.keys.include?(uai)
+          # may be we need to empty the database !!
+          @parser.parse_etb(uai, @etb_file_map[uai])
+                  
+          
+          unless @parser.db.collection_names.empty?
             Laclasse::Log.info("Generate diff")
-            diff_generator = DiffGenerator.new(uai, cur_etb_data, @is_complet)
-            diff = diff_generator.generate_diff_etb()
-
-            Laclasse::Log.info("Generate diff_view")
-            diff_view = DiffView.new
-            diff_view.generate_html(uai, diff, @date_alim, @is_complet)
-
+            #diff_generator = DiffGenerator.new(uai, cur_etb_data, @is_complet)
+            #diff = diff_generator.generate_diff_etb()
+    
+            #puts diff
+    
+            ##Laclasse::Log.info("Generate diff_view")
+            ##diff_view = DiffView.new
+            ##diff_view.generate_html(uai, diff, @date_alim, @is_complet)
+    
             Laclasse::Log.info("Synchronize DB")
-            sync = DbSync.new
-            sync.sync_db(diff)
+            ##sync = DbSync.new
+            ##sync.sync_db(diff)
           end
-        rescue => e
-          #puts "Erreur lors de l'alimentation de l'établissement #{uai}"
-          puts "#{e.message}"
-          puts "#{e.backtrace}"
-        end
+        else
+           raise "Etablissement n'existe pas" 
+        end 
+      rescue => e
+        Laclasse::Log.error("#{e.message}")
+        #puts "#{e.backtrace}"
       end
     end
-
-    # (v2) parse categorie (etablissements, eleves, ...)
-    def parse_categorie(categorie)
-      if !@etb_file_map[categorie].nil?
-        start = Time.now
-        Laclasse::Log.info("Start parsing categorie #{categorie}")
-        
-        # i think we need to develop a generic parser XML, CSV, Oracle
-        # parser = Parser.new
-        # for the moment we use xml parser
-        
-        Laclasse::Log.info("#{categorie} contains #{@etb_file_map[categorie].length} file")
-        parser = ParserXmlMenesr.new
-        cur_etb_data = parser.parse_categorie(categorie, @etb_file_map[categorie])
-        fin = Time.now 
-        Laclasse::Log.info("parsing categorie #{categorie} took #{fin-start} seconds")
-      else 
-        Laclasse::Log.error("Categorie #{categorie} does not exist")
-      end
-      return cur_etb_data
-    end
-    #-------------------------------------------------------------------#  
+    
     # function to calculate the execution time
     def time(label)
       t1 = Time.now
       #yield.tap{ puts "%s: %.1fs" % [ label, Time.now-t1 ] }
       yield.tap{ Laclasse::Log.info("%s: %.1fs" % [ label, Time.now-t1 ]) }
     end
+    #--------------------------------------------------------------------#
     
     def is_complet?
       @is_complet
