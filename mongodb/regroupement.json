@@ -1,0 +1,73 @@
+{ "_id" : { "$oid" : "512b8f41d6ccd24968002319" }, "etablissement" : "0693890D", "libelle_aaf" : "3EME1", "type_regroupement_id" : "CLS", "libelle" : "3EME1", "niveau_id" : "3EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd2496800231b" }, "etablissement" : "0693890D", "libelle_aaf" : "3EME4", "type_regroupement_id" : "CLS", "libelle" : "3EME4", "niveau_id" : "3EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd2496800231d" }, "etablissement" : "0693890D", "libelle_aaf" : "3EME5", "type_regroupement_id" : "CLS", "libelle" : "3EME5", "niveau_id" : "3EME A DEUX LANGUES VIVANTES 1" }
+{ "_id" : { "$oid" : "512b8f41d6ccd2496800231f" }, "etablissement" : "0693890D", "libelle_aaf" : "4EME1", "type_regroupement_id" : "CLS", "libelle" : "4EME1", "niveau_id" : "4EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd24968002321" }, "etablissement" : "0693890D", "libelle_aaf" : "4EME2", "type_regroupement_id" : "CLS", "libelle" : "4EME2", "niveau_id" : "4EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd24968002323" }, "etablissement" : "0693890D", "libelle_aaf" : "4EME3", "type_regroupement_id" : "CLS", "libelle" : "4EME3", "niveau_id" : "4EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd24968002325" }, "etablissement" : "0693890D", "libelle_aaf" : "4EME5", "type_regroupement_id" : "CLS", "libelle" : "4EME5", "niveau_id" : "4EME A DEUX LANGUES VIVANTES 1" }
+{ "_id" : { "$oid" : "512b8f41d6ccd24968002327" }, "etablissement" : "0693890D", "libelle_aaf" : "4EME6", "type_regroupement_id" : "CLS", "libelle" : "4EME6", "niveau_id" : "4EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd24968002329" }, "etablissement" : "0693890D", "libelle_aaf" : "4EME7", "type_regroupement_id" : "CLS", "libelle" : "4EME7", "niveau_id" : "4EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd2496800232b" }, "etablissement" : "0693890D", "libelle_aaf" : "5EME3", "type_regroupement_id" : "CLS", "libelle" : "5EME3", "niveau_id" : "5EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd2496800232d" }, "etablissement" : "0693890D", "libelle_aaf" : "5EME4", "type_regroupement_id" : "CLS", "libelle" : "5EME4", "niveau_id" : "5EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd2496800232f" }, "etablissement" : "0693890D", "libelle_aaf" : "5EME5", "type_regroupement_id" : "CLS", "libelle" : "5EME5", "niveau_id" : "5EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd24968002331" }, "etablissement" : "0693890D", "libelle_aaf" : "6EME3", "type_regroupement_id" : "CLS", "libelle" : "6EME3", "niveau_id" : "6EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd24968002333" }, "etablissement" : "0693890D", "libelle_aaf" : "6EME4", "type_regroupement_id" : "CLS", "libelle" : "6EME4", "niveau_id" : "6EME BILANGUE" }
+{ "_id" : { "$oid" : "512b8f41d6ccd24968002335" }, "etablissement" : "0693890D", "libelle_aaf" : "6EME5", "type_regroupement_id" : "CLS", "libelle" : "6EME5", "niveau_id" : "6EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd24968002337" }, "etablissement" : "0693890D", "libelle_aaf" : "6EME6", "type_regroupement_id" : "CLS", "libelle" : "6EME6", "niveau_id" : "6EME BILANGUE" }
+{ "_id" : { "$oid" : "512b8f41d6ccd2496800233d" }, "etablissement" : "0693890D", "libelle_aaf" : "3EME2", "type_regroupement_id" : "CLS", "libelle" : "3EME2", "niveau_id" : "3EME A DEUX LANGUES VIVANTES 1" }
+{ "_id" : { "$oid" : "512b8f41d6ccd2496800233f" }, "etablissement" : "0693890D", "libelle_aaf" : "6E4 ANGL", "type_regroupement_id" : "GRP", "libelle" : "6E4 ANGL" }
+{ "_id" : { "$oid" : "512b8f41d6ccd24968002357" }, "etablissement" : "0693890D", "libelle_aaf" : "5EME1", "type_regroupement_id" : "CLS", "libelle" : "5EME1", "niveau_id" : "5EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd2496800235c" }, "etablissement" : "0693890D", "libelle_aaf" : "6EME2", "type_regroupement_id" : "CLS", "libelle" : "6EME2", "niveau_id" : "6EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd24968002365" }, "etablissement" : "0693890D", "libelle_aaf" : "5EME2", "type_regroupement_id" : "CLS", "libelle" : "5EME2", "niveau_id" : "5EME SECTION SPORTIVE" }
+{ "_id" : { "$oid" : "512b8f41d6ccd2496800236e" }, "etablissement" : "0693890D", "libelle_aaf" : "6EME1", "type_regroupement_id" : "CLS", "libelle" : "6EME1", "niveau_id" : "6EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd24968002371" }, "etablissement" : "0693890D", "libelle_aaf" : "6E3-4AGL", "type_regroupement_id" : "GRP", "libelle" : "6E3-4AGL" }
+{ "_id" : { "$oid" : "512b8f41d6ccd24968002378" }, "etablissement" : "0693890D", "libelle_aaf" : "3EME3", "type_regroupement_id" : "CLS", "libelle" : "3EME3", "niveau_id" : "3EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd2496800237a" }, "etablissement" : "0693890D", "libelle_aaf" : "3EME6", "type_regroupement_id" : "CLS", "libelle" : "3EME6", "niveau_id" : "3EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd2496800237c" }, "etablissement" : "0693890D", "libelle_aaf" : "4EME4", "type_regroupement_id" : "CLS", "libelle" : "4EME4", "niveau_id" : "4EME" }
+{ "_id" : { "$oid" : "512b8f41d6ccd2496800238a" }, "etablissement" : "0693890D", "libelle_aaf" : "4ESPORT", "type_regroupement_id" : "GRP", "libelle" : "4ESPORT" }
+{ "_id" : { "$oid" : "512b8f41d6ccd249680023e1" }, "etablissement" : "0693890D", "libelle_aaf" : "3LAT", "type_regroupement_id" : "GRP", "libelle" : "3LAT" }
+{ "_id" : { "$oid" : "512b8f41d6ccd249680023eb" }, "etablissement" : "0693890D", "libelle_aaf" : "5G1", "type_regroupement_id" : "GRP", "libelle" : "5G1" }
+{ "_id" : { "$oid" : "512b8f41d6ccd249680023ed" }, "etablissement" : "0693890D", "libelle_aaf" : "5G5", "type_regroupement_id" : "GRP", "libelle" : "5G5" }
+{ "_id" : { "$oid" : "512b8f41d6ccd249680023ef" }, "etablissement" : "0693890D", "libelle_aaf" : "6G3", "type_regroupement_id" : "GRP", "libelle" : "6G3" }
+{ "_id" : { "$oid" : "512b8f41d6ccd249680023f1" }, "etablissement" : "0693890D", "libelle_aaf" : "6G4", "type_regroupement_id" : "GRP", "libelle" : "6G4" }
+{ "_id" : { "$oid" : "512b8f41d6ccd249680023f3" }, "etablissement" : "0693890D", "libelle_aaf" : "6G5", "type_regroupement_id" : "GRP", "libelle" : "6G5" }
+{ "_id" : { "$oid" : "512b8f41d6ccd249680023f5" }, "etablissement" : "0693890D", "libelle_aaf" : "6G6", "type_regroupement_id" : "GRP", "libelle" : "6G6" }
+{ "_id" : { "$oid" : "512b8f41d6ccd24968002404" }, "etablissement" : "0693890D", "libelle_aaf" : "3EME ALT", "type_regroupement_id" : "GRP", "libelle" : "3EME ALT" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002416" }, "etablissement" : "0693890D", "libelle_aaf" : "3AGLEURO", "type_regroupement_id" : "GRP", "libelle" : "3AGLEURO" }
+{ "_id" : { "$oid" : "512b8f42d6ccd2496800241c" }, "etablissement" : "0693890D", "libelle_aaf" : "3ALL", "type_regroupement_id" : "GRP", "libelle" : "3ALL" }
+{ "_id" : { "$oid" : "512b8f42d6ccd2496800241f" }, "etablissement" : "0693890D", "libelle_aaf" : "3ALLEURO", "type_regroupement_id" : "GRP", "libelle" : "3ALLEURO" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002422" }, "etablissement" : "0693890D", "libelle_aaf" : "4ALL", "type_regroupement_id" : "GRP", "libelle" : "4ALL" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002425" }, "etablissement" : "0693890D", "libelle_aaf" : "4ALLEURO", "type_regroupement_id" : "GRP", "libelle" : "4ALLEURO" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002428" }, "etablissement" : "0693890D", "libelle_aaf" : "5ALL", "type_regroupement_id" : "GRP", "libelle" : "5ALL" }
+{ "_id" : { "$oid" : "512b8f42d6ccd2496800242b" }, "etablissement" : "0693890D", "libelle_aaf" : "6ALL", "type_regroupement_id" : "GRP", "libelle" : "6ALL" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002436" }, "etablissement" : "0693890D", "libelle_aaf" : "6ESPORT", "type_regroupement_id" : "GRP", "libelle" : "6ESPORT" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002467" }, "etablissement" : "0693890D", "libelle_aaf" : "3G2", "type_regroupement_id" : "GRP", "libelle" : "3G2" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002469" }, "etablissement" : "0693890D", "libelle_aaf" : "3G4", "type_regroupement_id" : "GRP", "libelle" : "3G4" }
+{ "_id" : { "$oid" : "512b8f42d6ccd2496800246b" }, "etablissement" : "0693890D", "libelle_aaf" : "3G6", "type_regroupement_id" : "GRP", "libelle" : "3G6" }
+{ "_id" : { "$oid" : "512b8f42d6ccd2496800246d" }, "etablissement" : "0693890D", "libelle_aaf" : "3G8", "type_regroupement_id" : "GRP", "libelle" : "3G8" }
+{ "_id" : { "$oid" : "512b8f42d6ccd2496800246f" }, "etablissement" : "0693890D", "libelle_aaf" : "5G3", "type_regroupement_id" : "GRP", "libelle" : "5G3" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002472" }, "etablissement" : "0693890D", "libelle_aaf" : "5G6", "type_regroupement_id" : "GRP", "libelle" : "5G6" }
+{ "_id" : { "$oid" : "512b8f42d6ccd2496800247e" }, "etablissement" : "0693890D", "libelle_aaf" : "3G1", "type_regroupement_id" : "GRP", "libelle" : "3G1" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002480" }, "etablissement" : "0693890D", "libelle_aaf" : "3G3", "type_regroupement_id" : "GRP", "libelle" : "3G3" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002482" }, "etablissement" : "0693890D", "libelle_aaf" : "3G5", "type_regroupement_id" : "GRP", "libelle" : "3G5" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002484" }, "etablissement" : "0693890D", "libelle_aaf" : "3G7", "type_regroupement_id" : "GRP", "libelle" : "3G7" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002487" }, "etablissement" : "0693890D", "libelle_aaf" : "5G2", "type_regroupement_id" : "GRP", "libelle" : "5G2" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002489" }, "etablissement" : "0693890D", "libelle_aaf" : "5G4", "type_regroupement_id" : "GRP", "libelle" : "5G4" }
+{ "_id" : { "$oid" : "512b8f42d6ccd2496800248b" }, "etablissement" : "0693890D", "libelle_aaf" : "5G7", "type_regroupement_id" : "GRP", "libelle" : "5G7" }
+{ "_id" : { "$oid" : "512b8f42d6ccd2496800248d" }, "etablissement" : "0693890D", "libelle_aaf" : "6G1", "type_regroupement_id" : "GRP", "libelle" : "6G1" }
+{ "_id" : { "$oid" : "512b8f42d6ccd2496800248f" }, "etablissement" : "0693890D", "libelle_aaf" : "6G2", "type_regroupement_id" : "GRP", "libelle" : "6G2" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002491" }, "etablissement" : "0693890D", "libelle_aaf" : "6G7", "type_regroupement_id" : "GRP", "libelle" : "6G7" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002493" }, "etablissement" : "0693890D", "libelle_aaf" : "6G8", "type_regroupement_id" : "GRP", "libelle" : "6G8" }
+{ "_id" : { "$oid" : "512b8f42d6ccd249680024b7" }, "etablissement" : "0693890D", "libelle_aaf" : "3DP3", "type_regroupement_id" : "GRP", "libelle" : "3DP3" }
+{ "_id" : { "$oid" : "512b8f42d6ccd249680024d3" }, "etablissement" : "0693890D", "libelle_aaf" : "4AGLEURO", "type_regroupement_id" : "GRP", "libelle" : "4AGLEURO" }
+{ "_id" : { "$oid" : "512b8f42d6ccd249680024e1" }, "etablissement" : "0693890D", "libelle_aaf" : "3E1-2ESP", "type_regroupement_id" : "GRP", "libelle" : "3E1-2ESP" }
+{ "_id" : { "$oid" : "512b8f42d6ccd249680024e4" }, "etablissement" : "0693890D", "libelle_aaf" : "3E5-6ESP", "type_regroupement_id" : "GRP", "libelle" : "3E5-6ESP" }
+{ "_id" : { "$oid" : "512b8f42d6ccd249680024e7" }, "etablissement" : "0693890D", "libelle_aaf" : "4E4-5ESP", "type_regroupement_id" : "GRP", "libelle" : "4E4-5ESP" }
+{ "_id" : { "$oid" : "512b8f42d6ccd2496800250d" }, "etablissement" : "0693890D", "libelle_aaf" : "3ITAL", "type_regroupement_id" : "GRP", "libelle" : "3ITAL" }
+{ "_id" : { "$oid" : "512b8f42d6ccd2496800250f" }, "etablissement" : "0693890D", "libelle_aaf" : "4ITAL", "type_regroupement_id" : "GRP", "libelle" : "4ITAL" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002511" }, "etablissement" : "0693890D", "libelle_aaf" : "5ITAL", "type_regroupement_id" : "GRP", "libelle" : "5ITAL" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002513" }, "etablissement" : "0693890D", "libelle_aaf" : "6ITAL", "type_regroupement_id" : "GRP", "libelle" : "6ITAL" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002532" }, "etablissement" : "0693890D", "libelle_aaf" : "4LAT", "type_regroupement_id" : "GRP", "libelle" : "4LAT" }
+{ "_id" : { "$oid" : "512b8f42d6ccd24968002535" }, "etablissement" : "0693890D", "libelle_aaf" : "5LAT", "type_regroupement_id" : "GRP", "libelle" : "5LAT" }
+{ "_id" : { "$oid" : "512b8f43d6ccd24968002576" }, "etablissement" : "0693890D", "libelle_aaf" : "4E6-7ESP", "type_regroupement_id" : "GRP", "libelle" : "4E6-7ESP" }
+{ "_id" : { "$oid" : "512b8f55d6ccd249680035d0" }, "etablissement" : "0693890D", "libelle_aaf" : "6SPORT", "type_regroupement_id" : "GRP", "libelle" : "6SPORT" }

@@ -48,3 +48,6 @@ spec/lib/alimentation/parser_xml_menesr.rb
 lib/alimentation/diff
 tmp/
 db/data
+
+# mongo data example
+mongodb/

@@ -58,6 +58,8 @@ def bootstrap_annuaire()
     end
   end
 
+  #-----------------------------------------------------#
+  # insert default data
   puts "INSERT DEFAULT DATA"
   #Données temporaires
   Niveau.create(:libelle => "6EME")
@@ -70,6 +72,8 @@ def bootstrap_annuaire()
   TypeTelephone.create(:id => TYP_TEL_TRAV, :libelle => 'Travail')
   TypeTelephone.create(:id => TYP_TEL_AUTR, :libelle => 'Autre')
 
+  #--------------------------------------------------------#
+  # Todo: à modifier car on des nouveaux données
   TypeRelationEleve.create(:id => TYP_REL_PAR, :libelle => 'Parent')
   # Si ENTEleveParents != ENTEleveAutoriteParentale ca veut dire qu'on a des parents sans autorité parentale
   TypeRelationEleve.create(:id => TYP_REL_NPAR, :libelle => 'Parent sans autorité parentale')
@@ -152,22 +156,21 @@ def bootstrap_annuaire()
 
   # service /preference ?
 
-
-  #Profils utilisateurs
+  #--------------------------------------------------------#
+  # Profils utilisateurs
+  # TODO: à modifier aussi
   # Les codes nationaux sont pris de la FAQ de l'annuaire ENT du SDET
   # http://eduscol.education.fr/cid57076/l-annuaire-ent-second-degre-et-son-alimentation-automatique.html
-  Profil.create(:id => 'ELV', :libelle => 'Elève', :code_national => 'National_1', :role_id => ROL_ELV_ETB)
-  Profil.create(:id => 'ADM', :libelle => 'Administrateur Etablissement', :code_national => 'National_3', :role_id => ROL_ADM_ETB)
-  Profil.create(:id => 'PAR', :libelle => 'Parent', :code_national => 'National_2', :role_id => ROL_PAR_ETB)
-  Profil.create(:id => 'DIR', :libelle => 'Principal', :code_men => 'DIR', :code_national => 'National_4', :role_id => ROL_DIR_ETB)
-  Profil.create(:id => 'ENS', :libelle => 'Professeur', :code_men => 'ENS', :code_national => 'National_3', :role_id => ROL_PROF_ETB)
-  Profil.create(:id => 'ADF', :libelle => 'Personnels administratifs', :code_men => 'ADF', :code_national => 'National_6', :role_id => ROL_BUR_ETB)
-  Profil.create(:id => 'ORI', :libelle => "Conseiller(ère) d'orientation", :code_men => 'ORI', :code_national => 'National_5', :role_id => ROL_BUR_ETB)
-  Profil.create(:id => 'DOC', :libelle => 'Documentaliste', :code_men => 'DOC', :code_national => 'National_6', :role_id => ROL_PROF_ETB)
-  Profil.create(:id => 'EDU', :libelle => "Conseiller(ère) d'éducation", :code_men => 'EDU', :code_national => 'National_5', :role_id => ROL_CPE_ETB)
-  Profil.create(:id => 'OUV', :libelle => "Personnels ouvriers et de service", :code_men => 'OUV', :code_national => 'National_6', :role_id => ROL_BUR_ETB)
-  Profil.create(:id => 'MDS', :libelle => "Personnels médico-sociaux", :code_men => 'MDS', :code_national => 'National_6', :role_id => ROL_BUR_ETB)
-  Profil.create(:id => 'AED', :libelle => "Assistant(e) d'éducation", :code_men => 'AED', :code_national => 'National_5', :role_id => ROL_CPE_ETB)
+  Profil.create(:id => 'ELV', :libelle => 'Elève', :code_national => 'National_ELV', :role_id => ROL_ELV_ETB)
+  Profil.create(:id => 'ETA', :libelle => 'Personnel adminstartif, technique ou d\'encadrement', :code_national => 'National_ETA', :role_id => ROL_ADM_ETB)
+  Profil.create(:id => 'TUT', :libelle => "Responsable d'un élève", :code_national => 'National_TUT', :role_id => ROL_PAR_ETB) #role à revoir
+  Profil.create(:id => 'DIR', :libelle => "Personel de direction de l'etablissement", :code_national => 'National_DIR', :role_id => ROL_DIR_ETB)
+  Profil.create(:id => 'ENS', :libelle => 'Enseignant', :code_men => 'ENS', :code_national => 'National_ENS', :role_id => ROL_PROF_ETB)
+  Profil.create(:id => 'EVS', :libelle => 'Personnel de vie scolaire', :code_national => 'National_EVS', :role_id => ROL_BUR_ETB)
+  Profil.create(:id => 'ACA', :libelle => "Personnel de rectorat, DRAF, inspection", :code_national => 'National_ACA', :role_id => ROL_BUR_ETB)
+  Profil.create(:id => 'DOC', :libelle => 'Documentaliste', :code_national => 'National_DOC', :role_id => ROL_PROF_ETB)
+  Profil.create(:id => 'COL', :libelle => "Personnel de collectivité territoriale",  :code_national => 'National_COL', :role_id => ROL_CPE_ETB)
+  #--------------------------------------------------------#
 
   #Tout d'abord on créer des applications
   #Application blog

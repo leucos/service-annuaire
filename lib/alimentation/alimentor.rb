@@ -24,6 +24,12 @@ module Alimentation
       @parser = ParserXmlMongo.new
       @archive_name = archive_name
       @is_complet = File.basename(@archive_name).index(@@complet_name) != nil
+      @is_delta = File.basename(@archive_name).index(@@delta_name) != nil
+      puts @is_complet
+      #if !is_complet? || !is_delta?
+        #raise "Archive is not Delta nor Complete"
+      #end
+      
       #key : code UIA de l'établissement, value: Array de fichiers d'alimentation de l'établissement
       @etb_file_map = Hash.new
       name_split = File.basename(@archive_name).split(".")
@@ -181,6 +187,10 @@ module Alimentation
     
     def is_complet?
       @is_complet
+    end
+    
+    def is_delta?
+      @is_delta
     end
 
     def get_file_date(filename)

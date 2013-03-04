@@ -22,6 +22,10 @@ run UserApi
 run AuthApi 
 run EtabApi
 
+#map "/alimentation" do
+  run AlimentationApi  
+#end
+
 map "/sso" do
   run SsoApi
 end

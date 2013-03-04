@@ -6,12 +6,15 @@
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 # COLUMN_NAME                   | DATA_TYPE           | NULL?    | KEY      | DEFAULT    | EXTRA
 # ------------------------------+---------------------+----------+----------+------------+--------------------
-# id                            | int(11)             | false    | PRI      |            | 
+# id                            | int                 | false    | PRI      |            | 
 # libelle                       | varchar(45)         | true     |          |            | 
-# description                   | varchar(1024)       | true     |          |            | 
+# description                   | varchar(100)        | true     |          |            | 
 # code_men                      | varchar(45)         | true     |          |            | 
-# profil_id                     | char(8)             | false    | MUL      |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
+
+# profil_id deleted in the new version
+# profil_id                     | char(8)             | false    | MUL      |            | 
+
 #
 class Fonction < Sequel::Model(:fonction)
 
@@ -20,7 +23,7 @@ class Fonction < Sequel::Model(:fonction)
   plugin :json_serializer
 
   # Referential integrity
-  many_to_one :profil
+  one_to_many :profil_user_has_fonction
 
   # Not nullable cols
   def validate

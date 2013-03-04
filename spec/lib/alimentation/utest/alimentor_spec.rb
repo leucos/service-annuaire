@@ -30,6 +30,11 @@ describe Alimentation::Alimentor do
     @al.prepare_alimentation
   end
   
+  it "should raise an error when archive is not delta or complete" do 
+    expect{
+       alim = Alimentation::Alimentor.new("test69-ENTTSSERVICES.20130218.tgz")
+    }.to raise_error(RuntimeError)
+  end
   it "should accept a good datasource" do
     @al.archive_name.should == Data_SOURCE
     @al.date_alim.should ==  Date.parse('20130218')
