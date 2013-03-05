@@ -161,15 +161,15 @@ def bootstrap_annuaire()
   # TODO: à modifier aussi
   # Les codes nationaux sont pris de la FAQ de l'annuaire ENT du SDET
   # http://eduscol.education.fr/cid57076/l-annuaire-ent-second-degre-et-son-alimentation-automatique.html
-  Profil.create(:id => 'ELV', :libelle => 'Elève', :code_national => 'National_ELV', :role_id => ROL_ELV_ETB)
-  Profil.create(:id => 'ETA', :libelle => 'Personnel adminstartif, technique ou d\'encadrement', :code_national => 'National_ETA', :role_id => ROL_ADM_ETB)
-  Profil.create(:id => 'TUT', :libelle => "Responsable d'un élève", :code_national => 'National_TUT', :role_id => ROL_PAR_ETB) #role à revoir
-  Profil.create(:id => 'DIR', :libelle => "Personel de direction de l'etablissement", :code_national => 'National_DIR', :role_id => ROL_DIR_ETB)
-  Profil.create(:id => 'ENS', :libelle => 'Enseignant', :code_men => 'ENS', :code_national => 'National_ENS', :role_id => ROL_PROF_ETB)
-  Profil.create(:id => 'EVS', :libelle => 'Personnel de vie scolaire', :code_national => 'National_EVS', :role_id => ROL_BUR_ETB)
-  Profil.create(:id => 'ACA', :libelle => "Personnel de rectorat, DRAF, inspection", :code_national => 'National_ACA', :role_id => ROL_BUR_ETB)
-  Profil.create(:id => 'DOC', :libelle => 'Documentaliste', :code_national => 'National_DOC', :role_id => ROL_PROF_ETB)
-  Profil.create(:id => 'COL', :libelle => "Personnel de collectivité territoriale",  :code_national => 'National_COL', :role_id => ROL_CPE_ETB)
+  Profil.create(:id => 'ELV', :description => 'Elève', :code_national => 'National_ELV', :role_id => ROL_ELV_ETB)
+  Profil.create(:id => 'ETA', :description => 'Personnel adminstartif, technique ou d\'encadrement', :code_national => 'National_ETA', :role_id => ROL_ADM_ETB)
+  Profil.create(:id => 'TUT', :description => "Responsable d'un élève", :code_national => 'National_TUT', :role_id => ROL_PAR_ETB) #role à revoir
+  Profil.create(:id => 'DIR', :description => "Personel de direction de l'etablissement", :code_national => 'National_DIR', :role_id => ROL_DIR_ETB)
+  Profil.create(:id => 'ENS', :description => 'Enseignant', :code_men => 'ENS', :code_national => 'National_ENS', :role_id => ROL_PROF_ETB)
+  Profil.create(:id => 'EVS', :description => 'Personnel de vie scolaire', :code_national => 'National_EVS', :role_id => ROL_BUR_ETB)
+  Profil.create(:id => 'ACA', :description => "Personnel de rectorat, DRAF, inspection", :code_national => 'National_ACA', :role_id => ROL_BUR_ETB)
+  Profil.create(:id => 'DOC', :description => 'Documentaliste', :code_national => 'National_DOC', :role_id => ROL_PROF_ETB)
+  Profil.create(:id => 'COL', :description => "Personnel de collectivité territoriale",  :code_national => 'National_COL', :role_id => ROL_CPE_ETB)
   #--------------------------------------------------------#
 
   #Tout d'abord on créer des applications

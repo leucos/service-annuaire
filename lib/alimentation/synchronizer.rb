@@ -13,6 +13,7 @@ module Alimentation
       @profil = profil
       @type_data = type_data
       @data = data  #type json
+      @db =DataBase.connect({:server => "localhost", :db => "mydb"})
     end
     
     def sync()
@@ -42,12 +43,12 @@ module Alimentation
           modify_or_create_etablissement(data)
         when "COMPTES"
           puts "Compte: profile #{@profil}"
-          modify_or_create_user(profil, data)
+          #modify_or_create_user(profil, data)
         when "CLASSES"
-          modify_or_create_regroupement('CLS', data)
+          #modify_or_create_regroupement('CLS', data)
           puts "Class"
         when "GROUPES"
-          modify_or_create_regroupement('GRP', data)
+          #modify_or_create_regroupement('GRP', data)
           puts "groupes"
         when "RATTACHEMENTS"
           puts "Rattachement: #{@profil}"

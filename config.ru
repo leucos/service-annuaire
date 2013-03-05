@@ -13,11 +13,11 @@
 require ::File.expand_path('../app', __FILE__)
 
 
-
-#use Rack::Static, :urls => ["/canjs"], :root => File.expand_path('../public', __FILE__)
-#use Rack::Static, :urls => ["/backbone"], :root => File.expand_path('../public', __FILE__)
+# for the moment angular js is accesed statically
 use Rack::Static, :urls => ["/app"], :root => File.expand_path('../public/angularJS', __FILE__)
 
+
+# run apis, these apis are routed using the :resource element that englobe the apis
 run UserApi
 run AuthApi 
 run EtabApi
@@ -30,6 +30,7 @@ map "/sso" do
   run SsoApi
 end
 
+# Root maps to the documentation of the other apis
 map "/" do
 	run Root
 end

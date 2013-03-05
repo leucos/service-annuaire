@@ -1,18 +1,18 @@
 #coding: utf-8
 #
-# model for 'enseigne_regroupement' table
+# model for 'enseigne_dans_regroupement' table
 # generated 2012-05-10 11:52:35 +0200 by model_generator.rb
 #
-# ------------------------------+---------------------+----------+----------+------------+--------------------
-# COLUMN_NAME                   | DATA_TYPE           | NULL? | KEY | DEFAULT | EXTRA
-# ------------------------------+---------------------+----------+----------+------------+--------------------
-# user_id                       | char(8)             | false    | PRI      |            | 
-# regroupement_id               | int(11)             | false    | PRI      |            | 
-# matiere_enseignee_id          | int(11)             | false    | PRI      |            | 
-# prof_principal                | tinyint(1)          | true     |          | 0          | 
+# ------------------------------+---------------------+----------+--------------+------------+--------------------
+# COLUMN_NAME                   | DATA_TYPE           | NULL?    | KEY          | DEFAULT    | EXTRA
+# ------------------------------+---------------------+----------+--------------+------------+--------------------
+# user_id                       | char(8)             | false    | Foreign      |            | 
+# regroupement_id               | int(11)             | false    | PRI          |            | 
+# matiere_enseignee_id          | varchar(11)         | false    | PRI          |            | 
+# prof_principal                | tinyint(1)          | true     |              | 0          | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
-class EnseigneRegroupement < Sequel::Model(:enseigne_regroupement)
+class EnseigneRegroupement < Sequel::Model(:enseigne_dans_regroupement)
 
  # Plugins
  plugin :validation_helpers
