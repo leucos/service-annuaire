@@ -733,17 +733,38 @@ COMMIT;
 -- -----------------------------------------------------
 -- Data for table `annuaire`.`type_relation_eleve`
 -- -----------------------------------------------------
--- START TRANSACTION;
--- USE `annuaire`;
--- INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (1, 'Père', NULL);
--- INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (2, 'Mère', NULL);
--- INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (3, 'Tuteur', NULL);
--- INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (4, 'Autre Fam.', NULL);
--- INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (5, 'Ddass', NULL);
--- INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (6, 'Autre cas', NULL);
-
--- COMMIT;
-
+START TRANSACTION;
+USE `annuaire`;
+INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (1, 'Père', 'PERE');
+INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (2, 'Mère', 'Mère');
+INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (3, 'Tuteur', 'Tuteur');
+INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (4, 'Autre membre de la famille','A_MMBR');
+INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (5, 'Ddass', 'DDASS');
+INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (6, 'Autre cas', 'A_CAS');
+INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (7, 'Eleve lui meme', 'ELEVE');
+COMMIT;
+  
+-- -----------------------------------------------------
+-- Data for table `annuaire`.`type_etablissement`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `annuaire`;
+INSERT INTO `annuaire`.`type_etablissement` ('nom', 'type_contrat', 'libelle') VALUES ('Service du département', 'PU', NULL);
+INSERT INTO `annuaire`.`type_etablissement` ('nom', 'type_contrat', 'libelle') VALUES ('Ecole', 'PR', 'Ecole privée');    
+INSERT INTO `annuaire`.`type_etablissement` ('nom', 'type_contrat', 'libelle') VALUES ('Ecole', 'PU', 'Ecole publique');    
+INSERT INTO `annuaire`.`type_etablissement` ('nom', 'type_contrat', 'libelle') VALUES ('Collège', 'PR',  'Collège privé');    
+INSERT INTO `annuaire`.`type_etablissement` ('nom', 'type_contrat', 'libelle') VALUES ('Collège', 'PU',  'Collège public');
+INSERT INTO `annuaire`.`type_etablissement` ('nom', 'type_contrat', 'libelle') VALUES ('Lycée', 'PR',  'Lycée privé');
+INSERT INTO `annuaire`.`type_etablissement` ('nom', 'type_contrat', 'libelle') VALUES ('Lycée', 'PU',  'Lycée public');
+INSERT INTO `annuaire`.`type_etablissement` ('nom', 'type_contrat', 'libelle') VALUES ('Bâtiment', 'PU',  'Bâtiment public');
+INSERT INTO `annuaire`.`type_etablissement` ('nom', 'type_contrat', 'libelle') VALUES ('Lycée professionnel', 'PR',  'Lycée professionnel privé');
+INSERT INTO `annuaire`.`type_etablissement` ('nom', 'type_contrat', 'libelle') VALUES ('Maison Familiale Rurale', 'PU', 'Maison Familiale Rurale');
+INSERT INTO `annuaire`.`type_etablissement` ('nom', 'type_contrat', 'libelle') VALUES ('Campus', 'PU', 'Campus public');
+INSERT INTO `annuaire`.`type_etablissement` ('nom', 'type_contrat', 'libelle') VALUES ('CRDP', 'PU', 'Centre Régional de Documentation Pédagogique');
+INSERT INTO `annuaire`.`type_etablissement` ('nom', 'type_contrat', 'libelle') VALUES ('CG Jeunes', 'PU', 'CG Jeunes');
+INSERT INTO `annuaire`.`type_etablissement` ('nom', 'type_contrat', 'libelle') VALUES ( 'Cité scolaire', 'PR', 'Cité scolaire privée');
+INSERT INTO `annuaire`.`type_etablissement` ('nom', 'type_contrat', 'libelle') VALUES ( 'Cité scolaire', 'PU', 'Cité scolaire publique');
+COMMIT;
 -- -----------------------------------------------------
 -- Data for table `annuaire`.`type_telephone`
 -- -----------------------------------------------------

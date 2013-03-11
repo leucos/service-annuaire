@@ -61,13 +61,9 @@ def bootstrap_annuaire()
   end
 
   #-----------------------------------------------------#
-  # insert default data
+  # insert default data 
   puts "INSERT STATIC DATA"
-  # TODO: add code mef
-  Niveau.create(:id => "6ème", :libelle => "6EME")
-  Niveau.create(:id => "5ème", :libelle => "5EME")
-  Niveau.create(:id => "4ème", :libelle => "4ème")
-  Niveau.create(:id => "3ème", :libelle => "3ème")
+  # Niveau alimenter par mef educ nat 
 
   #----------------------------------------------------------------------#
   # type Etablissement

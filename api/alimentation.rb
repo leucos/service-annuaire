@@ -178,7 +178,7 @@ class AlimentationApi < Grape::API
     end
 
     #-------------------------------------------------#
-    desc "Syncronize Mef education national"
+    desc "Synchronize Mef education national"
     get "/sync_mef" do 
       service = "mef"
       uai = "000000" # par defaut
@@ -196,7 +196,44 @@ class AlimentationApi < Grape::API
       end 
     end
 
-    #----------------------------------------------------# 
-    
+    #----------------------------------------------------#
+
+    desc "Synchronize Matieres education national"
+    get "/sync_mat" do 
+      service = "matieres"
+      uai = "000000" # par defaut
+      begin
+        res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{service}"))
+        result = JSON.parse(res.body)
+        if result.count > 0 
+          Alimentation::Synchronizer.sync_matieres(result)
+        else
+            raise("no Matieres data were received ") 
+        end
+        "Matieres syncronized successfully"    
+      rescue => e 
+        error!("Bad Request: #{e.message}", 400) 
+      end 
+    end 
+
+    #-----------------------------------------------------# 
+    desc "Synchronize fonctions eduction national"
+    get "/sync_fonc" do 
+      service = "fonctions"
+      uai = "000000" # par defaut
+      begin
+        res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{service}&rne=#{uai}"))
+        result = JSON.parse(res.body)
+        if result.count > 0 
+          Alimentation::Synchronizer.sync_fonction(result)
+        else
+            raise("no Fonctions data were received ") 
+        end
+        "Fonctions syncronized successfully"    
+      rescue => e 
+        error!("Bad Request: #{e.message}", 400) 
+      end   
+    end 
+    #-----------------------------------------------------# 
   end # resource  
 end 

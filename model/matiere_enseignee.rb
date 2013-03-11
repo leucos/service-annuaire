@@ -6,11 +6,9 @@
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 # COLUMN_NAME                   | DATA_TYPE           | NULL?    | KEY      | DEFAULT    | EXTRA
 # ------------------------------+---------------------+----------+----------+------------+--------------------
-# id                            | int(11)             | false    | PRI      |            | 
+# id                            | varchar(10)         | false    | PRI      |            | 
 # libelle_court                 | varchar(45)         | true     |          |            | 
 # libelle_long                  | varchar(255)        | true     |          |            | 
-# libelle_edition               | varchar(255)        | true     |          |            | 
-# famille_matiere_id            | int(11)             | false    | MUL      |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
 class MatiereEnseignee < Sequel::Model(:matiere_enseignee)
@@ -22,12 +20,10 @@ class MatiereEnseignee < Sequel::Model(:matiere_enseignee)
   unrestrict_primary_key()
 
   # Referential integrity
-  many_to_one :famille_matiere
-  one_to_many :enseigne_regroupement
+  one_to_many :enseigne_dans_regroupement
 
   # Not nullable cols
   def validate
     super
-    validates_presence [:famille_matiere_id]
   end
 end

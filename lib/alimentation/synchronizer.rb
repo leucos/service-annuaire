@@ -19,31 +19,82 @@ module Alimentation
       #@db =DataBase.connect({:server => "localhost", :db => "mydb"})
     end
     
+    #-----------------------------------------------------------#
     # data is validated before because of JSON.parse method
-    # sync niveau
+    # sync niveau ou mef educ nat
     def self.sync_mef(data) 
-      puts "syncronize mef educ national"
+      puts "synchronize mef educ nationale"
       data.each do |mef_educ_nat|
         begin 
           record = Niveau[:ent_mef_jointure => mef_educ_nat["ENTMefJointure"]]
           if record.nil? # not found => add record 
             Niveau.insert(:ent_mef_jointure => mef_educ_nat["ENTMefJointure"], :mef_libelle => mef_educ_nat["ENTLibelleMef"],
-              :ent_mef_rattach => mef_educ_nat["ENTMEFRattach"], :mef_mef_stat => mef_educ_nat["ENTMEFSTAT11"]) 
+              :ent_mef_rattach => mef_educ_nat["ENTMEFRattach"], :ent_mef_stat => mef_educ_nat["ENTMEFSTAT11"]) 
           else  # => modify record 
             record[:mef_libelle] = mef_educ_nat["ENTLibelleMef"]
             record[:ent_mef_rattach] = mef_educ_nat["ENTMEFRattach"]
-            record[:mef_mef_stat] = mef_educ_nat["ENTMEFSTAT11"]
+            record[:ent_mef_stat] = mef_educ_nat["ENTMEFSTAT11"]
             record.save # update
           end
         rescue  => e 
           # change puts to Laclasse::Log.error
           puts "Error: #{e.message}"
         end  
-
       end # end data.each    
       puts "Mef synchronized successfully"
     end # end sync_mef
 
+
+    #-----------------------------------------------------------#
+    # sync matieres education nationale
+    def self.sync_matieres(data)
+      puts "synchronize matieres educ national"
+      # received data 
+      # {"code_men":"-","libelle":"ASSISTANT D'EDUCATION","description":"SANS OBJET"}
+      data.each do |fonction|
+        begin 
+          record = MatiereEnseignee[:id => matiere["ENTMatJointure"]]
+          if record.nil? # not found => add matiere 
+            MatiereEnseignee.insert(:id => matiere["ENTMatJointure"], :libelle_long => matiere["ENTLibelleMatiere"]) 
+          else  # => modify record 
+            record[:libelle_long] = matiere["ENTLibelleMatiere"]
+            record.save # update
+          end
+        rescue  => e 
+          # change puts to Laclasse::Log.error
+          puts "Error: #{e.message}"
+        end  
+      end # end data.each    
+      puts "Matieres synchronized successfully"  
+    end
+
+    #-----------------------------------------------------------#
+    # sync fonction 
+    def self.sync_fonction(data)
+      puts "synchronize fonctions"
+      # received data 
+      # {"code_men":"-","libelle":"ASSISTANT D'EDUCATION","description":"SANS OBJET"}
+      data.each do |fonction|
+        begin 
+          record = Fonction[:code_men => fonction["code_men"]]
+          if record.nil? # not found => add matiere 
+            Fonction.insert(:code_men => fonction["code_men"], :libelle => fonction["libelle"], 
+              :description => fonction["description"]) 
+          else  # => modify record 
+            record[:libelle] = fonction["libelle"]
+            record[:description] = fonction["description"] 
+            record.save # update
+          end
+        rescue  => e 
+          # change puts to Laclasse::Log.error
+          puts "Error: #{e.message}"
+        end  
+      end # end data.each    
+      puts "Fonctions synchronized successfully"  
+
+    end
+
+    #-----------------------------------------------------------# 
     def sync()
       puts "sync() method is called"
       if @type_import == "Delta" 
@@ -55,6 +106,7 @@ module Alimentation
       end
     end
     
+
     private
     
     def sync_delta()
@@ -118,7 +170,7 @@ module Alimentation
       #puts data.inspect 
       begin
         if data.length > 1
-          puts "Error :to many structures are received" 
+          puts "Error :too many structures are received" 
         end  
         structure = data[0]  # structure <> etablissement
         # 1) TODO: rename key structure_jointure to id 
