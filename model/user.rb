@@ -40,12 +40,14 @@ class User < Sequel::Model(:user)
   plugin :select_json_array
 
   # Referential integrity
-  one_to_many :enseigne_regroupement
+  one_to_many :enseigne_dans_regroupement
+  one_to_many :eleve_dans_regroupement
   one_to_many :role_user
   one_to_many :profil_user
   one_to_many :param_user
   one_to_many :telephone
   one_to_many :email
+
   # Liste de tous les élèves avec qui l'utilisateur est en relation
   many_to_many :relation_eleve, :left_key => :user_id, :right_key => :eleve_id, 
     :join_table => :relation_eleve, :class => self
@@ -85,6 +87,7 @@ class User < Sequel::Model(:user)
     login = I18n.transliterate(login)
   end
 
+  # returns available login for a user 
   def self.find_available_login(prenom, nom)
     login = get_default_login(prenom, nom)
     #Si homonymes, on utilise des numéros à la fin
@@ -452,18 +455,18 @@ class User < Sequel::Model(:user)
         subject "[laclasse.com] Veuillez réinitialiser votre mot de passe"
         # todo : ne pas mettre l'adresse laclasse.com en dur
         body(
-"Bonjour,
+            "Bonjour,
 
-Il semblerait que #{is_parent_mail ? 'votre enfant ' + full_name + ' a' :'vous avez'} perdu #{is_parent_mail ? 'son':'votre'} mot de passe laclasse.com.
-Si c'est le cas, merci de suivre dans les prochaines #{EMAIL_DURATION/3600}h le lien ci-dessous afin de réinitialiser #{is_parent_mail ? 'son':'votre'} mot de passe :
-https://www.laclasse.com/?session_key=#{session_key}
+            Il semblerait que #{is_parent_mail ? 'votre enfant ' + full_name + ' a' :'vous avez'} perdu #{is_parent_mail ? 'son':'votre'} mot de passe laclasse.com.
+            Si c'est le cas, merci de suivre dans les prochaines #{EMAIL_DURATION/3600}h le lien ci-dessous afin de réinitialiser #{is_parent_mail ? 'son':'votre'} mot de passe :
+            https://www.laclasse.com/?session_key=#{session_key}
 
-Si vous #{is_parent_mail ? '(ou votre enfant) ':''}n'avez pas fait de demande de réinitialisation de mot de passe, merci d'ignorer ce message.
-Sachez qu'il #{is_parent_mail ? '':'vous '}sera tout de même demandé #{is_parent_mail ? 'à votre enfant ':''}de changer de mot de passe lors de #{is_parent_mail ? 'sa':'votre'} prochaine connexion.
+            Si vous #{is_parent_mail ? '(ou votre enfant) ':''}n'avez pas fait de demande de réinitialisation de mot de passe, merci d'ignorer ce message.
+            Sachez qu'il #{is_parent_mail ? '':'vous '}sera tout de même demandé #{is_parent_mail ? 'à votre enfant ':''}de changer de mot de passe lors de #{is_parent_mail ? 'sa':'votre'} prochaine connexion.
 
-Cordialement,
+            Cordialement,
 
-L'équipe laclasse.com")
+            L'équipe laclasse.com")
       end
       # Dommage que l'on ne peut pas préciser ça dans le deliver...
       mail.charset = 'utf-8'

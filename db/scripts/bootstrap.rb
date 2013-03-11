@@ -29,7 +29,7 @@ def clean_annuaire()
   puts "TRUNCATE ALL USER RELATED TABLES"
   [
     :last_uid, :telephone, :email, :relation_eleve, :ressource,
-    :enseigne_regroupement, :role_user, :profil_user, :user, :regroupement
+    :enseigne_dans_regroupement, :role_user, :profil_user, :user, :regroupement, :eleve_dans_regroupement
   ].each do |table|
     if table == :ressource
       truncate_ressource()
@@ -48,49 +48,81 @@ def bootstrap_annuaire()
   # TODO : supprimer les ressources en faisant attention aux parents
   [
   :last_uid, :activite_role, :role_user, :activite, :role, :param_application, :type_param, :ressource, :service, :email,
-  :telephone, :profil_user, :etablissement, :enseigne_regroupement, :regroupement, :application_etablissement,
-  :user, :type_telephone, :type_regroupement, :type_relation_eleve, :profil, :niveau, :relation_eleve
+  :telephone, :profil_user, :etablissement, :enseigne_dans_regroupement, :regroupement, :application_etablissement,
+  :user, :type_telephone, :type_regroupement, :type_relation_eleve, :profil, :niveau, :relation_eleve, :eleve_dans_regroupement
   ].each do |table|
     if table == :ressource
       truncate_ressource()
-    else    
+    else
+      DB.run("SET FOREIGN_KEY_CHECKS = 0;")    
       DB[table].truncate()
+      DB.run("SET FOREIGN_KEY_CHECKS = 1;")
     end
   end
 
   #-----------------------------------------------------#
   # insert default data
-  puts "INSERT DEFAULT DATA"
-  #Données temporaires
-  Niveau.create(:libelle => "6EME")
-  Niveau.create(:libelle => "5EME")
-  Niveau.create(:libelle => "4EME")
-  Niveau.create(:libelle => "3EME")
+  puts "INSERT STATIC DATA"
+  # TODO: add code mef
+  Niveau.create(:id => "6ème", :libelle => "6EME")
+  Niveau.create(:id => "5ème", :libelle => "5EME")
+  Niveau.create(:id => "4ème", :libelle => "4ème")
+  Niveau.create(:id => "3ème", :libelle => "3ème")
 
+  #----------------------------------------------------------------------#
+  # type Etablissement
+  type_etb = TypeEtablissement.create({:nom => 'Service du département', :type_contrat => 'PU'})
+  erasme = Etablissement.create(:nom => 'ERASME', :type_etablissement_id =>type_etb.id)
+
+  #Des établissements
+  #Les id d'établissement correspondent à des vrais identifiant pour tester l'alimentation automatique
+  TypeEtablissement.create(:nom => 'Ecole', :type_contrat => 'PR', :libelle => 'Ecole privée')
+  TypeEtablissement.create(:nom => 'Ecole', :type_contrat => 'PU', :libelle => 'Ecole publique')
+  TypeEtablissement.create(:nom => 'Collège', :type_contrat => 'PR', :libelle => 'Collège privé')
+  type_etb = TypeEtablissement.create(:nom => 'Collège', :type_contrat => 'PU', :libelle => 'Collège public')
+  TypeEtablissement.create(:nom => 'Lycée', :type_contrat => 'PR', :libelle => 'Lycée privé')
+  TypeEtablissement.create(:nom => 'Lycée', :type_contrat => 'PU', :libelle => 'Lycée public')
+  TypeEtablissement.create(:nom => 'Bâtiment', :type_contrat => 'PU', :libelle => 'Bâtiment public')
+  TypeEtablissement.create(:nom => 'Lycée professionnel', :type_contrat => 'PR', :libelle => 'Lycée professionnel privé')
+  TypeEtablissement.create(:nom => 'Lycée professionnel', :type_contrat => 'PU', :libelle => 'Lycée professionnel public')
+  TypeEtablissement.create(:nom => 'Maison Familiale Rurale', :type_contrat => 'PU', :libelle => 'Maison Familiale Rurale')
+  TypeEtablissement.create(:nom => 'Campus', :type_contrat => 'PU', :libelle => 'Campus public')
+  TypeEtablissement.create(:nom => 'CRDP', :type_contrat => 'PU', :libelle => 'Centre Régional de Documentation Pédagogique')
+  TypeEtablissement.create(:nom => 'CG Jeunes', :type_contrat => 'PU', :libelle => 'CG Jeunes')
+  TypeEtablissement.create(:nom => 'Cité scolaire', :type_contrat => 'PR', :libelle => 'Cité scolaire privée')
+  TypeEtablissement.create(:nom => 'Cité scolaire', :type_contrat => 'PU', :libelle => 'Cité scolaire publique')
+  
+  #--------------------------------------------------------------------------#
+  # Type Telephone
   TypeTelephone.create(:id => TYP_TEL_MAIS, :libelle => 'Maison')
   TypeTelephone.create(:id => TYP_TEL_PORT, :libelle => 'Portable')
   TypeTelephone.create(:id => TYP_TEL_TRAV, :libelle => 'Travail')
   TypeTelephone.create(:id => TYP_TEL_AUTR, :libelle => 'Autre')
 
   #--------------------------------------------------------#
-  # Todo: à modifier car on des nouveaux données
-  TypeRelationEleve.create(:id => TYP_REL_PAR, :libelle => 'Parent')
-  # Si ENTEleveParents != ENTEleveAutoriteParentale ca veut dire qu'on a des parents sans autorité parentale
-  TypeRelationEleve.create(:id => TYP_REL_NPAR, :libelle => 'Parent sans autorité parentale')
-  TypeRelationEleve.create(:id => TYP_REL_RLGL, :libelle => 'Représentant légal')
-  TypeRelationEleve.create(:id => TYP_REL_FINA, :libelle => 'Resp. financier')
-  TypeRelationEleve.create(:id => TYP_REL_CORR, :libelle => 'Correspondant')
+  # TODO : à modifier car on des nouveaux données
+  TypeRelationEleve.create(:id => 1, :libelle => 'PERE', :description => "Père")
+  TypeRelationEleve.create(:id => 2, :libelle => 'MERE', :description => "Mère")
+  TypeRelationEleve.create(:id => 3, :libelle => 'TUTEUR', :description => "Tuteur")
+  TypeRelationEleve.create(:id => 4, :libelle => 'A_MMBR', :description => "Autre membre de la famille")
+  TypeRelationEleve.create(:id => 5, :libelle => 'DDASS', :description => "Ddass")
+  TypeRelationEleve.create(:id => 6, :libelle => 'A_CAS', :description => "Autre cas")
+  TypeRelationEleve.create(:id => 7, :libelle => 'ELEVE', :description => "Eleve lui meme")
 
-
+  #--------------------------------------------------------#
+  # Type Regroupement
   TypeRegroupement.create(:id => TYP_REG_CLS, :libelle => 'Classe')
   TypeRegroupement.create(:id => TYP_REG_GRP, :libelle => "Groupe d'élèves")
   TypeRegroupement.create(:id => TYP_REG_LBR, :libelle => "Groupe libre")
 
+  #--------------------------------------------------------------------------#
   # Création des activités
   Activite.create(:id => ACT_CREATE)
   Activite.create(:id => ACT_READ)
   Activite.create(:id => ACT_UPDATE)
   Activite.create(:id => ACT_DELETE)
+  #--------------------------------------------------------------------------#
+
 
   #Tout d'abord, on créer des services (api)
   # service laclasse.com (les super admin y sont reliés)
@@ -229,30 +261,11 @@ def bootstrap_annuaire()
 
   create_super_admin_and_ressource_laclasse()
 
-  type_etb = TypeEtablissement.create({:nom => 'Service du département', :type_contrat => 'PU'})
-  erasme = Etablissement.create(:nom => 'ERASME', :type_etablissement_id =>type_etb.id)
 
-  #Des établissements
-  #Les id d'établissement correspondent à des vrais identifiant pour tester l'alimentation automatique
-  TypeEtablissement.create(:nom => 'Ecole', :type_contrat => 'PR', :libelle => 'Ecole privée')
-  TypeEtablissement.create(:nom => 'Ecole', :type_contrat => 'PU', :libelle => 'Ecole publique')
-  TypeEtablissement.create(:nom => 'Collège', :type_contrat => 'PR', :libelle => 'Collège privé')
-  type_etb = TypeEtablissement.create(:nom => 'Collège', :type_contrat => 'PU', :libelle => 'Collège public')
-  TypeEtablissement.create(:nom => 'Lycée', :type_contrat => 'PR', :libelle => 'Lycée privé')
-  TypeEtablissement.create(:nom => 'Lycée', :type_contrat => 'PU', :libelle => 'Lycée public')
-  TypeEtablissement.create(:nom => 'Bâtiment', :type_contrat => 'PU', :libelle => 'Bâtiment public')
-  TypeEtablissement.create(:nom => 'Lycée professionnel', :type_contrat => 'PR', :libelle => 'Lycée professionnel privé')
-  TypeEtablissement.create(:nom => 'Lycée professionnel', :type_contrat => 'PU', :libelle => 'Lycée professionnel public')
-  TypeEtablissement.create(:nom => 'Maison Familiale Rurale', :type_contrat => 'PU', :libelle => 'Maison Familiale Rurale')
-  TypeEtablissement.create(:nom => 'Campus', :type_contrat => 'PU', :libelle => 'Campus public')
-  TypeEtablissement.create(:nom => 'CRDP', :type_contrat => 'PU', :libelle => 'Centre Régional de Documentation Pédagogique')
-  TypeEtablissement.create(:nom => 'CG Jeunes', :type_contrat => 'PU', :libelle => 'CG Jeunes')
-  TypeEtablissement.create(:nom => 'Cité scolaire', :type_contrat => 'PR', :libelle => 'Cité scolaire privée')
-  TypeEtablissement.create(:nom => 'Cité scolaire', :type_contrat => 'PU', :libelle => 'Cité scolaire publique')
+  #etb1 = Etablissement.create(:code_uai => '0691670R', :nom => 'Victor Dolto', :type_etablissement_id =>type_etb.id)
+  #etb2 = Etablissement.create(:code_uai => '0690016T', :nom => 'Françoise Kandelaft', :type_etablissement_id =>type_etb.id)
 
-  etb1 = Etablissement.create(:code_uai => '0691670R', :nom => 'Victor Dolto', :type_etablissement_id =>type_etb.id)
-  etb2 = Etablissement.create(:code_uai => '0690016T', :nom => 'Françoise Kandelaft', :type_etablissement_id =>type_etb.id)
-
+  #--------------------------------------------------------------------------#
   # Ajouter des  parametres de test
   # d'abord on ajoute les param_type (text, num, bool)
   TypeParam.create(:id => TYP_PARAM_TEXT)
@@ -266,7 +279,7 @@ def bootstrap_annuaire()
   # DB[:param_app].insert(:preference => 0, :libelle => "Ip Adresse", :description => "ip adresse de l'application",
   #                       :code => "adresse_ip", :valeur_defaut => "http://server1.com", :autres_valeurs => "http://server2.com", :service_id => 1 , :type_param_id=>"text")
 
-
+=begin
   profil_list = [PRF_ENS, PRF_ELV, PRF_PAR]
 
   prenom_list = ['jean', 'francois', 'raymond', 'pierre', 'jeanne', 'frédéric', 'lise', 'michel', 'daniel', 'élodie', 'brigitte', 'béatrice', 'youcef', 'sophie', 'andréas']
@@ -322,4 +335,5 @@ def bootstrap_annuaire()
       usr.add_telephone("0662540000")
     end
   end
+=end
 end

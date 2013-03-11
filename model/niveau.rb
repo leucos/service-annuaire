@@ -6,19 +6,23 @@
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 # COLUMN_NAME                   | DATA_TYPE           | NULL?    | KEY      | DEFAULT    | EXTRA
 # ------------------------------+---------------------+----------+----------+------------+--------------------
-# id                            | int(11)             | false    | PRI      |            | auto_increment
-# libelle                       | varchar(45)         | true     |          |            | 
-# description                   | varchar(255)        | true     |          |            | 
-# annee                         | int(11)             | true     |          |            | 
-# ------------------------------+---------------------+----------+----------+------------+--------------------
-#
+# ent_mef_jointure              | varchar(20)         | false    | PRI      |            | 
+# mef_libelle                   | varchar(256)        | true     |          |            | 
+# ent_mef_rattach               | varchar(20)         | true     |          |            | 
+# ent_mef_stat                  | varchar(20)         | true     |          |            |  
+
+# this table  is feeded by  mef_educ national
 class Niveau < Sequel::Model(:niveau)
 
+  unrestrict_primary_key	
   # Plugins
   plugin :validation_helpers
   plugin :json_serializer
 
   # Referential integrity
+  # relation with mef_educ_nat table 
+
+  one_to_many :regroupement
 
   # Not nullable cols
   def validate

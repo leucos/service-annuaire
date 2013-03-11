@@ -2,7 +2,8 @@
 #coding: utf-8
 
 # A class that takes alimentation data and feed the mysql database with it 
-# 
+# TODO: Error management
+# TODO: Display execution Time 
 module Alimentation
   
   class Synchronizer
@@ -12,19 +13,46 @@ module Alimentation
       @uai = uai 
       @profil = profil
       @type_data = type_data
-      @data = data  #type json
-      @db =DataBase.connect({:server => "localhost", :db => "mydb"})
+      @data = data  # must be transformed to type json , refactor code
+      
+      #if we want to store data temporarly in mongoDB
+      #@db =DataBase.connect({:server => "localhost", :db => "mydb"})
     end
     
+    # data is validated before because of JSON.parse method
+    # sync niveau
+    def self.sync_mef(data) 
+      puts "syncronize mef educ national"
+      data.each do |mef_educ_nat|
+        begin 
+          record = Niveau[:ent_mef_jointure => mef_educ_nat["ENTMefJointure"]]
+          if record.nil? # not found => add record 
+            Niveau.insert(:ent_mef_jointure => mef_educ_nat["ENTMefJointure"], :mef_libelle => mef_educ_nat["ENTLibelleMef"],
+              :ent_mef_rattach => mef_educ_nat["ENTMEFRattach"], :mef_mef_stat => mef_educ_nat["ENTMEFSTAT11"]) 
+          else  # => modify record 
+            record[:mef_libelle] = mef_educ_nat["ENTLibelleMef"]
+            record[:ent_mef_rattach] = mef_educ_nat["ENTMEFRattach"]
+            record[:mef_mef_stat] = mef_educ_nat["ENTMEFSTAT11"]
+            record.save # update
+          end
+        rescue  => e 
+          # change puts to Laclasse::Log.error
+          puts "Error: #{e.message}"
+        end  
+
+      end # end data.each    
+      puts "Mef synchronized successfully"
+    end # end sync_mef
+
     def sync()
-       puts "sync() method is called"
-       if @type_import == "Delta" 
+      puts "sync() method is called"
+      if @type_import == "Delta" 
         sync_delta()
-       elsif @type_import =="Complet"
+      elsif @type_import =="Complet"
         sync_complet()
-       else 
-         raise "Alimentation type is not valide"   
-       end
+      else 
+        raise "Alimentation type is not valide"   
+      end
     end
     
     private
@@ -34,152 +62,234 @@ module Alimentation
       # database should not be emptied
     end
     
+    # -----------------------------------------------------------
+    # method responsable for synchronizing complet data
+    # i think treatement order is important 
     def sync_complet()
       puts "sync_complet is called"
       case @type_data
+        
         when "STRUCTURES"
           puts "structure"
+          #TODO manque type_etablissement_id
           data = JSON.parse(@data)
           modify_or_create_etablissement(data)
+
         when "COMPTES"
-          puts "Compte: profile #{@profil}"
-          #modify_or_create_user(profil, data)
+          #puts "Compte: profile #{@profil}"
+          #data = JSON.parse(@data)
+          #modify_or_create_user(data)
+        
         when "CLASSES"
-          #modify_or_create_regroupement('CLS', data)
-          puts "Class"
+          puts "Classes"
+          #data = JSON.parse(@data)
+          #modify_or_create_regroupement(data)
+          
+        
         when "GROUPES"
-          #modify_or_create_regroupement('GRP', data)
           puts "groupes"
+          #data = JSON.parse(@data)
+          #modify_or_create_regroupement(data)
+          
         when "RATTACHEMENTS"
           puts "Rattachement: #{@profil}"
-        when  "DETACHEMENTS" 
-          puts "DETACHEMENTS" 
+        
+        when "DETACHEMENTS" 
+          puts "DETACHEMENTS"
+
+        when "MATIERES"
+          puts "matiere"
+
+        when "MEFEDUCNAT"
+          puts "mef"
+
         else
           puts "I will raise an error "
         end 
-      # database is not emptied
-      # i think order is important
-      # add data to the database;
     end
     
+    # -----------------------------------------------------------
+    # synchronize structure
     def modify_or_create_etablissement(data)
-      puts data.inspect
-    end
-    
-    def modify_or_create_user(profil, data)
-      
-    end
-    
-    def modify_or_create_regroupement(groupe, data)
-      
-    end 
-    
-=begin   
-    def clean_data(table, hash)
-      # Hash représentant les changements a effectuer sur les données
-      # Nécessaire car on ne peut pas supprimer ou rajouter des clés pendant un each
-      to_change = {}
-      columns = MODEL_MAP[table].columns()
-      hash.each do |k, v|
-        unless columns.include?(k)
-          #todo : generer une erreur si la colonne n'existe pas
-          #Ou que l'id est a nil
-          new_column = "#{k}_id".to_sym()
-          new_value = v[:id]
-          if columns.include?(new_column) and !new_value.nil?
-            to_change[k] = [new_column, new_value]
-          end
-        end
-      end
-
-      #Il faut absoluement garder le même hash (et non en recrééer un)
-      #Car il est référencé dans les diff.
-      to_change.each do |k, v|
-        hash.delete(k)
-        hash[v[0]] = v[1]
-      end
-
-      return hash
-    end
-
-    def create(table, hash)
+      puts "modify or create structure is called"
+      # TODO: many structures or one structure is sent 
+      # NOTE: i consider one structure is sent
+      #puts "received data" 
+      #puts data.inspect 
       begin
-        model = MODEL_MAP[table].create(hash)
-        hash[:id] = model[:id]
-      rescue => e
-        puts "Non valid hash on table #{table} : #{hash}"
-        puts "#{e.message}"
-        #puts "#{e.backtrace}"
-        #exit()
-      end
-    end
-
-    def find_model(table, hash)
-      model_class = MODEL_MAP[table]
-      uid = {}
-      #Primary_key peut renvoyer soit un tableau ou un seul élément
-      id_name_list = model_class.primary_key
-      if id_name_list.kind_of?(Array)
-        #Construction du hash représentant l'id unique du model
-        id_name_list.each do |id_name|
-          uid[id_name] = hash[id_name]
+        if data.length > 1
+          puts "Error :to many structures are received" 
+        end  
+        structure = data[0]  # structure <> etablissement
+        # 1) TODO: rename key structure_jointure to id 
+        structure.merge!({"id" => structure["structure_jointure"]})
+        structure.reject! {| key, value | key =="structure_jointure"} 
+        found_one = false
+        
+        # search etablissement for corresponding records
+        if Etablissement[:id => structure["id"]].nil? == false 
+          found_one = true
+        elsif Etablissement[:id => structure["id"]].nil? == true
+          found_one = false 
         end
-      else
-        uid[id_name_list] = hash[id_name_list]
-      end
-      return model_class[uid]
+        
+        # TODO : ask Pgl for cases
+        if found_one && @type_import == "Complet"
+          puts "structure: #{structure['code_uai']} will be modifyed"
+          Etablissement.where(:id => structure["id"]).update(structure)
+        elsif !found_one && @type_import == "Complet"
+          puts "structure: #{structure['code_uai']} will be added"
+          Etablissement.insert(structure)
+        else
+          raise "not supported"  
+        end    
+       rescue => e
+         Laclasse::Log.error(e.message) 
+       end 
     end
+    
+    # -----------------------------------------------------------
+    # syncronize user
+    def modify_or_create_user(data)
+      puts "modify or create user is called"
 
-    def update(table, hash)
-      model = find_model(table, hash)
-      #todo : gérer l'erreur
-      unless model.nil?
-        begin
-          model.update(hash)
-        rescue => e
-          puts "Non valid hash on table #{table} : #{hash}"
-          puts "#{e.message}"
-          puts "#{e.backtrace}"
-          #exit()   
-        end
-      end
+      # three cases 
+        # eleves 
+        # perseducnat
+        # parent
       
-    end
+      # modify_or_create_eleves(data)
 
-    def delete(table, hash)
-      model = find_model(table, hash)
-      #todo : gérer l'erreur
-      unless model.nil?
-        model.destroy()
-      end   
-    end
+      #Compte profil person educ nat
+      #{"type_alim"=>"Complet", "profil"=>"PERSEDUCNAT", "id_jointure_aaf"=>"19797", "nom"=>"ANGONIN", 
+      #"prenom"=>"FRANCOISE", "date_naissance"=>"13/09/1952", "sexe"=>"F", "mail"=>"Francoise.Angonin@ac-lyon.fr", 
+      #"mail_academique"=>"Y", "date_last_maj_aaf"=>"2013-02-28"
+      # modify_or_create_presons(data)
 
-    def sync_db(diff)
-      #Important : se base sur le fait que les tables dans diff
-      #commencent par user et regroupement car ces deux tables sont référencées
-      #partout ailleurs donc lors des create, on a besoin de spécifier les id
-      diff.each do |table, action_list|
-        action_list.each do |action, hash_list|
-          hash_list.each do |hash|
-            if action == :update
-              hash = hash[:updated]
-            end
-            #puts hash if table == :regroupement and hash[:user][:id_jointure_aaf] == "2072161"
-            hash = clean_data(table, hash)
-            #puts hash if table == :relation_eleve and hash[:user][:id_jointure_aaf] == "2072161"
-            case action
-            when :create
-              create(table, hash)
-            when :update
-              update(table, hash)
-            when :delete
-              delete(table, hash)
-            end
+      #Compte profil parents
+      #{"type_alim"=>"Complet", "profil"=>"PARENT", "id_jointure_aaf"=>"2028471", "nom"=>"AKCHOTE", "prenom"=>"Maria", 
+      #"date_naissance"=>"", "sexe"=>"F", "adresse"=>"LE RAMPEAU", "code_postal"=>"69690", "ville"=>"BRULLIOLES", 
+      #"tel_home"=>"+33 4 78 25 03 43", "tel_work"=>"", "mail"=>"", "date_last_maj_aaf"=>"2013-02-28"}
+      
+      # modify_or_create_parent(data)
+      begin
+        data = JSON.parse(@data)
+        case @profil
+          when "ELEVE"
+            modify_or_create_eleves(data)
+          when "PARENT"
+            #modify_or_create_parents(data)
+          when "PERSEDUCNAT"
+            #modify_or_create_presons(data)
+          else
+            raise "profil not supported"
+          end   
+      rescue => e
+        Laclasse::Log.error(e.message)
+      end  
+   
+    end #end modify_or_create_user
+
+    # -----------------------------------------------------------
+    def modify_or_create_eleves(data)  
+      # Example data:  
+      #COMPTE profil eleve: 
+      #{"type_alim"=>"Complet", "profil"=>"ELEVE", "id_sconet"=>"1035780", "id_jointure_aaf"=>"2414273", 
+      # "nom"=>"AISSOU", "prenom"=>"Yanis", "date_naissance"=>"15/08/2001", "sexe"=>"M", "date_last_maj_aaf"=>"2013-02-28"}
+      # we must capture errors in order to treat all eleves
+      data.each do |eleve| 
+        begin 
+          found_one = false
+          
+          # search Users for corresponding records
+          if User[:id_jointure_aaf => eleve["id_jointure_aaf"]].nil? == false 
+            found_one = true
+          elsif User[:id_jointure_aaf => eleve["id_jointure_aaf"]].nil? == true
+            found_one = false 
           end
+
+          # Treate User
+          if found_one && @type_import == "Complet"
+            # update user 
+            # create a new hash with updated values 
+            # update where id_jointure_aaf = eleve["id_jointure_aaf"] with new hash
+            # add profil to user if not added 
+            # attach user to etablissment
+            # add telphone, add email  
+          elsif !found_one && @type_import == "Complet"
+            # create user
+            # puts "create eleve"
+            # find a suitable login for the user
+            # create a hash with received values 
+            # insert the hash into user table 
+            # add profil to user 
+            # add emails 
+            # add telephones
+          else
+            raise "error: delete not supported" 
+          end
+        rescue => e 
+          puts "continue to next user"
+        end     
+      end # end each
+    end  
+    
+    # -----------------------------------------------------------
+    # synchronize  regroupement 
+    # TODO: Modify received data to correspond to 
+    # data table
+    def modify_or_create_regroupement(data)
+      puts "modify or create Regroupement is called" 
+      begin
+        # verify data length 
+        if data.length == 0
+          puts "Error :no regroupements to be treated" 
         end
+        
+        data.each do |regroupement|
+          # search Regroupements for corresponding records
+          # i do not know if libelle_aaf is unique ?!!
+          if Regroupement[:libelle => regroupement["libelle_aaf"]].nil? == false 
+            found_one = true
+          elsif Regroupement[:libelle => regroupement["libelle_aaf"]].nil? == false 
+            found_one = false 
+          end
+          
+          # treatement of data
+          # TODO : modify the received json data to contain the fallowing elements
+          # [libelle, code_mef?, data_last_maj_.., libelle-aaf, niveau or niveau_id(int), 
+          # Etablissement_id, type_regroupement_id]
+          
+          if found_one && regroupement["type_regroupement_id"] == "CLS"
+            puts "Modify class"
+            #modify class 
+            #Regroupement.where(:libelle => regroupement["libelle_aaf"]).update(regroupement)
+          elsif !found_one && regroupement["type_regroupement_id"] == "CLS"
+            puts "Add class"
+            # create class 
+            # Regroupement.create(regroupement)
+          elsif found_one && regroupement["type_regroupement_id"] == "GRP"
+            puts "Modify group"
+            #Regroupement.where(:libelle => regroupement["libelle_aaf"]).update(regroupement)
+          elsif !found_one && regroupement["type_regroupement_id"] == "GRP"
+            puts "add group"
+            #Regroupement.create(regroupement) 
+          elsif found_one && regroupement["type_regroupement_id"] == "LBR"
+            puts "Modify group libre"
+            #Regroupement.where(:libelle => regroupement["libelle_aaf"]).update(regroupement)
+          elsif !found_one && regroupement["type_regroupement_id"] == "LBR"
+            puts "add group libre"
+            #Regroupement.create(regroupement) 
+          else 
+            puts "data has errors"
+          end
+        end 
+             
+      rescue => e
+        Laclasse::Log.error(e.message) 
       end
-    end
-  
-=end   
+
+    end # end modify_or_create_regroupement
+
   end
 end

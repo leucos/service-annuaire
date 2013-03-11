@@ -39,7 +39,7 @@ class AlimentationApi < Grape::API
     
     
     #-----------------------------------------#
-    # Todo: Add validation to data on receive
+    # TODO: Add validation to data on receive
     desc "recieve Data from the annuaire Ent Server and treat it"
      params do
         requires :type_import, :type => String, :desc => "import type"
@@ -49,29 +49,37 @@ class AlimentationApi < Grape::API
         requires :data, :type => String, :desc => "data that is treated" 
       end
     post "/recieve" do 
+      puts "--------------------------------------------------------------"
       puts "recieved data from etablissement #{params['uai']} for #{params['type_data']}"
       @@recieved.push("recieved data from etablissement #{params['uai']} for #{params['type_data']}") 
       #algo
       begin 
-        puts "----------get params-----------\n"
-        data = params['data']
+        puts "----------received params from alimentation server-----------\n"
         type_import = params['type_import']
         puts "type_import #{type_import}"
+        
         profil = params['profil']
         puts "profil #{profil}"
+        
         uai = params['uai']
+        puts "uai #{uai}"
+        
         type_data = params['type_data']
+        puts "type data  #{type_data}"
+        
+        data = params['data']
         json_data = JSON.parse(data)
-        puts "number of records = #{json_data.count}"
+        puts "number of received records = #{json_data.count}"
         
-        
-        #istantiate synchronizer
+        # instantiate synchronizer
+        # TODO: search for a better method for instantiating synchronizer
         synchronizer = Alimentation::Synchronizer.new(type_import, uai, profil, type_data, data)
         synchronizer.sync()
-        "ok"
-       rescue => e 
-         error!("Bad Request: #{e.message}", 400) 
-       end 
+        "Data synchronized succesfully"
+
+      rescue => e 
+        error!("Bad Request: #{e.message}", 400) 
+      end 
     end
     
     #-----------------------------------------#
@@ -79,9 +87,6 @@ class AlimentationApi < Grape::API
     get "/etablissements" do 
       res = Net::HTTP.get_response(URI('http://www.dev.laclasse.com/annuaire/index.php?action=api&service=etablissements'))
       #print res.inspect
-      
-      puts res.inspect
-      #pp res
       data =  res.body
       puts "----------status---------\n"
       puts res.code       # => '200'
@@ -90,14 +95,7 @@ class AlimentationApi < Grape::API
       puts res.message 
       
       result = JSON.parse(data)  
-      puts result
-      puts "-------------/n"
-      puts result.class
-      puts "------------/n"
       result
-      #response = Net::HTTP.get_response("http://www.dev.laclasse.com", "/annuaire/index.php?action=api&service=etablissements")
-      #puts response.body.inspect #this must show the JSON contents
-      #puts "success"
     end
     
     #-----------------------------------------#
@@ -106,9 +104,9 @@ class AlimentationApi < Grape::API
     desc "get data per service (table) and code_rne"
     params do 
       requires :service, :type => String, :desc => "service"
-      optional :rne, :type => String, :desc =>"rne"
+      optional :uai, :type => String, :desc =>"rne"
     end
-    get "/data/:service/:rne" do 
+    get "/data/:service/:uai" do 
       puts "data"
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=fonctions&rne=0690078K
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=matieres
@@ -125,13 +123,14 @@ class AlimentationApi < Grape::API
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=rattachements_profs&rne=0690078K
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=detachements&rne=0690078K
 
-      res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{params[:service]}&rne=#{params[:rne]}"))
+      res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{params[:service]}&rne=#{params[:uai]}"))
       begin
         puts "service = #{params[:service]}"
-        puts "uai = #{params[:rne]=="000000"? "all" :params[:rne] }"  
+        puts "uai = #{params[:uai]=="000000"? "all" :params[:uai] }"  
         result = JSON.parse(res.body)
         puts result[0].inspect
         puts "records = #{result.count}"
+        result
       rescue => e
         error!("Bad Request: #{e.message}", 400) 
       end
@@ -141,13 +140,13 @@ class AlimentationApi < Grape::API
     #Todo: errors
     desc "load all data related to an etablissment"
     params do
-       requires :rne, :type => String , :desc => "code_rne"
+       requires :uai, :type => String , :desc => "code_rne"
     end
-    get "/load/etablissement/:rne" do
+    get "/load/etablissement/:uai" do
       tables = {}
       begin 
         @@services.each do |service| 
-          res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{service}&rne=#{params[:rne]}"))
+          res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{service}&rne=#{params[:uai]}"))
           puts res.code       # => '200'
           puts res.message 
           result = JSON.parse(res.body)
@@ -177,6 +176,27 @@ class AlimentationApi < Grape::API
     get "bilan/:uai" do 
       
     end
+
+    #-------------------------------------------------#
+    desc "Syncronize Mef education national"
+    get "/sync_mef" do 
+      service = "mef"
+      uai = "000000" # par defaut
+      begin
+        res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{service}"))
+        result = JSON.parse(res.body)
+        if result.count > 0 
+          Alimentation::Synchronizer.sync_mef(result)
+        else
+            raise("no MEF data were received ") 
+        end
+        "Mef syncronized successfully"    
+      rescue => e 
+        error!("Bad Request: #{e.message}", 400) 
+      end 
+    end
+
+    #----------------------------------------------------# 
     
   end # resource  
 end 
