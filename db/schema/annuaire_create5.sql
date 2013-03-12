@@ -126,7 +126,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`regroupement` (
   `date_last_maj_aaf` DATE NULL ,
   `libelle_aaf` CHAR(8) NULL COMMENT 'En cas d\'alimentation automatique, un libelle de 8 caractères.' ,
   `type_regroupement_id` CHAR(8) NOT NULL ,
-  `code_mef_aaf` VARCHAR(20) NOT NULL ,
+  `code_mef_aaf` VARCHAR(20) NULL ,
   `etablissement_id` INT NOT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_regroupement_type_regroupement1` (`type_regroupement_id` ASC) ,
@@ -174,7 +174,6 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`enseigne_dans_regroupement` (
   `regroupement_id` INT NOT NULL ,
   `matiere_enseignee_id` VARCHAR(10) NOT NULL ,
   `prof_principal` VARCHAR(45) NULL ,
-  PRIMARY KEY (`user_id`, `regroupement_id`, `matiere_enseignee_id`) ,
   INDEX `fk_user_has_regroupement_regroupement1` (`regroupement_id` ASC) ,
   INDEX `fk_user_has_regroupement_user1` (`user_id` ASC) ,
   INDEX `fk_enseigne_regroupement_matiere_enseignee1` (`matiere_enseignee_id` ASC) ,
@@ -719,6 +718,14 @@ COMMENT = 'this table generated from many to many between profil_user a' /* comm
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+-- -----------------------------------------------------
+-- initialize data for table `annuaire`.`last_uid`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `annuaire`;
+INSERT INTO `annuaire`.`last_uid` (`last_uid`) VALUES ('VAA60000');
+COMMIT;
 
 -- -----------------------------------------------------
 -- Data for table `annuaire`.`type_regroupement`

@@ -35,7 +35,7 @@ class User < Sequel::Model(:user)
   # Plugins
   plugin :validation_helpers
   plugin :json_serializer
-  plugin :ressource_link, :service_id => SRV_USER
+  #plugin :ressource_link, :service_id => SRV_USER
   plugin :fuzzy_search
   plugin :select_json_array
 
@@ -196,7 +196,7 @@ class User < Sequel::Model(:user)
       # Solution pas terrible car spécifique à MySql mais je vois
       # pas comment autrement
       raise e if e.message.index(/Duplicate entry '.*' for key 'PRIMARY'/).nil?
-
+      #puts e.message
       #Ramaze::log.error(e.message)
       # On récupère le hash de l'objet en cours de construction
       hash = self.values
@@ -283,8 +283,15 @@ class User < Sequel::Model(:user)
     ProfilUser.find_or_create(:user => self, 
         :etablissement_id => etablissement_id, :profil_id => profil_id)
     
-    add_role(etablissement_id, SRV_ETAB, Profil[profil_id].role_id)
+    # later i will see the problem of roles commented on 12/03/2013
+    #add_role(etablissement_id, SRV_ETAB, Profil[profil_id].role_id)
   end
+
+  # default password 
+  def default_pass()
+
+  end
+
 
   def civilite
     sexe == 'F' ? 'Mme' : 'Mr'

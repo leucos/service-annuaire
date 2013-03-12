@@ -10,11 +10,11 @@ describe User do
     delete_test_application()
     delete_test_role()
 
-    @app = create_test_application_with_param()
+    #@app = create_test_application_with_param()
   end
 
   after(:all) do
-    delete_test_application()
+    #delete_test_application()
   end
 
   it "knows what is a valid uid" do

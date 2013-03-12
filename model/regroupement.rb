@@ -12,7 +12,6 @@
 # code_mef_aaf                  | int(11)             | true     |          |            | 
 # date_last_maj_aaf             | date                | true     |          |            | 
 # libelle_aaf                   | char(8)             | true     |          |            | 
-# niveau_id                     | int(11)             | true     | MUL      |            | 
 # etablissement_id              | int(11)             | true     | MUL      |            | 
 # type_regroupement_id          | char(8)             | false    | MUL      |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
@@ -29,15 +28,19 @@ class Regroupement < Sequel::Model(:regroupement)
 
   # Referential integrity
   many_to_one :etablissement
-  one_to_many :enseigne_regroupement
+  one_to_many :enseigne_dans_regroupement
   one_to_one :ressource, :key => :id do |ds|
     ds.where(:service_id => [SRV_GROUPE, SRV_CLASSE, SRV_LIBRE])
   end
+  many_to_one :niveau
+  one_to_many :eleve_dans_regroupement
 
   # Not nullable cols
   def validate
     super
     validates_presence [:type_regroupement_id]
+    # validates presence :etablissemnet_id if type_regroupement is CLS, GRP
+    validates_presence [:code_mef_aaf] if :type_regroupement_id == 'CLS'
   end
 
 

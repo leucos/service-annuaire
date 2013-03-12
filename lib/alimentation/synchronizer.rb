@@ -51,7 +51,7 @@ module Alimentation
       puts "synchronize matieres educ national"
       # received data 
       # {"code_men":"-","libelle":"ASSISTANT D'EDUCATION","description":"SANS OBJET"}
-      data.each do |fonction|
+      data.each do |matiere|
         begin 
           record = MatiereEnseignee[:id => matiere["ENTMatJointure"]]
           if record.nil? # not found => add matiere 
@@ -123,37 +123,32 @@ module Alimentation
         
         when "STRUCTURES"
           puts "structure"
-          #TODO manque type_etablissement_id
           data = JSON.parse(@data)
           modify_or_create_etablissement(data)
-
-        when "COMPTES"
-          #puts "Compte: profile #{@profil}"
-          #data = JSON.parse(@data)
-          #modify_or_create_user(data)
         
         when "CLASSES"
           puts "Classes"
-          #data = JSON.parse(@data)
-          #modify_or_create_regroupement(data)
+          data = JSON.parse(@data)
+          modify_or_create_regroupement(data)
           
         
         when "GROUPES"
           puts "groupes"
-          #data = JSON.parse(@data)
-          #modify_or_create_regroupement(data)
-          
+          data = JSON.parse(@data)
+          modify_or_create_regroupement(data)
+        
+        when "COMPTES"
+          puts "Compte: profile #{@profil}"
+          data = JSON.parse(@data)
+          modify_or_create_user(data)
+
         when "RATTACHEMENTS"
           puts "Rattachement: #{@profil}"
         
         when "DETACHEMENTS" 
           puts "DETACHEMENTS"
 
-        when "MATIERES"
-          puts "matiere"
-
-        when "MEFEDUCNAT"
-          puts "mef"
+          
 
         else
           puts "I will raise an error "
@@ -166,32 +161,57 @@ module Alimentation
       puts "modify or create structure is called"
       # TODO: many structures or one structure is sent 
       # NOTE: i consider one structure is sent
-      #puts "received data" 
-      #puts data.inspect 
+      
+      # received data example 
+      # {"id":"4813","code_uai":"0690078K","siren":"19690078100010","type_structure":"COLLEGE",
+      #  "contrat":"PU","nom":"CLG-VAL D'ARGENT","adresse":"9 RUE DES PRAIRIES",
+      #  "code_postal":"69610","ville":"STE FOY L ARGENTIERE","telephone":"+33 4 74 72 26 00",
+      #  "fax":"+33 4 74 72 26 03","date_last_maj_aaf":"2013-03-12"}
       begin
         if data.length > 1
           puts "Error :too many structures are received" 
         end  
         structure = data[0]  # structure <> etablissement
-        # 1) TODO: rename key structure_jointure to id 
-        structure.merge!({"id" => structure["structure_jointure"]})
-        structure.reject! {| key, value | key =="structure_jointure"} 
+        
         found_one = false
         
         # search etablissement for corresponding records
-        if Etablissement[:id => structure["id"]].nil? == false 
-          found_one = true
-        elsif Etablissement[:id => structure["id"]].nil? == true
-          found_one = false 
+        record = Etablissement[:id => structure["id"], :code_uai => structure["code_uai"]]
+        if record.nil? 
+          found_one = false
+        else 
+          found_one = true 
         end
         
         # TODO : ask Pgl for cases
         if found_one && @type_import == "Complet"
+          
+          # modify
           puts "structure: #{structure['code_uai']} will be modifyed"
-          Etablissement.where(:id => structure["id"]).update(structure)
+          record[:siren] = structure["siren"]
+          record[:nom] = structure["nom"]
+          record[:adresse] = structure["adresse"]
+          record[:code_postal] = structure["code_postal"]
+          record[:ville] = structure["ville"]
+          record[:telephone] = structure["telephone"]
+          record[:fax] = structure["fax"]
+          record[:date_last_maj_aaf] = structure["date_last_maj_aaf"]
+          
+          type_etab = {:type_struct_aaf => structure["type_structure"], :type_contrat => structure["contrat"]}
+          type_etab = TypeEtablissement.find_or_create(type_etab)
+          record[:type_etablissement_id] = type_etab.id
+          record.save
+        
         elsif !found_one && @type_import == "Complet"
+          # create
           puts "structure: #{structure['code_uai']} will be added"
-          Etablissement.insert(structure)
+          type_etab = {:type_struct_aaf => structure["type_structure"], :type_contrat => structure["contrat"]}
+          type_etab = TypeEtablissement.find_or_create(type_etab)
+
+          Etablissement.insert({:id => structure["id"], :code_uai => structure["code_uai"], :siren => structure["siren"],
+            :nom => structure["nom"], :adresse => structure["adresse"], :code_postal => structure["code_postal"],
+            :ville => structure["ville"],:telephone => structure["telephone"],:fax => structure["fax"], :date_last_maj_aaf => structure["date_last_maj_aaf"],
+            :type_etablissement_id => type_etab.id})   
         else
           raise "not supported"  
         end    
@@ -246,42 +266,63 @@ module Alimentation
     def modify_or_create_eleves(data)  
       # Example data:  
       #COMPTE profil eleve: 
-      #{"type_alim"=>"Complet", "profil"=>"ELEVE", "id_sconet"=>"1035780", "id_jointure_aaf"=>"2414273", 
+      #{"profil"=>"ELEVE", "id_sconet"=>"1035780", "id_jointure_aaf"=>"2414273", 
       # "nom"=>"AISSOU", "prenom"=>"Yanis", "date_naissance"=>"15/08/2001", "sexe"=>"M", "date_last_maj_aaf"=>"2013-02-28"}
       # we must capture errors in order to treat all eleves
       data.each do |eleve| 
         begin 
           found_one = false
-          
+          record = User[:id_jointure_aaf => eleve["id_jointure_aaf"]]
           # search Users for corresponding records
-          if User[:id_jointure_aaf => eleve["id_jointure_aaf"]].nil? == false 
-            found_one = true
-          elsif User[:id_jointure_aaf => eleve["id_jointure_aaf"]].nil? == true
-            found_one = false 
+          if record.nil? 
+            found_one = false
+          else 
+            found_one = true 
           end
 
           # Treate User
           if found_one && @type_import == "Complet"
-            # update user 
-            # create a new hash with updated values 
+            puts "update eleve #{eleve['id_jointure_aaf']}"
             # update where id_jointure_aaf = eleve["id_jointure_aaf"] with new hash
-            # add profil to user if not added 
+            record[:id_sconet] = eleve["id_sconet"]
+            record[:nom] = eleve["nom"] 
+            record[:prenom] = eleve["prenom"]
+            record[:date_naissance] = eleve["date_naissance"]
+            record[:sexe] = eleve["sexe"]
+
+            record.save
+
+            # add profil to user if not added
+            profil_id = 'ELV'
+            etablissement_id = Etablissement[:code_uai => @uai].id
+            record.add_profil(etablissement_id, profil_id)
+            
+             
             # attach user to etablissment
             # add telphone, add email  
           elsif !found_one && @type_import == "Complet"
-            # create user
-            # puts "create eleve"
+            puts "create user #{eleve['id_jointure_aaf']}"
             # find a suitable login for the user
-            # create a hash with received values 
-            # insert the hash into user table 
-            # add profil to user 
+            login = User.find_available_login(eleve["prenom"],eleve["nom"])
+            # insert the hash into user table
+            # TODO: generate default password algorithm instead of this
+            password = login 
+            user = User.create(:id_sconet => eleve["id_sconet"], :login => login, 
+              :id_jointure_aaf => eleve["id_jointure_aaf"], :nom => eleve["nom"], :prenom => eleve["prenom"],
+              :date_naissance => eleve["date_naissance"],:sexe => eleve["sexe"], :date_creation => eleve["date_last_maj_aaf"],
+              :password => password)
+            # add profil eleve to user
+            profil_id = 'ELV'
+            etablissement_id = Etablissement[:code_uai => @uai].id
+            user.add_profil(etablissement_id, profil_id)
+          
             # add emails 
             # add telephones
           else
             raise "error: delete not supported" 
           end
         rescue => e 
-          puts "continue to next user"
+          puts e.message
         end     
       end # end each
     end  
@@ -290,56 +331,80 @@ module Alimentation
     # synchronize  regroupement 
     # TODO: Modify received data to correspond to 
     # data table
+    
     def modify_or_create_regroupement(data)
       puts "modify or create Regroupement is called" 
-      begin
         # verify data length 
-        if data.length == 0
-          puts "Error :no regroupements to be treated" 
-        end
-        
-        data.each do |regroupement|
-          # search Regroupements for corresponding records
-          # i do not know if libelle_aaf is unique ?!!
-          if Regroupement[:libelle => regroupement["libelle_aaf"]].nil? == false 
-            found_one = true
-          elsif Regroupement[:libelle => regroupement["libelle_aaf"]].nil? == false 
-            found_one = false 
+      if data.length == 0
+        puts "Error :no regroupements to be treated" 
+      end
+      
+      data.each do |regroupement|
+        # search Regroupements table  for corresponding records
+        # i do not know if libelle_aaf is unique ?!!
+        begin
+          etablissement = Etablissement[:code_uai => @uai]
+          record = Regroupement[:libelle_aaf => regroupement["libelle_aaf"],:etablissement_id => etablissement.id]
+          if record.nil? 
+            found_one = false
+          else 
+            found_one = true 
           end
           
           # treatement of data
-          # TODO : modify the received json data to contain the fallowing elements
-          # [libelle, code_mef?, data_last_maj_.., libelle-aaf, niveau or niveau_id(int), 
-          # Etablissement_id, type_regroupement_id]
-          
+          # received class data example 
+          # {"etablissement":"0690078K","libelle_aaf":"6A","type_regroupement_id":"CLS",
+          # "code_mef_aaf":"1001000C11A","date_last_maj_aaf":"2013-03-12"}
+
           if found_one && regroupement["type_regroupement_id"] == "CLS"
-            puts "Modify class"
+            puts "Modify class  #{regroupement['libelle_aaf']}"
             #modify class 
-            #Regroupement.where(:libelle => regroupement["libelle_aaf"]).update(regroupement)
+            # update only code_mef_aaf and date_last_maj_aaf
+            record[:code_mef_aaf] = regroupement["code_mef_aaf"]
+            record[:date_last_maj_aaf] = regroupement["date_last_maj_aaf"] 
+            record[:libelle] = regroupement["libelle"]
+            record[:description] = regroupement["description"]
+            record.save
+
           elsif !found_one && regroupement["type_regroupement_id"] == "CLS"
-            puts "Add class"
+            puts "Add class #{regroupement['libelle_aaf']}"
             # create class 
-            # Regroupement.create(regroupement)
+            Regroupement.insert({:libelle_aaf => regroupement["libelle_aaf"],:etablissement_id => etablissement.id, 
+              :code_mef_aaf => regroupement["code_mef_aaf"], :type_regroupement_id => regroupement["type_regroupement_id"], 
+              :date_last_maj_aaf => regroupement["date_last_maj_aaf"]})
+
+
+          # received groups data example 
+          # {"etablissement":"0690078K","libelle_aaf":"3A GR AL","type_regroupement_id":"GRP",
+          # "libelle":"3A Gr Alld2","date_last_maj_aaf":"2013-03-12"}  
           elsif found_one && regroupement["type_regroupement_id"] == "GRP"
-            puts "Modify group"
-            #Regroupement.where(:libelle => regroupement["libelle_aaf"]).update(regroupement)
+            puts "Modify group #{regroupement['libelle_aaf']}"
+            record[:code_mef_aaf] = regroupement["code_mef_aaf"]
+            record[:date_last_maj_aaf] = regroupement["date_last_maj_aaf"] 
+            record[:libelle] = regroupement["libelle"]
+            record[:description] = regroupement["description"]
+            record.save
+            
           elsif !found_one && regroupement["type_regroupement_id"] == "GRP"
-            puts "add group"
-            #Regroupement.create(regroupement) 
+            puts "add group #{regroupement['libelle_aaf']}"
+            Regroupement.insert({:libelle_aaf => regroupement["libelle_aaf"],:etablissement_id => etablissement.id, 
+              :code_mef_aaf => regroupement["code_mef_aaf"], :type_regroupement_id => regroupement["type_regroupement_id"], 
+              :date_last_maj_aaf => regroupement["date_last_maj_aaf"], :libelle => regroupement["libelle"] })
+             
           elsif found_one && regroupement["type_regroupement_id"] == "LBR"
             puts "Modify group libre"
-            #Regroupement.where(:libelle => regroupement["libelle_aaf"]).update(regroupement)
+            # actually not feeded by the academy 
           elsif !found_one && regroupement["type_regroupement_id"] == "LBR"
             puts "add group libre"
-            #Regroupement.create(regroupement) 
+            # actually not feeded by the academy  
           else 
-            puts "data has errors"
+            raise "received data has errors"
           end
-        end 
-             
-      rescue => e
-        Laclasse::Log.error(e.message) 
-      end
+        rescue => e 
+          Laclasse::Log.error(e.message)
+        end
+
+      end #end loop  
 
     end # end modify_or_create_regroupement
 
