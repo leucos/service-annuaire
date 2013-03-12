@@ -39,42 +39,6 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `annuaire`.`mef_educ_nat`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuaire`.`mef_educ_nat` ;
-
-CREATE  TABLE IF NOT EXISTS `annuaire`.`mef_educ_nat` (
-  `ent_mef_jointure` VARCHAR(20) NOT NULL ,
-  `mef_libelle` VARCHAR(256) NULL ,
-  `ent_mef_rattach` VARCHAR(20) NULL ,
-  `mef_mef_stat` VARCHAR(20) NULL ,
-  PRIMARY KEY (`ent_mef_jointure`) )
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
--- Table `annuaire`.`niveau`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuaire`.`niveau` ;
-
-CREATE  TABLE IF NOT EXISTS `annuaire`.`niveau` (
-  `id` CHAR(8) NOT NULL ,
-  `libelle` VARCHAR(45) NULL ,
-  `description` VARCHAR(255) NULL ,
-  `annee` INT NULL COMMENT 'ordre d\'affichage. Plus on s\'approche de la terminale et plus ce nombre est grand.' ,
-  `code_mef` VARCHAR(20) NOT NULL ,
-  PRIMARY KEY (`id`) ,
-  INDEX `fk_niveau_mef_educ_nat1` (`code_mef` ASC) ,
-  CONSTRAINT `fk_niveau_mef_educ_nat1`
-    FOREIGN KEY (`code_mef` )
-    REFERENCES `annuaire`.`mef_educ_nat` (`ent_mef_jointure` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB
-COMMENT = 'Spécifique regroupement de type classe correspondent à CM2, ' /* comment truncated */;
-
-
--- -----------------------------------------------------
 -- Table `annuaire`.`type_etablissement`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `annuaire`.`type_etablissement` ;
@@ -136,6 +100,20 @@ COMMENT = 'Type de regroupement : classe, groupe d\'élèves, groupes de t' /* c
 
 
 -- -----------------------------------------------------
+-- Table `annuaire`.`niveau`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `annuaire`.`niveau` ;
+
+CREATE  TABLE IF NOT EXISTS `annuaire`.`niveau` (
+  `ent_mef_jointure` VARCHAR(20) NOT NULL ,
+  `mef_libelle` VARCHAR(256) NULL ,
+  `ent_mef_rattach` VARCHAR(20) NULL ,
+  `ent_mef_stat` VARCHAR(20) NULL ,
+  PRIMARY KEY (`ent_mef_jointure`) )
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
 -- Table `annuaire`.`regroupement`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `annuaire`.`regroupement` ;
@@ -147,18 +125,13 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`regroupement` (
   `code_mef_aaf` INT NULL ,
   `date_last_maj_aaf` DATE NULL ,
   `libelle_aaf` CHAR(8) NULL COMMENT 'En cas d\'alimentation automatique, un libelle de 8 caractères.' ,
-  `niveau_id` CHAR(8) NULL ,
   `etablissement_id` INT NULL ,
   `type_regroupement_id` CHAR(8) NOT NULL ,
+  `code_mef` VARCHAR(20) NOT NULL ,
   PRIMARY KEY (`id`) ,
-  INDEX `fk_regroupement_niveau1` (`niveau_id` ASC) ,
   INDEX `fk_regroupement_etablissement1` (`etablissement_id` ASC) ,
   INDEX `fk_regroupement_type_regroupement1` (`type_regroupement_id` ASC) ,
-  CONSTRAINT `fk_regroupement_niveau1`
-    FOREIGN KEY (`niveau_id` )
-    REFERENCES `annuaire`.`niveau` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+  INDEX `fk_regroupement_niveau1` (`code_mef` ASC) ,
   CONSTRAINT `fk_regroupement_etablissement1`
     FOREIGN KEY (`etablissement_id` )
     REFERENCES `annuaire`.`etablissement` (`id` )
@@ -167,6 +140,11 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`regroupement` (
   CONSTRAINT `fk_regroupement_type_regroupement1`
     FOREIGN KEY (`type_regroupement_id` )
     REFERENCES `annuaire`.`type_regroupement` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_regroupement_niveau1`
+    FOREIGN KEY (`code_mef` )
+    REFERENCES `annuaire`.`niveau` (`ent_mef_jointure` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -719,9 +697,9 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`profil_user_has_fonction` (
   `profil_user_user_id` CHAR(16) NOT NULL ,
   `profil_user_etablissement_id` INT NOT NULL ,
   `fonction_id` INT NOT NULL ,
-  PRIMARY KEY (`profil_user_profil_id`, `profil_user_user_id`, `profil_user_etablissement_id`, `fonction_id`) ,
-  INDEX `fk_profil_user_has_fonction_fonction1` (`fonction_id` ASC) ,
+  PRIMARY KEY (`profil_user_profil_id`, `profil_user_user_id`, `profil_user_etablissement_id`) ,
   INDEX `fk_profil_user_has_fonction_profil_user1` (`profil_user_profil_id` ASC, `profil_user_user_id` ASC, `profil_user_etablissement_id` ASC) ,
+  INDEX `fk_profil_user_has_fonction_fonction1` (`fonction_id` ASC) ,
   CONSTRAINT `fk_profil_user_has_fonction_profil_user1`
     FOREIGN KEY (`profil_user_profil_id` , `profil_user_user_id` , `profil_user_etablissement_id` )
     REFERENCES `annuaire`.`profil_user` (`profil_id` , `user_id` , `etablissement_id` )
@@ -755,17 +733,38 @@ COMMIT;
 -- -----------------------------------------------------
 -- Data for table `annuaire`.`type_relation_eleve`
 -- -----------------------------------------------------
--- START TRANSACTION;
--- USE `annuaire`;
--- INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (1, 'Père', NULL);
--- INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (2, 'Mère', NULL);
--- INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (3, 'Tuteur', NULL);
--- INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (4, 'Autre Fam.', NULL);
--- INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (5, 'Ddass', NULL);
--- INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (6, 'Autre cas', NULL);
-
--- COMMIT;
-
+START TRANSACTION;
+USE `annuaire`;
+INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (1, 'Père', 'PERE');
+INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (2, 'Mère', 'Mère');
+INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (3, 'Tuteur', 'Tuteur');
+INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (4, 'Autre membre de la famille','A_MMBR');
+INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (5, 'Ddass', 'DDASS');
+INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (6, 'Autre cas', 'A_CAS');
+INSERT INTO `annuaire`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (7, 'Eleve lui meme', 'ELEVE');
+COMMIT;
+  
+-- -----------------------------------------------------
+-- Data for table `annuaire`.`type_etablissement`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `annuaire`;
+INSERT INTO `annuaire`.`type_etablissement` (`nom`, `type_contrat`, `libelle`) VALUES ('Service du département', 'PU', NULL);
+INSERT INTO `annuaire`.`type_etablissement` (`nom`, `type_contrat`, `libelle`) VALUES ('Ecole', 'PR', 'Ecole privée');    
+INSERT INTO `annuaire`.`type_etablissement` (`nom`, `type_contrat`, `libelle`) VALUES ('Ecole', 'PU', 'Ecole publique');    
+INSERT INTO `annuaire`.`type_etablissement` (`nom`, `type_contrat`, `libelle`) VALUES ('Collège', 'PR',  'Collège privé');    
+INSERT INTO `annuaire`.`type_etablissement` (`nom`, `type_contrat`, `libelle`) VALUES ('Collège', 'PU',  'Collège public');
+INSERT INTO `annuaire`.`type_etablissement` (`nom`, `type_contrat`, `libelle`) VALUES ('Lycée', 'PR',  'Lycée privé');
+INSERT INTO `annuaire`.`type_etablissement` (`nom`, `type_contrat`, `libelle`) VALUES ('Lycée', 'PU',  'Lycée public');
+INSERT INTO `annuaire`.`type_etablissement` (`nom`, `type_contrat`, `libelle`) VALUES ('Bâtiment', 'PU',  'Bâtiment public');
+INSERT INTO `annuaire`.`type_etablissement` (`nom`, `type_contrat`, `libelle`) VALUES ('Lycée professionnel', 'PR',  'Lycée professionnel privé');
+INSERT INTO `annuaire`.`type_etablissement` (`nom`, `type_contrat`, `libelle`) VALUES ('Maison Familiale Rurale', 'PU', 'Maison Familiale Rurale');
+INSERT INTO `annuaire`.`type_etablissement` (`nom`, `type_contrat`, `libelle`) VALUES ('Campus', 'PU', 'Campus public');
+INSERT INTO `annuaire`.`type_etablissement` (`nom`, `type_contrat`, `libelle`) VALUES ('CRDP', 'PU', 'Centre Régional de Documentation Pédagogique');
+INSERT INTO `annuaire`.`type_etablissement` (`nom`, `type_contrat`, `libelle`) VALUES ('CG Jeunes', 'PU', 'CG Jeunes');
+INSERT INTO `annuaire`.`type_etablissement` (`nom`, `type_contrat`, `libelle`) VALUES ( 'Cité scolaire', 'PR', 'Cité scolaire privée');
+INSERT INTO `annuaire`.`type_etablissement` (`nom`, `type_contrat`, `libelle`) VALUES ( 'Cité scolaire', 'PU', 'Cité scolaire publique');
+COMMIT;
 -- -----------------------------------------------------
 -- Data for table `annuaire`.`type_telephone`
 -- -----------------------------------------------------
