@@ -126,7 +126,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`regroupement` (
   `date_last_maj_aaf` DATE NULL ,
   `libelle_aaf` CHAR(8) NULL COMMENT 'En cas d\'alimentation automatique, un libelle de 8 caractères.' ,
   `type_regroupement_id` CHAR(8) NOT NULL ,
-  `code_mef_aaf` VARCHAR(20) NOT NULL ,
+  `code_mef_aaf` VARCHAR(20) NULL ,
   `etablissement_id` INT NOT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_regroupement_type_regroupement1` (`type_regroupement_id` ASC) ,
@@ -174,7 +174,6 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`enseigne_dans_regroupement` (
   `regroupement_id` INT NOT NULL ,
   `matiere_enseignee_id` VARCHAR(10) NOT NULL ,
   `prof_principal` VARCHAR(45) NULL ,
-  PRIMARY KEY (`user_id`, `regroupement_id`, `matiere_enseignee_id`) ,
   INDEX `fk_user_has_regroupement_regroupement1` (`regroupement_id` ASC) ,
   INDEX `fk_user_has_regroupement_user1` (`user_id` ASC) ,
   INDEX `fk_enseigne_regroupement_matiere_enseignee1` (`matiere_enseignee_id` ASC) ,
@@ -224,7 +223,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`relation_eleve` (
   `resp_legal` TINYINT(1) NULL DEFAULT 0 ,
   `contact` TINYINT(1) NULL DEFAULT 0 ,
   `paiement` TINYINT(1) NULL DEFAULT 0 ,
-  PRIMARY KEY (`user_id`, `eleve_id`) ,
+  PRIMARY KEY (`user_id`, `eleve_id`, `type_relation_eleve_id`) ,
   INDEX `fk_user_has_user_user2` (`user_id` ASC) ,
   INDEX `fk_user_has_user_user1` (`eleve_id` ASC) ,
   INDEX `fk_relation_eleve_type_relation_eleve1` (`type_relation_eleve_id` ASC) ,
@@ -418,11 +417,11 @@ COMMENT = 'Paramètres de l\'application avec leurs valeurs par défaut. ';
 DROP TABLE IF EXISTS `annuaire`.`fonction` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`fonction` (
-  `id` INT NOT NULL AUTO_INCREMENT ,
+  `id` INT NULL ,
   `libelle` VARCHAR(45) NULL ,
-  `description` VARCHAR(1024) NULL ,
-  `code_men` VARCHAR(45) NULL ,
-  PRIMARY KEY (`id`) )
+  `description` VARCHAR(100) NULL ,
+  `code_men` VARCHAR(20) NOT NULL ,
+  PRIMARY KEY (`code_men`) )
 ENGINE = InnoDB
 COMMENT = 'fonction is a reference table de reference alimented by the ' /* comment truncated */;
 
@@ -694,21 +693,21 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `annuaire`.`profil_user_has_fonction` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`profil_user_has_fonction` (
-  `profil_user_profil_id` CHAR(8) NOT NULL ,
-  `profil_user_user_id` CHAR(16) NOT NULL ,
-  `profil_user_etablissement_id` INT NOT NULL ,
-  `fonction_id` INT NOT NULL ,
-  PRIMARY KEY (`profil_user_profil_id`, `profil_user_user_id`, `profil_user_etablissement_id`) ,
-  INDEX `fk_profil_user_has_fonction_profil_user1` (`profil_user_profil_id` ASC, `profil_user_user_id` ASC, `profil_user_etablissement_id` ASC) ,
-  INDEX `fk_profil_user_has_fonction_fonction1` (`fonction_id` ASC) ,
+  `profil_id` CHAR(8) NULL ,
+  `user_id` CHAR(16) NOT NULL ,
+  `etablissement_id` INT NOT NULL ,
+  `fonction_code` VARCHAR(20) NOT NULL ,
+  PRIMARY KEY (`user_id`, `etablissement_id`, `fonction_code`) ,
+  INDEX `fk_profil_user_has_fonction_profil_user1` (`profil_id` ASC, `user_id` ASC, `etablissement_id` ASC) ,
+  INDEX `fk_profil_user_has_fonction_fonction1` (`fonction_code` ASC) ,
   CONSTRAINT `fk_profil_user_has_fonction_profil_user1`
-    FOREIGN KEY (`profil_user_profil_id` , `profil_user_user_id` , `profil_user_etablissement_id` )
+    FOREIGN KEY (`profil_id` , `user_id` , `etablissement_id` )
     REFERENCES `annuaire`.`profil_user` (`profil_id` , `user_id` , `etablissement_id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_profil_user_has_fonction_fonction1`
-    FOREIGN KEY (`fonction_id` )
-    REFERENCES `annuaire`.`fonction` (`id` )
+    FOREIGN KEY (`fonction_code` )
+    REFERENCES `annuaire`.`fonction` (`code_men` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
@@ -719,6 +718,14 @@ COMMENT = 'this table generated from many to many between profil_user a' /* comm
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+-- -----------------------------------------------------
+-- initialize data for table `annuaire`.`last_uid`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `annuaire`;
+INSERT INTO `annuaire`.`last_uid` (`last_uid`) VALUES ('VAA60000');
+COMMIT;
 
 -- -----------------------------------------------------
 -- Data for table `annuaire`.`type_regroupement`

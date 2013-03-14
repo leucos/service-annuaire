@@ -39,6 +39,7 @@ class User < Sequel::Model(:user)
   plugin :fuzzy_search
   plugin :select_json_array
 
+  unrestrict_primary_key()
   # Referential integrity
   one_to_many :enseigne_dans_regroupement
   one_to_many :eleve_dans_regroupement
@@ -101,6 +102,12 @@ class User < Sequel::Model(:user)
 
     return final_login
   end
+
+
+  # is default password
+  def is_default_pass?
+    return self.password == self.id_jointure_aaf
+  end 
 
   # Renvois un dataset utilisé pour faire une recherche sur tous les utilisateurs
   # Et formaté pour renvoyé le résultat en JSON
@@ -280,17 +287,17 @@ class User < Sequel::Model(:user)
   # Et rajoute aussi le role_user associé
   def add_profil(etablissement_id, profil_id)
     # ProfilUser sert juste a afficher le profil administratif de l'utilisateur
-    ProfilUser.find_or_create(:user => self, 
+    ProfilUser.find_or_create(:user_id => self.id, 
         :etablissement_id => etablissement_id, :profil_id => profil_id)
     
     # later i will see the problem of roles commented on 12/03/2013
     #add_role(etablissement_id, SRV_ETAB, Profil[profil_id].role_id)
   end
 
-  # default password 
-  def default_pass()
-
-  end
+  def add_fonction(etablissement_id, profil_id, fonction_code_men)
+    ProfilUserFonction.find_or_create(:user_id => self.id, 
+        :etablissement_id => etablissement_id, :profil_id => profil_id, :fonction_code => fonction_code_men)
+  end   
 
 
   def civilite
@@ -303,8 +310,10 @@ class User < Sequel::Model(:user)
     "#{nom.capitalize} #{prenom.capitalize}"
   end
 
-  def add_parent(parent, type_relation_id=TYP_REL_PAR)
-    RelationEleve.create(:user_id => parent.id, :eleve_id => self.id, :type_relation_eleve_id => type_relation_id)
+  def add_parent(parent, type_relation_id, resp_financier, resp_legal, contact, paiement)
+    RelationEleve.find_or_create(:user_id => parent.id, :eleve_id => self.id, 
+      :type_relation_eleve_id => type_relation_id, :resp_financier => resp_financier, 
+      :resp_legal => resp_legal, :contact => contact, :paiement => paiement)
   end
 
   def add_enfant(enfant, type_relation_id=TYP_REL_PAR)
@@ -318,6 +327,10 @@ class User < Sequel::Model(:user)
   def etablissements
     Etablissement.filter(:id => RoleUser.filter(:ressource_service_id => SRV_ETAB).select(:ressource_id))
   end
+
+  def add_to_regroupement(regroupement_id)
+    EleveRegroupement.find_or_create(:user_id => self.id, :regroupement_id => regroupement_id)
+  end 
 
   # Ajoute un role sur une classe
   def add_classe(classe_id, role_id)
@@ -365,9 +378,11 @@ class User < Sequel::Model(:user)
   # @param academique : si oui ou non il s'agit d'un mail académique
   # todo : détecter automatiquement le type académique ?
   def add_email(adresse, academique = false)
+    mail = Email.find_or_create(:adresse => adresse, :user_id => self.id, :academique => academique)
     # Si l'utilisateur n'a pas d'email c'est son mail principal
-    principal = email.count == 0
-    Email.create(:adresse => adresse, :user => self, :academique => academique, :principal => principal)
+    principal = email.count == 0 
+    mail[:principal] = principal
+    mail.save
   end
 
   def delete_email(adresse)
@@ -395,7 +410,7 @@ class User < Sequel::Model(:user)
   # Ajoute un téléphone à l'utilisateur
   # type par défaut Maison mais détecte si c'est un portable
   def add_telephone(numero, type_telephone_id = TYP_TEL_MAIS)
-    Telephone.create(:numero => numero, :user => self, :type_telephone_id => type_telephone_id)
+    Telephone.find_or_create(:numero => numero, :user_id => self.id, :type_telephone_id => type_telephone_id)
   end
 
   # Set la valeur d'une préférence sur un utilisateur

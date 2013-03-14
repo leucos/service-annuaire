@@ -127,17 +127,11 @@ class Regroupement < Sequel::Model(:regroupement)
 =end
 
   # matieres = [ ]
-  def add_prof(user_id, matieres)
-    #actually sans matieres
-    user = User[:id => user_id]
-    user.add_role(self.ressource.id, self.ressource.service_id, "PROF_CLS")
-    matieres.each do |mat|
-      ens_mat = EnseigneRegroupement.new
-      ens_mat.regroupement = self
-      ens_mat.user_id = user_id     
-      ens_mat.matiere_enseignee_id = mat
-      ens_mat.save 
-    end   
+  def add_prof(user, matiere, principal = "N" )
+    # for the moment i dont treat roles
+    #user.add_role(self.ressource.id, self.ressource.service_id, "PROF_CLS")
+    EnseigneRegroupement.find_or_create(:regroupement_id => self.id, :user_id => user.id,
+      :matiere_enseignee_id => matiere.id, :prof_principal => principal)
   end
 
   def delete_prof(user_id)

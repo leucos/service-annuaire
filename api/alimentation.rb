@@ -122,6 +122,7 @@ class AlimentationApi < Grape::API
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=pers_rel_eleve&rne=0690078K
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=rattachements_profs&rne=0690078K
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=detachements&rne=0690078K
+        # service=fonctions_pen & rne=0690078K
 
       res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{params[:service]}&rne=#{params[:uai]}"))
       begin
