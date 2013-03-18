@@ -73,8 +73,11 @@ class AlimentationApi < Grape::API
         
         # instantiate synchronizer
         # TODO: search for a better method for instantiating synchronizer
+        start = Time.now
         synchronizer = Alimentation::Synchronizer.new(type_import, uai, profil, type_data, data)
         synchronizer.sync()
+        fin = Time.now 
+        puts "synchronization took #{fin-start} seconds"
         "Data synchronized succesfully"
 
       rescue => e 
@@ -172,13 +175,17 @@ class AlimentationApi < Grape::API
       
     end 
     
-    #-----------------------------------------#
+    #-------------------------------------------------#
     desc "Get bilan etablissement info"
-    get "bilan/:uai" do 
-      
+    get "bilan/:uai" do
+      res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=bilan&rne=#{params[:uai]}")) 
+      puts res.code 
+      puts res.message
+      # parse response
+      #     
     end
 
-    #-------------------------------------------------#
+    #--------------------------------------------------#
     desc "Synchronize Mef education national"
     get "/sync_mef" do 
       service = "mef"

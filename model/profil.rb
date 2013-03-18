@@ -14,7 +14,7 @@
 # role_id                       | int(11)             | false    | MUL      |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
-class Profil < Sequel::Model(:profil)
+class Profil < Sequel::Model(:profil_national)
 
   # Plugins
   plugin :validation_helpers

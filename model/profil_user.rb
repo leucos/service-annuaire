@@ -20,7 +20,7 @@ class ProfilUser < Sequel::Model(:profil_user)
   unrestrict_primary_key()
 
   # Referential integrity
-  many_to_one :profil
+  many_to_one :profil_national
   many_to_one :user
   many_to_one :etablissement
   #one_to_many :profil_user_has_fonction

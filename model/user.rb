@@ -287,8 +287,16 @@ class User < Sequel::Model(:user)
   # Et rajoute aussi le role_user associé
   def add_profil(etablissement_id, profil_id)
     # ProfilUser sert juste a afficher le profil administratif de l'utilisateur
-    ProfilUser.find_or_create(:user_id => self.id, 
-        :etablissement_id => etablissement_id, :profil_id => profil_id)
+    #ProfilUser.find_or_create(:user_id => self.id, 
+        #:etablissement_id => etablissement_id, :profil_id => profil_id)
+    profil = ProfilUser[:user_id => self.id, 
+        :etablissement_id => etablissement_id, :profil_id => profil_id]
+    if profil.nil?
+      ProfilUser.insert(:user_id => self.id, :etablissement_id => etablissement_id, 
+        :profil_id => profil_id)
+    else
+      profil 
+    end
     
     # later i will see the problem of roles commented on 12/03/2013
     #add_role(etablissement_id, SRV_ETAB, Profil[profil_id].role_id)
@@ -310,10 +318,16 @@ class User < Sequel::Model(:user)
     "#{nom.capitalize} #{prenom.capitalize}"
   end
 
-  def add_parent(parent, type_relation_id, resp_financier, resp_legal, contact, paiement)
-    RelationEleve.find_or_create(:user_id => parent.id, :eleve_id => self.id, 
-      :type_relation_eleve_id => type_relation_id, :resp_financier => resp_financier, 
-      :resp_legal => resp_legal, :contact => contact, :paiement => paiement)
+  def add_or_modify_parent(parent, type_relation_id, resp_financier, resp_legal, contact, paiement)
+    record = RelationEleve[:user_id => parent.id, :eleve_id => self.id, :type_relation_eleve_id => type_relation_id]
+    if record.nil?
+      RelationEleve.create(:user_id => parent.id, :eleve_id => self.id, 
+        :type_relation_eleve_id => type_relation_id, :resp_financier => resp_financier, 
+        :resp_legal => resp_legal, :contact => contact, :paiement => paiement)
+    else
+      record.update(:resp_financier => resp_financier, :resp_legal => resp_legal, 
+        :contact => contact, :paiement => paiement)
+    end 
   end
 
   def add_enfant(enfant, type_relation_id=TYP_REL_PAR)

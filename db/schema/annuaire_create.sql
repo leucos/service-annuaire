@@ -31,7 +31,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`user` (
   `bloque` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Si oui ou non le compte est bloqué (plus d\'accès à l\'établissement et autre).' ,
   `change_password` TINYINT(1) NULL DEFAULT 0 COMMENT 'doit changer son password' ,
   PRIMARY KEY (`id`) ,
-  UNIQUE INDEX `id_jointure_aaf_UNIQUE` (`id_jointure_aaf` ASC) ,
+  INDEX `id_jointure_aaf_UNIQUE` USING BTREE (`id_jointure_aaf` ASC) ,
   UNIQUE INDEX `id_sconet_UNIQUE` (`id_sconet` ASC) ,
   UNIQUE INDEX `id_UNIQUE` (`id` ASC) ,
   UNIQUE INDEX `login_UNIQUE` (`login` ASC) )
@@ -320,11 +320,11 @@ COMMENT = 'Un rôle est lié a une application, son libellé permet de com' /* c
 
 
 -- -----------------------------------------------------
--- Table `annuaire`.`profil`
+-- Table `annuaire`.`profil_national`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuaire`.`profil` ;
+DROP TABLE IF EXISTS `annuaire`.`profil_national` ;
 
-CREATE  TABLE IF NOT EXISTS `annuaire`.`profil` (
+CREATE  TABLE IF NOT EXISTS `annuaire`.`profil_national` (
   `id` CHAR(8) NOT NULL COMMENT 'Identifiant à 4 caractère maximum.\n=code_men si code_men présent' ,
   `description` VARCHAR(100) NULL ,
   `code_national` VARCHAR(45) NULL COMMENT 'Code du profil type National_1.' ,
@@ -594,7 +594,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`profil_user` (
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_profil_user_profil1`
     FOREIGN KEY (`profil_id` )
-    REFERENCES `annuaire`.`profil` (`id` )
+    REFERENCES `annuaire`.`profil_national` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
@@ -718,7 +718,6 @@ COMMENT = 'this table generated from many to many between profil_user a' /* comm
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
-
 -- -----------------------------------------------------
 -- initialize data for table `annuaire`.`last_uid`
 -- -----------------------------------------------------
@@ -791,14 +790,15 @@ COMMIT;
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `annuaire`;
-INSERT INTO `annuaire`.`profil` (`id`, `description`, `code_national`, `role_id`) VALUES ('ELV', 'élève', 'National_ELV', NULL);
-INSERT INTO `annuaire`.`profil` (`id`, `description`, `code_national`, `role_id`) VALUES ('TUT', 'Responsable d\'un élève(parent, tuteur légal)', 'National_TUT', NULL);
-INSERT INTO `annuaire`.`profil` (`id`, `description`, `code_national`, `role_id`) VALUES ('ENS', 'Enseignant', 'National_ENS', NULL);
-INSERT INTO `annuaire`.`profil` (`id`, `description`, `code_national`, `role_id`) VALUES ('DIR', 'Personnel de direction de l\'établissement', 'National_DIR', NULL);
-INSERT INTO `annuaire`.`profil` (`id`, `description`, `code_national`, `role_id`) VALUES ('EVS', 'Personnel de vie scolaire travaillant dans l\'établissement', 'National_EVS', NULL);
-INSERT INTO `annuaire`.`profil` (`id`, `description`, `code_national`, `role_id`) VALUES ('ETA', 'Personnel administratif, technique ou d\'encadrement ', 'National_ETA', NULL);
-INSERT INTO `annuaire`.`profil` (`id`, `description`, `code_national`, `role_id`) VALUES ('ACA', 'Personnel de rectorat, de DRAF, d\'inspection académique', 'National_ACA', NULL);
-INSERT INTO `annuaire`.`profil` (`id`, `description`, `code_national`, `role_id`) VALUES ('DOC', 'Documentaliste', 'National_DOC', NULL);
-INSERT INTO `annuaire`.`profil` (`id`, `description`, `code_national`, `role_id`) VALUES ('COL', 'Personnel de collectivité teritoriale ', 'National_COL', NULL);
+INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('ELV', 'élève', 'National_ELV', NULL);
+INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('TUT', 'Responsable d\'un élève(parent, tuteur légal)', 'National_TUT', NULL);
+INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('ENS', 'Enseignant', 'National_ENS', NULL);
+INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('DIR', 'Personnel de direction de l\'établissement', 'National_DIR', NULL);
+INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('EVS', 'Personnel de vie scolaire travaillant dans l\'établissement', 'National_EVS', NULL);
+INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('ETA', 'Personnel administratif, technique ou d\'encadrement ', 'National_ETA', NULL);
+INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('ACA', 'Personnel de rectorat, de DRAF, d\'inspection académique', 'National_ACA', NULL);
+INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('DOC', 'Documentaliste', 'National_DOC', NULL);
+INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('COL', 'Personnel de collectivité teritoriale ', 'National_COL', NULL);
 
 COMMIT;
+
