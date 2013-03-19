@@ -5,6 +5,20 @@ module Sequel
     # avec son id et qui gère la création/suppression automatique de la ressource
     # Note : chaque classe pourra surcharger ces mécanisme pour 
     # par exemple changer le parent_id et parent_service_id
+    # plugins 
+    
+    # A singleton method named apply, which takes a model, additional arguments, 
+    # and an optional block. This is called the first time the plugin is loaded for this model 
+    # (unless it was already loaded by an ancestor class), before including/extending any modules, 
+    # with the arguments and block provided to the call to Model.plugin.
+    
+    # A module inside the plugin module named InstanceMethods, which will be included in the model class.
+
+    # A module inside the plugin module named ClassMethods, which will extend the model class.
+
+    # A module inside the plugin module named DatasetMethods, which will extend the model's dataset.
+
+    #A singleton method named configure, which takes a model, additional arguments, and an optional block. This is called every time the Model.plugin method is called, after including/extending any modules.
     module RessourceLink
       class NoServiceError < StandardError
       end
@@ -21,6 +35,7 @@ module Sequel
       end
       module InstanceMethods
         def after_create
+          puts "RessourceLink called for #{self.id}"
           # Je n'arrive pas a rajouter de variable de classe dynamiquement en ruby
           # Donc je vais rechercher le service ID à la mano
           service_id = Service.class_map.rassoc(self.class)[0]

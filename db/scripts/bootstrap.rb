@@ -42,14 +42,15 @@ def clean_annuaire()
 end
 
 def bootstrap_annuaire()
-  puts "TRUNCATE ALL TABLES"
+  #puts "TRUNCATE ALL TABLES"
   #ATTENTION : CODE SPECIFIQUE MYSQL
   #On ne peut pas faire un bete DB.tables.each car il faut respecter l'ordre des foreign keys
   # TODO : supprimer les ressources en faisant attention aux parents
+  #:last_uid, :activite_role, :role_user, :activite, :role, :param_application, :type_param, :ressource, :service, :email,
+  #:telephone, :profil_user, :etablissement, :enseigne_dans_regroupement, :regroupement, :application_etablissement,
+  #:user, :type_telephone, :type_regroupement, :type_relation_eleve, :profil_national, :niveau, :relation_eleve, :eleve_dans_regroupement
   [
-  :last_uid, :activite_role, :role_user, :activite, :role, :param_application, :type_param, :ressource, :service, :email,
-  :telephone, :profil_user, :etablissement, :enseigne_dans_regroupement, :regroupement, :application_etablissement,
-  :user, :type_telephone, :type_regroupement, :type_relation_eleve, :profil_national, :niveau, :relation_eleve, :eleve_dans_regroupement
+  :activite_role, :role_user, :activite, :role, :param_application, :type_param, :ressource, :service
   ].each do |table|
     if table == :ressource
       truncate_ressource()
@@ -193,7 +194,7 @@ def bootstrap_annuaire()
   # TODO: à modifier aussi
   # Les codes nationaux sont pris de la FAQ de l'annuaire ENT du SDET
   # http://eduscol.education.fr/cid57076/l-annuaire-ent-second-degre-et-son-alimentation-automatique.html
-
+=begin
   Profil.create(:id => 'ELV', :description => 'Elève', :code_national => 'National_ELV', :role_id => ROL_ELV_ETB)
   Profil.create(:id => 'ETA', :description => 'Personnel adminstartif, technique ou d\'encadrement', :code_national => 'National_ETA', :role_id => ROL_ADM_ETB)
   Profil.create(:id => 'TUT', :description => "Responsable d'un élève", :code_national => 'National_TUT', :role_id => ROL_PAR_ETB) #role à revoir
@@ -204,6 +205,7 @@ def bootstrap_annuaire()
   Profil.create(:id => 'DOC', :description => 'Documentaliste', :code_national => 'National_DOC', :role_id => ROL_PROF_ETB)
   Profil.create(:id => 'COL', :description => "Personnel de collectivité territoriale",  :code_national => 'National_COL', :role_id => ROL_CPE_ETB)
   #--------------------------------------------------------#
+=end  
 
 
 

@@ -14,7 +14,7 @@ module Alimentation
       @profil = profil
       @type_data = type_data
       @data = data  # must be transformed to type json , refactor code
-      
+      @logger = Laclasse::Logging.new("etab_#{@uai}.log",Logger::INFO)
       #if we want to store data temporarly in mongoDB
       #@db =DataBase.connect({:server => "localhost", :db => "mydb"})
     end
@@ -37,7 +37,7 @@ module Alimentation
             record.save # update
           end
         rescue  => e 
-          # change puts to Laclasse::Log.error
+          # change puts to @logger.error
           Laclasse::Log.error(e.message)
         end  
       end # end data.each    
@@ -61,11 +61,11 @@ module Alimentation
             record.save # update
           end
         rescue  => e 
-          # change puts to Laclasse::Log.error
+          # change puts to @logger.error
           Laclasse::Log.error(e.message)
         end  
       end # end data.each    
-      Laclasse::Log.info(Matieres synchronized successfully)  
+     Laclasse::Log.info("Matieres synchronized successfully")  
     end
 
     #-----------------------------------------------------------#
@@ -86,7 +86,7 @@ module Alimentation
             record.save # update
           end
         rescue  => e 
-          # change puts to Laclasse::Log.error
+          # change puts to @logger.error
           Laclasse::Log.error(e.message)
         end  
       end # end data.each    
@@ -96,7 +96,7 @@ module Alimentation
 
     #-----------------------------------------------------------# 
     def sync()
-      Laclasse::Log.info("sync() method is called")
+      @logger.info("sync() method is called")
       if @type_import == "Delta" 
         sync_delta()
       elsif @type_import =="Complet"
@@ -118,7 +118,7 @@ module Alimentation
     # method responsable for synchronizing complet data
     # i think treatement order is important 
     def sync_complet()
-      Laclasse::Log.info("sync_complet is called")
+      @logger.info("sync_complet is called")
       case @type_data
         
         when "STRUCTURES"
@@ -167,7 +167,7 @@ module Alimentation
     # -----------------------------------------------------------
     # synchronize structure
     def modify_or_create_etablissement(data)
-      Laclasse::Log.info("modify or create structure is called")
+      @logger.info("modify or create structure is called")
       # TODO: many structures or one structure is sent 
       # NOTE: i consider one structure is sent
       
@@ -196,7 +196,7 @@ module Alimentation
         if found_one && @type_import == "Complet"
           
           # modify
-          Laclasse::Log.info("structure: #{structure['code_uai']} will be modifyed")
+          @logger.info("structure: #{structure['code_uai']} will be modifyed")
           record[:siren] = structure["siren"]
           record[:nom] = structure["nom"]
           record[:adresse] = structure["adresse"]
@@ -213,11 +213,11 @@ module Alimentation
         
         elsif !found_one && @type_import == "Complet"
           # create
-          Laclasse::Log.info("structure: #{structure['code_uai']} will be added")
+          @logger.info("structure: #{structure['code_uai']} will be added")
           type_etab = {:type_struct_aaf => structure["type_structure"], :type_contrat => structure["contrat"]}
           type_etab = TypeEtablissement.find_or_create(type_etab)
 
-          Etablissement.insert({:id => structure["id"], :code_uai => structure["code_uai"], :siren => structure["siren"],
+          Etablissement.create({:id => structure["id"], :code_uai => structure["code_uai"], :siren => structure["siren"],
             :nom => structure["nom"], :adresse => structure["adresse"], :code_postal => structure["code_postal"],
             :ville => structure["ville"],:telephone => structure["telephone"],:fax => structure["fax"], :date_last_maj_aaf => structure["date_last_maj_aaf"],
             :type_etablissement_id => type_etab.id})   
@@ -225,14 +225,14 @@ module Alimentation
           raise "not supported"  
         end    
        rescue => e
-         Laclasse::Log.error(e.message) 
+         @logger.error(e.message) 
        end 
     end
     
     # -----------------------------------------------------------
     # syncronize user
     def modify_or_create_user(data)
-      Laclasse::Log.info("modify or create user is called")
+      @logger.info("modify or create user is called")
 
       # three cases 
         # eleves 
@@ -251,7 +251,7 @@ module Alimentation
             raise "profil not supported"
           end   
       rescue => e
-        Laclasse::Log.error(e.message)
+        @logger.error(e.message)
       end  
    
     end #end modify_or_create_user
@@ -269,7 +269,7 @@ module Alimentation
           record = User[:id_jointure_aaf => eleve["id_jointure_aaf"]]
           # search Users for corresponding records
           if record.nil? 
-            Laclasse::Log.info("create user #{eleve['id_jointure_aaf']}")
+            @logger.info("create user #{eleve['id_jointure_aaf']}")
             # find a suitable login for the user
             login = User.find_available_login(eleve["prenom"],eleve["nom"])
             # insert the hash into user table
@@ -288,7 +288,7 @@ module Alimentation
             # add emails 
             # add telephones
           else 
-            Laclasse::Log.info("update eleve #{eleve['id_jointure_aaf']}")
+            @logger.info("update eleve #{eleve['id_jointure_aaf']}")
             # update where id_jointure_aaf = eleve["id_jointure_aaf"] with new hash
             record[:id_sconet] = eleve["id_sconet"]
             record[:nom] = eleve["nom"] 
@@ -304,10 +304,10 @@ module Alimentation
             record.add_profil(etablissement_id, profil_id)
           end
         rescue => e 
-          Laclasse::Log.error(e.message)
+          @logger.error(e.message)
         end     
       end # end each
-      Laclasse::Log.info("treated #{data.count} records")
+      @logger.info("treated #{data.count} records")
     end
 
     #------------------------------------------------------------#
@@ -322,7 +322,7 @@ module Alimentation
           record = User[:id_jointure_aaf => person["id_jointure_aaf"]]
           # search Users for corresponding records
           if record.nil? 
-            Laclasse::Log.info("create person #{person['id_jointure_aaf']}")
+            @logger.info("create person #{person['id_jointure_aaf']}")
             # find a suitable login for the user
             login = User.find_available_login(person["prenom"],person["nom"].capitalize)
             # insert the hash into user table
@@ -351,7 +351,7 @@ module Alimentation
             end  
             # add telephones
           else 
-            Laclasse::Log.info("update person  #{ person['id_jointure_aaf']}")
+            @logger.info("update person  #{ person['id_jointure_aaf']}")
             # update where id_jointure_aaf = person["id_jointure_aaf"] with new hash
             record[:nom] = person["nom"] 
             record[:prenom] = person["prenom"].capitalize
@@ -378,10 +378,10 @@ module Alimentation
             # add telphone, add email    
           end
         rescue => e 
-          Laclasse::Log.error(e.message)
+          @logger.error(e.message)
         end     
       end # end each
-      Laclasse::Log.info("treated #{data.count} records")
+      @logger.info("treated #{data.count} records")
     end
     #-----------------------------------------------------------#
     
@@ -396,7 +396,7 @@ module Alimentation
           record = User[:id_jointure_aaf => parent["id_jointure_aaf"]]
           # search Users for corresponding records
           if record.nil? 
-            Laclasse::Log.info("create user #{parent['id_jointure_aaf']}")
+            @logger.info("create user #{parent['id_jointure_aaf']}")
             # find a suitable login for the user
             login = User.find_available_login(parent["prenom"],parent["nom"])
             # insert the hash into user table
@@ -427,7 +427,7 @@ module Alimentation
               #user.add_telephone(parent["tel_work"], 3)
             #end
           else 
-            Laclasse::Log.info("update parent #{parent['id_jointure_aaf']}")
+            @logger.info("update parent #{parent['id_jointure_aaf']}")
             # update 
             record[:nom] = parent["nom"] 
             record[:prenom] = parent["prenom"]
@@ -459,10 +459,10 @@ module Alimentation
             end 
           end
         rescue => e 
-          Laclasse::Log.error(e.message)
+          @logger.error(e.message)
         end     
       end # end each
-      Laclasse::Log.info("treated #{data.count} records")
+      @logger.info("treated #{data.count} records")
     end 
 
     # -----------------------------------------------------------
@@ -471,7 +471,7 @@ module Alimentation
     # data table
     
     def modify_or_create_regroupement(data)
-      Laclasse::Log.info("modify or create Regroupement is called")
+      @logger.info("modify or create Regroupement is called")
         # verify data length 
       if data.length == 0
         raise "no regroupements to be treated" 
@@ -495,7 +495,7 @@ module Alimentation
           # "code_mef_aaf":"1001000C11A","date_last_maj_aaf":"2013-03-12"}
 
           if found_one && regroupement["type_regroupement_id"] == "CLS"
-            Laclasse::Log.info("Modify class  #{regroupement['libelle_aaf']}")
+            @logger.info("Modify class  #{regroupement['libelle_aaf']}")
             #modify class 
             # update only code_mef_aaf and date_last_maj_aaf
             record[:code_mef_aaf] = regroupement["code_mef_aaf"]
@@ -505,7 +505,7 @@ module Alimentation
             record.save
 
           elsif !found_one && regroupement["type_regroupement_id"] == "CLS"
-            Laclasse::Log.info("Add class #{regroupement['libelle_aaf']}")
+            @logger.info("Add class #{regroupement['libelle_aaf']}")
             # create class 
             Regroupement.insert({:libelle_aaf => regroupement["libelle_aaf"],:etablissement_id => etablissement.id, 
               :code_mef_aaf => regroupement["code_mef_aaf"], :type_regroupement_id => regroupement["type_regroupement_id"], 
@@ -516,7 +516,7 @@ module Alimentation
           # {"etablissement":"0690078K","libelle_aaf":"3A GR AL","type_regroupement_id":"GRP",
           # "libelle":"3A Gr Alld2","date_last_maj_aaf":"2013-03-12"}  
           elsif found_one && regroupement["type_regroupement_id"] == "GRP"
-            Laclasse::Log.info("Modify group #{regroupement['libelle_aaf']}")
+            @logger.info("Modify group #{regroupement['libelle_aaf']}")
             record[:code_mef_aaf] = regroupement["code_mef_aaf"]
             record[:date_last_maj_aaf] = regroupement["date_last_maj_aaf"] 
             record[:libelle] = regroupement["libelle"]
@@ -524,7 +524,7 @@ module Alimentation
             record.save
             
           elsif !found_one && regroupement["type_regroupement_id"] == "GRP"
-            Laclasse::Log.info("add group #{regroupement['libelle_aaf']}")
+            @logger.info("add group #{regroupement['libelle_aaf']}")
             Regroupement.insert({:libelle_aaf => regroupement["libelle_aaf"],:etablissement_id => etablissement.id, 
               :code_mef_aaf => regroupement["code_mef_aaf"], :type_regroupement_id => regroupement["type_regroupement_id"], 
               :date_last_maj_aaf => regroupement["date_last_maj_aaf"], :libelle => regroupement["libelle"] })
@@ -539,7 +539,7 @@ module Alimentation
             raise "received data has errors"
           end
         rescue => e 
-          Laclasse::Log.error(e.message)
+          @logger.error(e.message)
         end
 
       end #end loop  
@@ -554,13 +554,13 @@ module Alimentation
         # Parents 
       case @profil
         when "ELEVE"
-          Laclasse::Log.info("Rattache eleves aux regroupements")
+          @logger.info("Rattache eleves aux regroupements")
           rattache_eleves_regroupements(data) 
         when "PARENT"
-           Laclasse::Log.info("Rattache eleves aux personnes")
+           @logger.info("Rattache eleves aux personnes")
           rattache_eleves_persons(data)
         when "PERSEDUCNAT"
-           Laclasse::Log.info("Rattache profs aux regroupements")
+           @logger.info("Rattache profs aux regroupements")
           rattache_profs_regroupements(data)
         else
           raise "profil is not supported" 
@@ -597,10 +597,10 @@ module Alimentation
             user.add_to_regroupement(regroupement.id)   
                
           rescue => e
-            Laclasse::Log.error(e.message)
+            @logger.error(e.message)
           end
         end #loop
-        Laclasse::Log.info("records treated #{data.count}")      
+        @logger.info("records treated #{data.count}")      
     end # end rattache_eleves_regroupements
     #---------------------------------------------------------------------#
 
@@ -636,7 +636,7 @@ module Alimentation
           # rattache prof to regroupement with matiere id 
           regroupement.add_prof(prof, matiere, rattachement["prof_principal"])
         rescue => e
-          Laclasse::Log.error(e.message)
+          @logger.error(e.message)
         end     
       end #end loop 
 
@@ -665,7 +665,7 @@ module Alimentation
           eleve.add_or_modify_parent(person, rattachement["type_relation_eleve_id"],  rattachement["resp_financier"], 
             rattachement["resp_legal"], rattachement["contact"], rattachement["paiement"])
         rescue => e
-          Laclasse::Log.error(e.message)
+          @logger.error(e.message)
         end     
       end #end loop 
     end 
@@ -675,7 +675,7 @@ module Alimentation
     # {"id_jointure_aaf"=>"91", "devant_eleve"=>"N", "code_fct"=>"O0040", "lib_fct"=>"ORIENTATION", 
     # "lib_mat"=>"ORIENTATION", "date_last_maj_aaf"=>"2013-03-12"}
     def rattache_fonction_person(data)
-      Laclasse::Log.info("rattache fonctions aux person") 
+      @logger.info("rattache fonctions aux person") 
       data.each do |rattachement| 
         begin
           # find person
@@ -722,32 +722,32 @@ module Alimentation
           person.add_fonction(Etablissement[:code_uai => @uai].id, profil_id,rattachement["code_fct"] )  
 
         rescue => e 
-          Laclasse::Log.error(e.message)
+          @logger.error(e.message)
         end 
       end   
     end # end  rattache_fonction_person(data)
     #---------------------------------------------------------#
     def dettache_profil(data)
-      Laclasse::Log.info("dettachement")
+      @logger.info("dettachement")
       data.each do |detachement|
         begin
           etablissement_id = Etablissement[:code_uai => @uai]
           puts detachement.inspect
           case detachement["profil"] 
             when "ELEVE"
-              Laclasse::Log.info("dettache eleve #{detachement['id_jointure_aaf']} de l\'etablissement #{@uai}")
+              @logger.info("dettache eleve #{detachement['id_jointure_aaf']} de l\'etablissement #{@uai}")
               dettache_eleve(User[:id_jointure_aaf => detachement['id_jointure_aaf']].id, etablissement_id)
             when "PARENT"
-              Laclasse::Log.info("dettache parent #{detachement['id_jointure_aaf']} de l\'etablissement #{@uai}")
+              @logger.info("dettache parent #{detachement['id_jointure_aaf']} de l\'etablissement #{@uai}")
               # dettache_eleve(person, profil_id, etablissement_id)  
             when "PERSEDUCNAT"
-              Laclasse::Log.info("dettache person_educ_nat #{detachement['id_jointure_aaf']} de l\'etablissement #{@uai}")
+              @logger.info("dettache person_educ_nat #{detachement['id_jointure_aaf']} de l\'etablissement #{@uai}")
               #dettache_person_educ_nat(person, profil_id, etablissement_id)
             else 
               raise " profil reçu n\'est pas valide"
           end   
         rescue => e
-          Laclasse::Log.error(e.message)
+          @logger.error(e.message)
         end 
       end
     end
@@ -776,8 +776,9 @@ module Alimentation
       # delete profil from profil_user table
       # il faut trouver les profile 
       # may be pers_educ_nat has many profiles !!
+      #ProfilUser[:profil_id => 'ENS', :user_id => person_id, :etablissement_id => etablissement_id].destroy 
       ProfilUser[:profil_id => 'ENS', :user_id => person_id, :etablissement_id => etablissement_id].destroy 
-      
+
       # delete fonction from profil_user_has_fonction
       ProfilUserFonction[ :user_id => person_id, :etablissement_id => etablissement_id].destroy
       

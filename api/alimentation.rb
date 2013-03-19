@@ -177,12 +177,14 @@ class AlimentationApi < Grape::API
     
     #-------------------------------------------------#
     desc "Get bilan etablissement info"
-    get "bilan/:uai" do
-      res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=bilan&rne=#{params[:uai]}")) 
+    get "bilan/:type/:uai" do
+      # types: bilan_regroupemenets, bilan_comptes
+      res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{params[:type]}&rne=#{params[:uai]}")) 
       puts res.code 
       puts res.message
       # parse response
-      #     
+      res.body 
+      results = JSON.parse(res.body)    
     end
 
     #--------------------------------------------------#
