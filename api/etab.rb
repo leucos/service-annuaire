@@ -743,7 +743,7 @@ class EtabApi < Grape::API
         # if user exists => add matieres else add prof 
         if RoleUser[:user_id => user.id, :role_id => "PROF_CLS", :ressource_id => classe.ressource.id]
             matieres.each do |mat|
-              ens_mat = EnseigneRegroupement.new
+              ens_mat = EnseigneDansRegroupement.new
               ens_mat.regroupement = classe
               ens_mat.user_id = user.id     
               ens_mat.matiere_enseignee_id = mat
@@ -778,7 +778,7 @@ class EtabApi < Grape::API
         RoleUser[:user_id => user.id, :role_id => "PROF_CLS", :ressource_id => classe.ressource.id].destroy
 
         # delete all (matieres)
-        EnseigneRegroupement.filter(:user_id => user.id, :Regroupement_id => classe.id).each {|mat| mat.destroy}
+        EnseigneDansRegroupement.filter(:user_id => user.id, :Regroupement_id => classe.id).each {|mat| mat.destroy}
       rescue => e
         puts e.message 
         error!("mouvaise requete", 400)
@@ -804,7 +804,7 @@ class EtabApi < Grape::API
       matiere_id = params[:matiere_id]
       begin
         # delete all (matieres)
-        EnseigneRegroupement.filter(:user_id => user.id, :Regroupement_id => classe.id, :matiere_enseignee_id => matiere_id).each {|mat| mat.destroy}
+        EnseigneDansRegroupement.filter(:user_id => user.id, :Regroupement_id => classe.id, :matiere_enseignee_id => matiere_id).each {|mat| mat.destroy}
       rescue => e 
         puts e.message 
         error!("mouvaise requete", 400)

@@ -1,3 +1,4 @@
+require "logger"
 # Liste des id constants dans la BDD
 
 # LETTRE DES IDENTIFIANT POUR L'ENT DU RHONE

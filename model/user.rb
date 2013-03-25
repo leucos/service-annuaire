@@ -31,11 +31,10 @@ class User < Sequel::Model(:user)
   # sur un email qui nous appartient pas ou qui n'appartient pas aux parents
   class InvalidEmailOwner < StandardError
   end
-
   # Plugins
   plugin :validation_helpers
   plugin :json_serializer
-  #plugin :ressource_link, :service_id => SRV_USER
+  plugin :ressource_link, :service_id => SRV_USER
   plugin :fuzzy_search
   plugin :select_json_array
 
@@ -65,6 +64,7 @@ class User < Sequel::Model(:user)
       ds.where(:type_relation_eleve_id => [TYP_REL_PAR, TYP_REL_RLGL])
     end
 
+    
   # Check si l'id passé en paramètre correspond bien aux critères d'identifiant ENT
   def self.is_valid_id?(id)
     !!(id.class == String and id.length == 8 and id[0] == 'V' and id[3] == '6' and id[1..2] =~ /[a-zA-Z]{2}/ and id[4..7] =~ /\d{4}/)
@@ -168,7 +168,9 @@ class User < Sequel::Model(:user)
     role_user_dataset.destroy()
     
     # Et les enseignements
-    enseigne_regroupement_dataset.destroy()
+    EnseigneDansRegroupement.where(:user_id => self.id).destroy()
+    EleveRegroupement.where(:user_id => self.id).destroy()
+    #enseigne_dans_regroupement_dataset.destroy()
 
     # Enfin tous ses profils dans l'établissement
     profil_user_dataset.destroy()
@@ -203,17 +205,21 @@ class User < Sequel::Model(:user)
       # Solution pas terrible car spécifique à MySql mais je vois
       # pas comment autrement
       raise e if e.message.index(/Duplicate entry '.*' for key 'PRIMARY'/).nil?
-      #puts e.message
-      #Ramaze::log.error(e.message)
       # On récupère le hash de l'objet en cours de construction
       hash = self.values
+      puts hash.inspect
       # Et on enlève l'id et la date de création qui seront
       # rajouté par la suite
       hash.delete(:id)
       hash.delete(:date_creation)
+      service_id = SRV_USER
+      parent_service_id = SRV_ETAB
+      parent_id =  hash(:uai)
       # On retente la création de l'objet
       # Attention, ça peut boucler indéfiniment cette histoire...
       User.create(hash)
+      Ressource.create(:id => self.id, :service_id => service_id,
+            :parent_id => parent_id, :parent_service_id => parent_service_id)
     end
   end
 
@@ -343,7 +349,7 @@ class User < Sequel::Model(:user)
   end
 
   def add_to_regroupement(regroupement_id)
-    EleveRegroupement.find_or_create(:user_id => self.id, :regroupement_id => regroupement_id)
+    EleveDansRegroupement.find_or_create(:user_id => self.id, :regroupement_id => regroupement_id)
   end 
 
   # Ajoute un role sur une classe
@@ -376,14 +382,14 @@ class User < Sequel::Model(:user)
 
   def matiere_enseigne(etablissement_id)
     MatiereEnseigne.
-      filter(:enseigne_regroupement => EnseigneRegroupement.
+      filter(:enseigne_dans_regroupement => EnseigneDansRegroupement.
         filter(:user => self, :regroupement => Regroupement.
           filter(:etablissement_id => etablissement_id))).all
   end
 
   def matiere_enseigne(groupe_id)
     MatiereEnseigne.
-      filter(:enseigne_regroupement => EnseigneRegroupement.
+      filter(:enseigne_dans_regroupement => EnseigneDansRegroupement.
         filter(:user => self, :regroupement_id  => groupe_id)).all
   end
 
@@ -524,7 +530,7 @@ private
   def enseigne_regroupements(etablissement_id, type_id)
     Regroupement.filter(:type_regroupement_id => type_id,
       :etablissement_id => etablissement_id,
-      :enseigne_regroupement => EnseigneRegroupement.filter(:user => self))
+      :enseigne_dans_regroupement => EnseigneDansRegroupement.filter(:user => self))
   end
 
 end

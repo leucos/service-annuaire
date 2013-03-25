@@ -73,7 +73,7 @@ end
 
 ROL_TEST = "TEST"
 def create_test_role()
-  r = Role.create(:id => ROL_TEST, :service_id => SRV_ETAB)
+  r = Role.find_or_create(:id => ROL_TEST, :service_id => SRV_ETAB)
   r.add_activite(SRV_USER, ACT_CREATE)
   r.add_activite(SRV_ETAB, ACT_UPDATE)
   r.add_activite(SRV_ETAB, ACT_READ)

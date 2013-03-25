@@ -18,7 +18,7 @@ module Sequel
 
     # A module inside the plugin module named DatasetMethods, which will extend the model's dataset.
 
-    #A singleton method named configure, which takes a model, additional arguments, and an optional block. This is called every time the Model.plugin method is called, after including/extending any modules.
+    # A singleton method named configure, which takes a model, additional arguments, and an optional block. This is called every time the Model.plugin method is called, after including/extending any modules.
     module RessourceLink
       class NoServiceError < StandardError
       end
@@ -32,22 +32,23 @@ module Sequel
         model.one_to_one :ressource, :key => :id do |ds|
           ds.where(:service_id => service_id)
         end
+
       end
       module InstanceMethods
         def after_create
-          puts "RessourceLink called for #{self.id}"
+          #puts "RessourceLink called for #{self.id}"
           # Je n'arrive pas a rajouter de variable de classe dynamiquement en ruby
           # Donc je vais rechercher le service ID à la mano
           service_id = Service.class_map.rassoc(self.class)[0]
           # Rajoute l'instance en tant que ressource enfant de laclasse 
           # Il pourra ensuite être mis en tant qu'enfant d'un établissement pour donnée le droit à l'admin d'établissement de le modifier/supprimer par exemple
-          Ressource.create(:id => self.id, :service_id => service_id,
-            :parent_id => Ressource[:service_id => SRV_LACLASSE].id, :parent_service_id => SRV_LACLASSE)
+          Ressource.create(:id => self.id, :service_id => service_id)
           super
         end
 
         def before_destroy
           # Supprimera toutes les ressources liées à cette instance
+          #Ressource[:id => self.id].destroy() if Ressource[:id => self.id]
           self.ressource.destroy() if self.ressource
           super
         end

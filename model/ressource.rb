@@ -20,7 +20,7 @@ class Ressource < Sequel::Model(:ressource)
   # Plugins
   plugin :validation_helpers
   plugin :json_serializer
-
+  
   unrestrict_primary_key()
 
   # Referential integrity
@@ -28,7 +28,7 @@ class Ressource < Sequel::Model(:ressource)
   # Todo : make it work and add children
   #many_to_one :parent, :key=>[:parent_service_id, :parent_id], :class => self
   # Attention l'ordre est important
-  one_to_many :role_user, :key=>[:ressource_id, :ressource_service_id]
+  one_to_many :role_user, :key => [:ressource_id, :ressource_service_id]
 
   def self.laclasse
     self[:service_id => SRV_LACLASSE]
@@ -41,11 +41,11 @@ class Ressource < Sequel::Model(:ressource)
 
   def before_destroy
     # Avant suppression, une ressource doit s'assurer de supprimer tous ses enfants
-    self.destroy_children()
+    #self.destroy_children()
 
     # On supprime tous les RoleUser liés à cette Ressource
     # Merci aux méthodes rajoutées par Sequel
-    role_user_dataset.destroy()
+    #role_user_dataset.destroy()
     super
   end
 

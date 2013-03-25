@@ -37,6 +37,8 @@ class Etablissement < Sequel::Model(:etablissement)
   many_to_one :type_etablissement
   one_to_many :param_etablissement
 
+  # id is received from the alimentation
+  unrestrict_primary_key()
   # Not nullable cols
   def validate
     super
@@ -48,6 +50,7 @@ class Etablissement < Sequel::Model(:etablissement)
     profil_user_dataset.destroy()
     regroupement_dataset.destroy()
     param_etablissement_dataset.destroy()
+    #profil_user_has_fonction_dataset.destroy()
     super
   end
 

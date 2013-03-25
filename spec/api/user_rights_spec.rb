@@ -5,7 +5,7 @@ describe UserApi do
   include Rack::Test::Methods
 
   def app
-    Rack::Builder.parse_file("config.ru").first
+    Rack::Builder.parse_file("../../config.ru").first
   end
 
   before :all do

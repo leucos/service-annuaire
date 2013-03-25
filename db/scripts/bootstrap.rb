@@ -124,70 +124,61 @@ def bootstrap_annuaire()
   Activite.create(:id => ACT_DELETE)
   #--------------------------------------------------------------------------#
 
-
+  # Création des services
   #Tout d'abord, on créer des services (api)
-  # service laclasse.com (les super admin y sont reliés)
+  #service laclasse.com (les super admin y sont reliés)
   Service.create(:id => SRV_LACLASSE, :libelle => "Laclasse.com", :description => "Service auquel tout est rattaché", :url => "/")
-
-  # TODO : Rajouter les roles de prof et eleve dans une classe (cela sera des constantes)
-  # TODO : Rajouter le role de documentaliste qui a comme une role de prof sur toutes les classes
-  # (accès aux documents, cahier de texte) sans avoir besoin de s'y rattacher
-
-  # Création des roles associés à ce service
-  role_tech = Role.create(:id => ROL_TECH, :libelle => "Administrateur technique", :service_id => SRV_LACLASSE)
-  role_tech.add_activite(SRV_USER, ACT_CREATE)
-  role_tech.add_activite(SRV_USER, ACT_READ)
-  role_tech.add_activite(SRV_USER, ACT_UPDATE)
-  role_tech.add_activite(SRV_USER, ACT_DELETE)
-
-  #
-  # service /user
-  #
   Service.create(:id => SRV_USER, :libelle => "Gestion utilisateur", :description => "Service de gestion des utilisateurs de laclasse.com", :url => "/user")
-
-  #
-  # service /etablissement
-  #
   Service.create(:id => SRV_ETAB, :libelle => "Gestion etablissement", :description => "Service de gestion des etablissements de laclasse.com", :url => "/etablissement")
-
-  # Et des Role et ActiviteRole
-  Role.create(:id => ROL_PROF_ETB, :libelle => "Professeur", :service_id => SRV_ETAB)
-  Role.create(:id => ROL_ELV_ETB, :libelle => "Elève", :service_id => SRV_ETAB)
-  
-  role_admin = Role.create(:id => ROL_ADM_ETB, :libelle => "Administrateur d'établissement", :service_id => SRV_ETAB)
-  role_admin.add_activite(SRV_USER, ACT_CREATE)
-  role_admin.add_activite(SRV_USER, ACT_READ)
-  role_admin.add_activite(SRV_USER, ACT_UPDATE)
-  role_admin.add_activite(SRV_USER, ACT_DELETE)
-
-  Role.create(:id => ROL_PAR_ETB, :libelle => "Parent", :service_id => SRV_ETAB)
-  Role.create(:id => ROL_DIR_ETB, :libelle => "Principal", :service_id => SRV_ETAB)
-  Role.create(:id => ROL_CPE_ETB, :libelle => "CPE", :service_id => SRV_ETAB)
-  Role.create(:id => ROL_BUR_ETB, :libelle => "Personnel administratif", :service_id => SRV_ETAB)
-
-  
-
-  # Et les ActiviteRole
-
-
-  #
-  # service /classe
-  #
   Service.create(:id => SRV_CLASSE, :libelle => "Service de gestion des classes", :url => "/classe")
-
-  Role.create(:id => ROL_PROF_CLS, :libelle => "Professeur", :description => "Professeur enseignant dans une classe", :service_id => SRV_CLASSE)
-  Role.create(:id => ROL_PRFP_CLS, :libelle => "Professeur Principal", :description => "Professeur principal d'une classe", :service_id => SRV_CLASSE)
-  Role.create(:id => ROL_ELV_CLS, :libelle => "Elève", :service_id => SRV_CLASSE)
-
   # service /groupe
   Service.create(:id => SRV_GROUPE, :libelle => "Service de gestion des groupes d'élèves", :url => "/groupe")
   # service /libre
   Service.create(:id => SRV_LIBRE, :libelle => "Service de gestion des groupes libres", :url => "/libre")
-  # service /rights
+  
 
+  # TODO 
   # service /alimentation
+  # service /preference 
+  # service /application
+  # service /rights 
+  
+  # TODO : Rajouter les roles de prof et eleve dans une classe (cela sera des constantes)
+  # TODO : Rajouter le role de documentaliste qui a comme une role de prof sur toutes les classes
+  # (accès aux documents, cahier de texte) sans avoir besoin de s'y rattacher
+  #---------------------------------------------------------------------------#
 
-  # service /preference ?
+  # Création des roles associés à ce service
+  #role_tech = Role.create(:id => ROL_TECH, :libelle => "Administrateur technique", :service_id => SRV_LACLASSE)
+  #role_tech.add_activite(SRV_USER, ACT_CREATE)
+  #role_tech.add_activite(SRV_USER, ACT_READ)
+  #role_tech.add_activite(SRV_USER, ACT_UPDATE)
+  #role_tech.add_activite(SRV_USER, ACT_DELETE)
+
+
+  # Et des Role et ActiviteRole
+  #Role.create(:id => ROL_PROF_ETB, :libelle => "Professeur", :service_id => SRV_ETAB)
+  #Role.create(:id => ROL_ELV_ETB, :libelle => "Elève", :service_id => SRV_ETAB)
+  
+  #role_admin = Role.create(:id => ROL_ADM_ETB, :libelle => "Administrateur d'établissement", :service_id => SRV_ETAB)
+  #role_admin.add_activite(SRV_USER, ACT_CREATE)
+  #role_admin.add_activite(SRV_USER, ACT_READ)
+  #role_admin.add_activite(SRV_USER, ACT_UPDATE)
+  #role_admin.add_activite(SRV_USER, ACT_DELETE)
+
+  #Role.create(:id => ROL_PAR_ETB, :libelle => "Parent", :service_id => SRV_ETAB)
+  #Role.create(:id => ROL_DIR_ETB, :libelle => "Principal", :service_id => SRV_ETAB)
+  #Role.create(:id => ROL_CPE_ETB, :libelle => "CPE", :service_id => SRV_ETAB)
+  #Role.create(:id => ROL_BUR_ETB, :libelle => "Personnel administratif", :service_id => SRV_ETAB)
+
+  
+
+  # Et les ActiviteRole
+  
+
+  #Role.create(:id => ROL_PROF_CLS, :libelle => "Professeur", :description => "Professeur enseignant dans une classe", :service_id => SRV_CLASSE)
+  #Role.create(:id => ROL_PRFP_CLS, :libelle => "Professeur Principal", :description => "Professeur principal d'une classe", :service_id => SRV_CLASSE)
+  #Role.create(:id => ROL_ELV_CLS, :libelle => "Elève", :service_id => SRV_CLASSE)
 
   #--------------------------------------------------------#
   # Profils utilisateurs
@@ -264,7 +255,7 @@ def bootstrap_annuaire()
   # role_eleve_id = Role.create(:libelle => 'Eleve', :service_id => ct_id)
   # role_principal_id = Role.create(:libelle => 'Principal', :service_id => ct_id)
 
-  create_super_admin_and_ressource_laclasse()
+  #create_super_admin_and_ressource_laclasse()
 
 
   #etb1 = Etablissement.create(:code_uai => '0691670R', :nom => 'Victor Dolto', :type_etablissement_id =>type_etb.id)
@@ -285,62 +276,4 @@ def bootstrap_annuaire()
   #                       Ce paramètre n'est pas modifiable.", :code => "seuil_obtention_diplome", :valeur_defaut => "80", :autres_valeurs => "50", :service_id => 1 , :type_param_id=>"num")
   # DB[:param_app].insert(:preference => 0, :libelle => "Ip Adresse", :description => "ip adresse de l'application",
   #                       :code => "adresse_ip", :valeur_defaut => "http://server1.com", :autres_valeurs => "http://server2.com", :service_id => 1 , :type_param_id=>"text")
-
-=begin
-  profil_list = [PRF_ENS, PRF_ELV, PRF_PAR]
-
-  prenom_list = ['jean', 'francois', 'raymond', 'pierre', 'jeanne', 'frédéric', 'lise', 'michel', 'daniel', 'élodie', 'brigitte', 'béatrice', 'youcef', 'sophie', 'andréas']
-  nom_list = ['dupond', 'dupont', 'duchamp', 'deschamps', 'leroy', 'lacroix', 'sarkozy', 'zidane', 'bruni', 'hollande', 'levy', 'khadafi', 'chirac']
-
-  #On va créer pour chaque établissement 100 utilisateurs
-  2.times do |nb|
-  #0.times do |nb|
-    etb = nb == 0 ? etb1 : etb2
-    100.times do |ind|
-      #Création aléatoire d'un nom et d'un utilisateur
-      r = Random.new
-      pren = prenom_list[r.rand(prenom_list.length)].capitalize
-      nom = nom_list[r.rand(nom_list.length)].capitalize
-      sexe = r.rand(2) == 0 ? "M" : "F"
-
-      login = User.find_available_login(pren, nom)
-      #Password = login
-      usr = User.create(:login => login, :password => login, :nom => nom, :prenom => pren, :sexe => sexe)
-      #Les profil sont choisit aléatoirement
-      profil = profil_list[r.rand(profil_list.length)]
-      #Sauf qu'on a un principal par etab
-      if ind == 0
-        profil = PRF_DIR
-      #Et un admin d'étab
-      elsif ind == 1
-        profil = PRF_ADM
-      elsif profil == PRF_ELV
-        # On donne des identifiants sconet aux eleves
-        usr.id_sconet = r.rand(1000000)
-        while User[:id_sconet => usr.id_sconet] != nil
-          usr.id_sconet = r.rand(1000000)
-        end
-        usr.save
-      elsif profil == PRF_PAR
-        # On rajoute une relation
-        # Soit parent, soit representant legal
-        rel = r.rand(2) > 0 ? TYP_REL_PAR : TYP_REL_RLGL
-        #On prend le premier eleve qui n'a pas cette relation
-        eleve = User.
-          left_join(:relation_eleve, :eleve_id => :id).
-          filter(:role_user => RoleUser.filter(:role_id => ROL_ELV_ETB)).
-          filter({:type_relation_eleve_id => nil}).first
-        if eleve
-          usr.add_enfant(eleve, rel)
-        end
-      end
-
-      usr.add_profil(etb.id, profil)
-      usr.add_email("#{usr.login}@laclasse.com")
-      usr.add_email("#{usr.login}@gmail.com")
-      usr.add_telephone("0472540000")
-      usr.add_telephone("0662540000")
-    end
-  end
-=end
 end

@@ -12,12 +12,13 @@
 # prof_principal                | tinyint(1)          | true     |              | 0          | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
-class EnseigneRegroupement < Sequel::Model(:enseigne_dans_regroupement)
+class EnseigneDansRegroupement < Sequel::Model(:enseigne_dans_regroupement)
 
  # Plugins
  plugin :validation_helpers
  plugin :json_serializer
 
+ unrestrict_primary_key
  # Referential integrity
  many_to_one :user
  many_to_one :regroupement

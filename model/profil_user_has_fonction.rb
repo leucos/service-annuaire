@@ -12,7 +12,7 @@
 # fonction_id                   | int                 | false    | FOR      |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
-class ProfilUserFonction < Sequel::Model(:profil_user_has_fonction)
+class ProfilUserFonction < Sequel::Model(:profil_user_fonction)
 
   # Plugins
   plugin :validation_helpers

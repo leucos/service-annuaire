@@ -7,14 +7,15 @@
 module Alimentation
   
   class Synchronizer
-    
+    attr_accessor :profil, :type_data
+
     def initialize(type_import, uai, profil, type_data, data)
       @type_import = type_import 
       @uai = uai 
       @profil = profil
       @type_data = type_data
-      @data = data  # must be transformed to type json , refactor code
-      @logger = Laclasse::Logging.new("etab_#{@uai}.log",Logger::INFO)
+      @data = data  # must be transformed to type json , refactor code 
+      @logger = Laclasse::Logging.new("log/alimentation_etab_#{@uai}.log", Configuration::LOG_LEVEL)
       #if we want to store data temporarly in mongoDB
       #@db =DataBase.connect({:server => "localhost", :db => "mydb"})
     end
@@ -23,12 +24,12 @@ module Alimentation
     # data is validated before because of JSON.parse method
     # sync niveau ou mef educ nat
     def self.sync_mef(data) 
-      Laclasse::Log.info("synchronize mef educ nationale")
+      Laclasse::Log.info("synchronize mef educ nationale statrted")
       data.each do |mef_educ_nat|
         begin 
           record = Niveau[:ent_mef_jointure => mef_educ_nat["ENTMefJointure"]]
           if record.nil? # not found => add record 
-            Niveau.insert(:ent_mef_jointure => mef_educ_nat["ENTMefJointure"], :mef_libelle => mef_educ_nat["ENTLibelleMef"],
+            Niveau.create(:ent_mef_jointure => mef_educ_nat["ENTMefJointure"], :mef_libelle => mef_educ_nat["ENTLibelleMef"],
               :ent_mef_rattach => mef_educ_nat["ENTMEFRattach"], :ent_mef_stat => mef_educ_nat["ENTMEFSTAT11"]) 
           else  # => modify record 
             record[:mef_libelle] = mef_educ_nat["ENTLibelleMef"]
@@ -41,7 +42,7 @@ module Alimentation
           Laclasse::Log.error(e.message)
         end  
       end # end data.each    
-      Laclasse::Log.info("Mef synchronized successfully")
+      Laclasse::Log.info("#{data.count} Mef_educ_nat entries are synchronized successfully")
     end # end sync_mef
 
 
@@ -55,7 +56,7 @@ module Alimentation
         begin 
           record = MatiereEnseignee[:id => matiere["ENTMatJointure"]]
           if record.nil? # not found => add matiere 
-            MatiereEnseignee.insert(:id => matiere["ENTMatJointure"], :libelle_long => matiere["ENTLibelleMatiere"]) 
+            MatiereEnseignee.create(:id => matiere["ENTMatJointure"], :libelle_long => matiere["ENTLibelleMatiere"]) 
           else  # => modify record 
             record[:libelle_long] = matiere["ENTLibelleMatiere"]
             record.save # update
@@ -65,7 +66,7 @@ module Alimentation
           Laclasse::Log.error(e.message)
         end  
       end # end data.each    
-     Laclasse::Log.info("Matieres synchronized successfully")  
+     Laclasse::Log.info("#{data.count} Matieres synchronized successfully")  
     end
 
     #-----------------------------------------------------------#
@@ -78,7 +79,7 @@ module Alimentation
         begin 
           record = Fonction[:code_men => fonction["code_men"]]
           if record.nil? # not found => add matiere 
-            Fonction.insert(:code_men => fonction["code_men"], :libelle => fonction["libelle"], 
+            Fonction.create(:code_men => fonction["code_men"], :libelle => fonction["libelle"], 
               :description => fonction["description"]) 
           else  # => modify record 
             record[:libelle] = fonction["libelle"]
@@ -90,7 +91,7 @@ module Alimentation
           Laclasse::Log.error(e.message)
         end  
       end # end data.each    
-      Laclasse::Log.info("Fonctions synchronized successfully")  
+      Laclasse::Log.info("#{data.count} Fonctions synchronized successfully")  
 
     end
 
@@ -107,7 +108,7 @@ module Alimentation
     end
     
 
-    private
+    #private
     
     def sync_delta()
       puts "sync_delta is called"
@@ -150,13 +151,11 @@ module Alimentation
         when "DETACHEMENTS" 
           puts "DETACHEMENTS"  
           data = JSON.parse(@data)
-          #puts data.first
           dettache_profil(data)
 
         when "FONCTIONS"
           puts "FONCTIONS"
           data = JSON.parse(@data)
-          #puts data.first
           rattache_fonction_person(data)  
 
         else
@@ -182,21 +181,21 @@ module Alimentation
         end  
         structure = data[0]  # structure <> etablissement
         
-        found_one = false
-        
-        # search etablissement for corresponding records
+        # search database for corresponding records
         record = Etablissement[:id => structure["id"], :code_uai => structure["code_uai"]]
         if record.nil? 
-          found_one = false
+          # create
+          @logger.debug("structure: #{structure['code_uai']} will be added")
+          type_etab = {:type_struct_aaf => structure["type_structure"], :type_contrat => structure["contrat"]}
+          type_etab = TypeEtablissement.find_or_create(type_etab)
+
+          Etablissement.create(:id => structure["id"], :code_uai => structure["code_uai"], :siren => structure["siren"],
+            :nom => structure["nom"], :adresse => structure["adresse"], :code_postal => structure["code_postal"],
+            :ville => structure["ville"],:telephone => structure["telephone"],:fax => structure["fax"], :date_last_maj_aaf => structure["date_last_maj_aaf"],
+            :type_etablissement_id => type_etab.id)  
         else 
-          found_one = true 
-        end
-        
-        # TODO : ask Pgl for cases
-        if found_one && @type_import == "Complet"
-          
           # modify
-          @logger.info("structure: #{structure['code_uai']} will be modifyed")
+          @logger.debug("structure: #{structure['code_uai']} will be modifyed")
           record[:siren] = structure["siren"]
           record[:nom] = structure["nom"]
           record[:adresse] = structure["adresse"]
@@ -210,23 +209,10 @@ module Alimentation
           type_etab = TypeEtablissement.find_or_create(type_etab)
           record[:type_etablissement_id] = type_etab.id
           record.save
-        
-        elsif !found_one && @type_import == "Complet"
-          # create
-          @logger.info("structure: #{structure['code_uai']} will be added")
-          type_etab = {:type_struct_aaf => structure["type_structure"], :type_contrat => structure["contrat"]}
-          type_etab = TypeEtablissement.find_or_create(type_etab)
-
-          Etablissement.create({:id => structure["id"], :code_uai => structure["code_uai"], :siren => structure["siren"],
-            :nom => structure["nom"], :adresse => structure["adresse"], :code_postal => structure["code_postal"],
-            :ville => structure["ville"],:telephone => structure["telephone"],:fax => structure["fax"], :date_last_maj_aaf => structure["date_last_maj_aaf"],
-            :type_etablissement_id => type_etab.id})   
-        else
-          raise "not supported"  
-        end    
-       rescue => e
-         @logger.error(e.message) 
-       end 
+        end
+      rescue => e
+        @logger.error(e.message) 
+      end 
     end
     
     # -----------------------------------------------------------
@@ -264,12 +250,13 @@ module Alimentation
       #{"profil"=>"ELEVE", "id_sconet"=>"1035780", "id_jointure_aaf"=>"2414273", 
       # "nom"=>"AISSOU", "prenom"=>"Yanis", "date_naissance"=>"15/08/2001", "sexe"=>"M", "date_last_maj_aaf"=>"2013-02-28"}
       # we must capture errors in order to treat all eleves
+      @logger.info("modify or create eleve is called")
       data.each do |eleve| 
         begin 
           record = User[:id_jointure_aaf => eleve["id_jointure_aaf"]]
           # search Users for corresponding records
           if record.nil? 
-            @logger.info("create user #{eleve['id_jointure_aaf']}")
+            @logger.debug("create user #{eleve['id_jointure_aaf']}")
             # find a suitable login for the user
             login = User.find_available_login(eleve["prenom"],eleve["nom"])
             # insert the hash into user table
@@ -288,7 +275,7 @@ module Alimentation
             # add emails 
             # add telephones
           else 
-            @logger.info("update eleve #{eleve['id_jointure_aaf']}")
+            @logger.debug("update eleve #{eleve['id_jointure_aaf']}")
             # update where id_jointure_aaf = eleve["id_jointure_aaf"] with new hash
             record[:id_sconet] = eleve["id_sconet"]
             record[:nom] = eleve["nom"] 
@@ -316,13 +303,14 @@ module Alimentation
     #"sexe":"F","mail":"Francoise.Angonin@ac-lyon.fr",
     #"mail_academique":"Y","devant_eleve":"O","date_last_maj_aaf":"2013-03-12"}
     def modify_or_create_presons(data)
+      @logger.info("modify or create person educ nat  is called")
       data.each do |person| 
         begin 
           found_one = false
           record = User[:id_jointure_aaf => person["id_jointure_aaf"]]
           # search Users for corresponding records
           if record.nil? 
-            @logger.info("create person #{person['id_jointure_aaf']}")
+            @logger.debug("create person #{person['id_jointure_aaf']}")
             # find a suitable login for the user
             login = User.find_available_login(person["prenom"],person["nom"].capitalize)
             # insert the hash into user table
@@ -351,7 +339,7 @@ module Alimentation
             end  
             # add telephones
           else 
-            @logger.info("update person  #{ person['id_jointure_aaf']}")
+            @logger.debug("update person  #{ person['id_jointure_aaf']}")
             # update where id_jointure_aaf = person["id_jointure_aaf"] with new hash
             record[:nom] = person["nom"] 
             record[:prenom] = person["prenom"].capitalize
@@ -391,12 +379,13 @@ module Alimentation
     #"adresse":"LE RAMPEAU","code_postal":"69690","ville":"BRULLIOLES",
     #"tel_home":"+33 4 78 25 03 43","tel_work":"","mail":"","date_last_maj_aaf":"2013-03-12"}  
     def modify_or_create_parents(data)
+      @logger.info("modify or create parents is called")
       data.each do |parent| 
         begin 
           record = User[:id_jointure_aaf => parent["id_jointure_aaf"]]
           # search Users for corresponding records
           if record.nil? 
-            @logger.info("create user #{parent['id_jointure_aaf']}")
+            @logger.debug("create user #{parent['id_jointure_aaf']}")
             # find a suitable login for the user
             login = User.find_available_login(parent["prenom"],parent["nom"])
             # insert the hash into user table
@@ -427,7 +416,7 @@ module Alimentation
               #user.add_telephone(parent["tel_work"], 3)
             #end
           else 
-            @logger.info("update parent #{parent['id_jointure_aaf']}")
+            @logger.debug("update parent #{parent['id_jointure_aaf']}")
             # update 
             record[:nom] = parent["nom"] 
             record[:prenom] = parent["prenom"]
@@ -495,7 +484,7 @@ module Alimentation
           # "code_mef_aaf":"1001000C11A","date_last_maj_aaf":"2013-03-12"}
 
           if found_one && regroupement["type_regroupement_id"] == "CLS"
-            @logger.info("Modify class  #{regroupement['libelle_aaf']}")
+            @logger.debug("Modify class  #{regroupement['libelle_aaf']}")
             #modify class 
             # update only code_mef_aaf and date_last_maj_aaf
             record[:code_mef_aaf] = regroupement["code_mef_aaf"]
@@ -505,18 +494,18 @@ module Alimentation
             record.save
 
           elsif !found_one && regroupement["type_regroupement_id"] == "CLS"
-            @logger.info("Add class #{regroupement['libelle_aaf']}")
+            @logger.debug("Add class #{regroupement['libelle_aaf']}")
             # create class 
-            Regroupement.insert({:libelle_aaf => regroupement["libelle_aaf"],:etablissement_id => etablissement.id, 
+            Regroupement.create(:libelle_aaf => regroupement["libelle_aaf"],:etablissement_id => etablissement.id, 
               :code_mef_aaf => regroupement["code_mef_aaf"], :type_regroupement_id => regroupement["type_regroupement_id"], 
-              :date_last_maj_aaf => regroupement["date_last_maj_aaf"]})
+              :date_last_maj_aaf => regroupement["date_last_maj_aaf"])
 
 
           # received groups data example 
           # {"etablissement":"0690078K","libelle_aaf":"3A GR AL","type_regroupement_id":"GRP",
           # "libelle":"3A Gr Alld2","date_last_maj_aaf":"2013-03-12"}  
           elsif found_one && regroupement["type_regroupement_id"] == "GRP"
-            @logger.info("Modify group #{regroupement['libelle_aaf']}")
+            @logger.debug("Modify group #{regroupement['libelle_aaf']}")
             record[:code_mef_aaf] = regroupement["code_mef_aaf"]
             record[:date_last_maj_aaf] = regroupement["date_last_maj_aaf"] 
             record[:libelle] = regroupement["libelle"]
@@ -524,10 +513,10 @@ module Alimentation
             record.save
             
           elsif !found_one && regroupement["type_regroupement_id"] == "GRP"
-            @logger.info("add group #{regroupement['libelle_aaf']}")
-            Regroupement.insert({:libelle_aaf => regroupement["libelle_aaf"],:etablissement_id => etablissement.id, 
+            @logger.debug("add group #{regroupement['libelle_aaf']}")
+            Regroupement.create(:libelle_aaf => regroupement["libelle_aaf"],:etablissement_id => etablissement.id, 
               :code_mef_aaf => regroupement["code_mef_aaf"], :type_regroupement_id => regroupement["type_regroupement_id"], 
-              :date_last_maj_aaf => regroupement["date_last_maj_aaf"], :libelle => regroupement["libelle"] })
+              :date_last_maj_aaf => regroupement["date_last_maj_aaf"], :libelle => regroupement["libelle"])
              
           elsif found_one && regroupement["type_regroupement_id"] == "LBR"
             puts "Modify group libre"
@@ -594,6 +583,7 @@ module Alimentation
             end
 
             # rattache eleve to regroupement
+            @logger.debug("rattache eleve with #{rattachement['id_jointure_aaf']} to groupe #{rattachement['code_aaf']}")
             user.add_to_regroupement(regroupement.id)   
                
           rescue => e
@@ -634,6 +624,7 @@ module Alimentation
           end  
 
           # rattache prof to regroupement with matiere id 
+          @logger.debug("rattache prof with #{rattachement['id_jointure_aaf']} to groupe #{rattachement['libelle_regroupement']}")
           regroupement.add_prof(prof, matiere, rattachement["prof_principal"])
         rescue => e
           @logger.error(e.message)
@@ -662,6 +653,7 @@ module Alimentation
           end
           
           # rattache eleve to person
+           @logger.debug("eleve with id_jointure_aaf: #{rattachement['id_jointure_aaf_eleve']} to person with id_jointure_aaf: #{rattachement["id_jointure_aaf_parent"]}")
           eleve.add_or_modify_parent(person, rattachement["type_relation_eleve_id"],  rattachement["resp_financier"], 
             rattachement["resp_legal"], rattachement["contact"], rattachement["paiement"])
         rescue => e
@@ -731,18 +723,36 @@ module Alimentation
       @logger.info("dettachement")
       data.each do |detachement|
         begin
-          etablissement_id = Etablissement[:code_uai => @uai]
-          puts detachement.inspect
+          etablissement = Etablissement[:code_uai => @uai]
+          if etablissement.nil?
+            raise "etablissement n'existe pas"
+          end
+          etablissement_id = etablissement.id 
+
+          user = User[:id_jointure_aaf => detachement['id_jointure_aaf']]
+
           case detachement["profil"] 
             when "ELEVE"
-              @logger.info("dettache eleve #{detachement['id_jointure_aaf']} de l\'etablissement #{@uai}")
-              dettache_eleve(User[:id_jointure_aaf => detachement['id_jointure_aaf']].id, etablissement_id)
+              @logger.debug("dettache eleve #{detachement['id_jointure_aaf']} de l\'etablissement #{@uai}")
+              if user.nil? 
+                raise "l'eleve avec id_jointure_aaf: #{detachement['id_jointure_aaf']} n'exist pas"
+              else 
+                dettache_eleve(user.id, etablissement_id)
+              end 
             when "PARENT"
-              @logger.info("dettache parent #{detachement['id_jointure_aaf']} de l\'etablissement #{@uai}")
-              # dettache_eleve(person, profil_id, etablissement_id)  
+              @logger.debug("dettache parent #{detachement['id_jointure_aaf']} de l\'etablissement #{@uai}")
+              if user.nil? 
+                raise "le parent avec id_jointure_aaf: #{detachement['id_jointure_aaf']} n'exist pas"
+              else 
+                dettache_eleve(user.id, etablissement_id)
+              end 
             when "PERSEDUCNAT"
-              @logger.info("dettache person_educ_nat #{detachement['id_jointure_aaf']} de l\'etablissement #{@uai}")
-              #dettache_person_educ_nat(person, profil_id, etablissement_id)
+              @logger.debug("dettache person_educ_nat #{detachement['id_jointure_aaf']} de l\'etablissement #{@uai}")
+              if user.nil? 
+                raise "la personne educ national avec id_jointure_aaf: #{detachement['id_jointure_aaf']} n'exist pas"
+              else 
+                dettache_pers_educ_nat(user.id, etablissement_id)
+              end 
             else 
               raise " profil reçu n\'est pas valide"
           end   
@@ -759,7 +769,7 @@ module Alimentation
       # delete fonction from profil_user_has_fonction, eleve has no fonctions
       
       # remove eleve from all regroupements in this etablissement
-      EleveRegroupement[:user_id => eleve_id, :regroupement => Regroupement.filter(:etablissement_id => etablissement_id)].destroy
+      EleveDansRegroupement[:user_id => eleve_id, :regroupement => Regroupement.filter(:etablissement_id => etablissement_id)].destroy
 
       # delete user roles in the etablissement 
     end
@@ -783,7 +793,7 @@ module Alimentation
       ProfilUserFonction[ :user_id => person_id, :etablissement_id => etablissement_id].destroy
       
       # remove prof from all regroupements in which he teaches
-      EnseigneRegroupement[:user_id => eleve_id, :regroupement => Regroupement.filter(:etablissement_id => etablissement_id)].destroy
+      EnseigneDansRegroupement[:user_id => eleve_id, :regroupement => Regroupement.filter(:etablissement_id => etablissement_id)].destroy
 
       # delete user roles in the etablissement  
     end  

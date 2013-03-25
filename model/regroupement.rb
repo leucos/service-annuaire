@@ -46,17 +46,16 @@ class Regroupement < Sequel::Model(:regroupement)
 
   def after_create
     # On définit le type de service en fonction du type de regroupement
-    case type_regroupement_id
-      when TYP_REG_CLS
-        service_id = SRV_CLASSE
-      when TYP_REG_GRP
-        service_id = SRV_GROUPE
-      when TYP_REG_LBR
-        service_id = SRV_LIBRE
+    case self.type_regroupement_id
+      when 'CLS'
+        service_id = "CLASSE"
+      when 'GRP'
+        service_id = "GROUPE"
+      when 'LBR'
+        service_id = "LIBRE"
     end
 
-    Ressource.create(:id => self.id, :service_id => service_id,
-      :parent_id => etablissement_id, :parent_service_id => SRV_ETAB)
+    Ressource.create(:id => self.id, :service_id => service_id)
     super
   end
 
@@ -64,7 +63,7 @@ class Regroupement < Sequel::Model(:regroupement)
     # Supprimera toutes les ressources liées à ce regroupement
     self.ressource.destroy() if self.ressource
     # Supprime tous les enseignements effectués dans ce regroupement
-    enseigne_regroupement_dataset.destroy()
+    enseigne_dans_regroupement_dataset.destroy()
     super
   end
 
@@ -130,7 +129,7 @@ class Regroupement < Sequel::Model(:regroupement)
   def add_prof(user, matiere, principal = "N" )
     # for the moment i dont treat roles
     #user.add_role(self.ressource.id, self.ressource.service_id, "PROF_CLS")
-    EnseigneRegroupement.find_or_create(:regroupement_id => self.id, :user_id => user.id,
+    EnseigneDansRegroupement.find_or_create(:regroupement_id => self.id, :user_id => user.id,
       :matiere_enseignee_id => matiere.id, :prof_principal => principal)
   end
 
@@ -138,6 +137,6 @@ class Regroupement < Sequel::Model(:regroupement)
     # supprimer le role prof de l'utilisateur
     # supprimer les matieres ensignee par cet utilisateur
     RoleUser[:user_id => user_id, :role_id => PROF_CLS]
-    EnseigneRegroupement.where(:user_id => user_id, :regroupement => self).delete
+    EnseigneDansRegroupement.where(:user_id => user_id, :regroupement => self).delete
   end
 end

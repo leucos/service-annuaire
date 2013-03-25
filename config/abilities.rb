@@ -18,7 +18,7 @@ class AdminPanelAbility < SixCan
             regroupement.etablissement_id == user.profil_actif.etablissement_id
           end
         when :gestion_user
-          can :manage, [User, Profil, ProfilUser, RoleUser, MembreRegroupement, EnseigneRegroupement, Regroupement]
+          can :manage, [User, Profil, ProfilUser, RoleUser, MembreRegroupement, EnseigneDansRegroupement, Regroupement]
           can :manage, Etablissement
           can :manage, App
           cannot :delete, Etablissement

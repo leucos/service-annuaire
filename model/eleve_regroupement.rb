@@ -10,7 +10,7 @@
 # regroupement_id               | int(11)             | false    | PRI      |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
-class EleveRegroupement < Sequel::Model(:eleve_dans_regroupement)
+class EleveDansRegroupement < Sequel::Model(:eleve_dans_regroupement)
 
 
   # Plugins
