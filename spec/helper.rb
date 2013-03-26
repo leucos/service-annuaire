@@ -7,11 +7,14 @@ require_relative '../app'
 
 # On lance tous les tests dans une transaction ce qui fait
 # que l'on a pas a supprimer quoique ce soit, sequel le fait pour nous :)
+
 RSpec.configure do |c|
   c.around(:each) do |example|
     Sequel.transaction([DB, ORACLE], :rollback=>:always){example.run}
+    #Sequel.transaction([DB, ORACLE]){example.run}
   end
 end
+
 
 Mail.defaults do
   delivery_method :test

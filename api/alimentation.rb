@@ -58,16 +58,18 @@ class AlimentationApi < Grape::API
         logger = Laclasse::Logging.new("log/alimentation_etab_#{params['uai']}.log", Configuration::LOG_LEVEL)
         puts "----------received params from alimentation server-----------\n"
         type_import = params['type_import']
-        logger.info("type_import #{type_import}")
+        #logger.info("type_import #{type_import}")
         
         profil = params['profil']
-        logger.info "profil #{profil}"
+        #logger.info "profil #{profil}"
         
         uai = params['uai']
+        logger.info "etablissement #{uai}"
         puts "uai #{uai}"
         
         type_data = params['type_data']
         logger.info("type data  #{type_data}")
+        logger.info "profil #{profil}"
         puts "type data  #{type_data}"
         
         data = params['data']
@@ -154,36 +156,29 @@ class AlimentationApi < Grape::API
       begin 
         @@services.each do |service| 
           res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{service}&rne=#{params[:uai]}"))
-          puts res.code       # => '200'
-          puts res.message 
+          #puts res.code       # => '200'
+          #puts res.message 
           result = JSON.parse(res.body)
           tables[service] = result   
         end
         #[Test]
         puts tables.count
         tables.each do |table, result|
-          puts "#{table} count = #{result.count}}"
+          #puts "#{table} count = #{result.count}}"
         end
         tables 
       rescue => e
          error!("Bad Request: #{e.message}", 400)
       end
     end
-    
-    #-----------------------------------------#
-    # Get reports and bilan info for service or etablissement
-    desc "Get reports"
-    get "/rapport/:service/:uai" do
-      
-    end 
-    
+     
     #-------------------------------------------------#
     desc "Get bilan etablissement info"
     get "bilan/:type/:uai" do
       # types: bilan_regroupemenets, bilan_comptes
       res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{params[:type]}&rne=#{params[:uai]}")) 
-      puts res.code 
-      puts res.message
+      #puts res.code 
+      #puts res.message
       # parse response
       res.body 
       results = JSON.parse(res.body)    
@@ -272,11 +267,6 @@ class AlimentationApi < Grape::API
       requires :uai, :type => String, :desc => "code_uai"
     end
     get "/aliment/etablissement/:uai" do
-      begin
-        #etab = Etablissement[:code_uai => params[:uai]]
-        #if etab.nil?
-          #raise "etablissement n'existe pas"
-        #else
         #Url of services
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=etablissement&rne=0690078K
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=classes&rne=0690078K
@@ -289,128 +279,141 @@ class AlimentationApi < Grape::API
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=rattachements_profs&rne=0690078K
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=detachements&rne=0690078K
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=fonctions_pen&rne=0690078K
-          output = ""
-          @@services.each do |service| 
-            res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{service}&rne=#{params[:uai]}"))
-            #raise "can not pull data #{service} from the server" if res.code != 200       # => '200 
-            result = JSON.parse(res.body)
-            #["etablissement", "classes", "groupes", "eleves", "pers_educ_nat", "parents", 
-            #"pers_rel_eleve","rattachements_eleves", "rattachements_profs", "detachements","fonctions_pen"]
-            synchronizer = Alimentation::Synchronizer.new("Complet", params[:uai],"","","")
-            #puts service 
-            case service
-              when "etablissement"
-                #synchronizer.type_data = "STRUCTURES"
-                start = Time.now 
-                synchronizer.modify_or_create_etablissement(result)
-                fin = Time.now 
-                output += "Synchronize etablissement: #{params[:uai]} \n"
-                output += "Synchronization took #{fin-start} seconds \n"
+        output = ""
+        infostack = {}
+        infostack["error"] = []
+        @@services.each do |service| 
+          begin
+          res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{service}&rne=#{params[:uai]}"))
+          #raise "can not pull data #{service} from the server" if res.code != 200       # => '200 
+          result = JSON.parse(res.body)
+          #["etablissement", "classes", "groupes", "eleves", "pers_educ_nat", "parents", 
+          #"pers_rel_eleve","rattachements_eleves", "rattachements_profs", "detachements","fonctions_pen"]
+          synchronizer = Alimentation::Synchronizer.new("Complet", params[:uai],"","","")
+          #puts service 
+          case service
+            when "etablissement"
+              #synchronizer.type_data = "STRUCTURES"
+              start = Time.now 
+              synchronizer.modify_or_create_etablissement(result)
+              fin = Time.now 
+              output += "Synchronize etablissement: #{params[:uai]} \n"
+              output += "Synchronization took #{fin-start} seconds \n"
+              infostack["etablissement"] = params[:uai]
 
-              when "classes"
-                #synchronizer.type_data = "CLASSES"
-                start = Time.now 
-                synchronizer.modify_or_create_regroupement(result)
-                fin = Time.now 
-                output += "Synchronize Classes:\n"
-                output += "number of classes = #{result.count} \n"
-                output += "Synchronization took #{fin-start} seconds \n"
-                 
-              when "groupes"
-                #synchronizer.type_data = "GROUPES"
-                start = Time.now 
-                synchronizer.modify_or_create_regroupement(result)
-                fin = Time.now 
-                output += "Synchronize groupes:\n"
-                output += "number of groups = #{result.count} \n"
-                output += "Synchronization took #{fin-start} seconds \n"
-                
-              when "eleves"
-                #synchronizer.type_data = "COMPTES"
-                #synchronizer.profil = "ELEVE"
-                start = Time.now 
-                synchronizer.modify_or_create_eleves(result)
-                fin = Time.now 
-                output += "Synchronize Eleves: \n"
-                output += "number of eleves = #{result.count} \n"
-                output += "Synchronization took #{fin-start} seconds \n" 
+            when "classes"
+              #synchronizer.type_data = "CLASSES"
+              start = Time.now 
+              synchronizer.modify_or_create_regroupement(result)
+              fin = Time.now 
+              output += "Synchronize Classes:\n"
+              output += "number of classes = #{result.count} \n"
+              output += "Synchronization took #{fin-start} seconds \n"
+              infostack["classes"] = result.count 
+            when "groupes"
+              #synchronizer.type_data = "GROUPES"
+              start = Time.now 
+              synchronizer.modify_or_create_regroupement(result)
+              fin = Time.now 
+              output += "Synchronize groupes:\n"
+              output += "number of groups = #{result.count} \n"
+              output += "Synchronization took #{fin-start} seconds \n"
+              infostack["groupes"] = result.count 
+            when "eleves"
+              #synchronizer.type_data = "COMPTES"
+              #synchronizer.profil = "ELEVE"
+              start = Time.now 
+              synchronizer.modify_or_create_eleves(result)
+              fin = Time.now 
+              output += "Synchronize Eleves: \n"
+              output += "number of eleves = #{result.count} \n"
+              output += "Synchronization took #{fin-start} seconds \n" 
+              infostack["eleves"] = result.count 
+            when "pers_educ_nat"
+              #synchronizer.type_data = "COMPTES"
+              #synchronizer.profil = "PERSEDUCNAT"
+              start = Time.now 
+              synchronizer.modify_or_create_presons(result)
+              fin = Time.now 
+              output += "Synchronize persons educ nat: \n"
+              output += "number of persons = #{result.count} \n"
+              output += "Synchronization took #{fin-start} seconds \n"
+              infostack["pers_educ_nat"] = result.count 
 
-              when "pers_educ_nat"
-                #synchronizer.type_data = "COMPTES"
-                #synchronizer.profil = "PERSEDUCNAT"
-                start = Time.now 
-                synchronizer.modify_or_create_presons(result)
-                fin = Time.now 
-                output += "Synchronize persons educ nat: \n"
-                output += "number of persons = #{result.count} \n"
-                output += "Synchronization took #{fin-start} seconds \n"
+            when "parents"
+              #synchronizer.type_data = "COMPTES"
+              #synchronizer.profil = "PARENT"
+              start = Time.now 
+              synchronizer.modify_or_create_parents(result)
+              fin = Time.now 
+              output += "Synchronize parents: \n"
+              output += "number of parents = #{result.count} \n"
+              output += "Synchronization took #{fin-start} seconds \n"
+              infostack["parent"] = result.count 
 
-              when "parents"
-                #synchronizer.type_data = "COMPTES"
-                #synchronizer.profil = "PARENT"
-                start = Time.now 
-                synchronizer.modify_or_create_parents(result)
-                fin = Time.now 
-                output += "Synchronize parents: \n"
-                output += "number of parents = #{result.count} \n"
-                output += "Synchronization took #{fin-start} seconds \n"
+            when "pers_rel_eleve"
+              #synchronizer.type_data = "RATTACHEMENTS"
+              #synchronizer.profil = "PARENT"
+              start = Time.now 
+              synchronizer.rattache_eleves_persons(result)
+              fin = Time.now 
+              output += "Synchronize rattachement eleves persons: \n"
+              output += "number of rattachements = #{result.count} \n"
+              output += "Synchronization took #{fin-start} seconds \n"
+              infostack["prs_rel_eleve"] = result.count 
 
-              when "pers_rel_eleve"
-                #synchronizer.type_data = "RATTACHEMENTS"
-                #synchronizer.profil = "PARENT"
-                start = Time.now 
-                synchronizer.rattache_eleves_persons(result)
-                fin = Time.now 
-                output += "Synchronize rattachement eleves persons: \n"
-                output += "number of rattachements = #{result.count} \n"
-                output += "Synchronization took #{fin-start} seconds \n"
+            when "rattachements_eleves" 
+              #synchronizer.type_data = "RATTACHEMENTS"
+              #synchronizer.profil = "ELEVE"
+              start = Time.now 
+              synchronizer.rattache_eleves_regroupements(result)
+              fin = Time.now 
+              output += "Synchronize rattachement eleves regroupement: \n"
+              output += "number of rattachements = #{result.count} \n"
+              output += "Synchronization took #{fin-start} seconds \n"
+              infostack["rattachement_eleves"] = result.count 
 
-              when "rattachements_eleves" 
-                #synchronizer.type_data = "RATTACHEMENTS"
-                #synchronizer.profil = "ELEVE"
-                start = Time.now 
-                synchronizer.rattache_eleves_regroupements(result)
-                fin = Time.now 
-                output += "Synchronize rattachement eleves regroupement: \n"
-                output += "number of rattachements = #{result.count} \n"
-                output += "Synchronization took #{fin-start} seconds \n"
+            when "rattachements_profs"
+              #synchronizer.type_data = "RATTACHEMENTS"
+              #synchronizer.profil = "PERSEDUCNAT"
+              start = Time.now 
+              synchronizer.rattache_profs_regroupements(result)
+              fin = Time.now 
+              output += "Synchronize rattachement profs regroupement: \n"
+              output += "number of rattachements = #{result.count} \n"
+              output += "Synchronization took #{fin-start} seconds \n"
+              infostack[:rattachement_profs] = result.count 
 
-              when "rattachement_profs"
-                #synchronizer.type_data = "RATTACHEMENTS"
-                #synchronizer.profil = "PERSEDUCNAT"
-                start = Time.now 
-                synchronizer.rattache_profs_regroupements(result)
-                fin = Time.now 
-                output += "Synchronize rattachement profs regroupement: \n"
-                output += "number of rattachements = #{result.count} \n"
-                output += "Synchronization took #{fin-start} seconds \n"
+            when "detachements"
+              #synchronizer.type_data = "DETACHEMENTS"
+              start = Time.now 
+              synchronizer.dettache_profil(result)
+              fin = Time.now 
+              output += "Synchronize detachements: \n"
+              output += "number of detachements = #{result.count} \n"
+              output += "Synchronization took #{fin-start} seconds \n"
+              infostack["detachements"] = result.count 
 
-              when "detachements"
-                #synchronizer.type_data = "DETACHEMENTS"
-                start = Time.now 
-                synchronizer.dettache_profil(result)
-                fin = Time.now 
-                output += "Synchronize detachements: \n"
-                output += "number of detachements = #{result.count} \n"
-                output += "Synchronization took #{fin-start} seconds \n"
-
-              when "fonctions_pen"
-                #synchronizer.type_data = "FONCTIONS"
-                start = Time.now 
-                synchronizer.rattache_fonction_person(result)
-                fin = Time.now 
-                output += "Synchronize fonction preson educ nat: \n"
-                output += "number of fonctions = #{result.count} \n"
-                output += "Synchronization took #{fin-start} seconds \n"
-              else
-                #raise "alimentation type not supported" 
-             end             
-          end #Loop 
-        output
-      rescue => e 
-        output+="Error: #{e.message} \n"
-        #error!("Bad Request: #{e.message}", 400)
-      end     
+            when "fonctions_pen"
+              #synchronizer.type_data = "FONCTIONS"
+              start = Time.now 
+              synchronizer.rattache_fonction_person(result)
+              fin = Time.now 
+              output += "Synchronize fonction preson educ nat: \n"
+              output += "number of fonctions = #{result.count} \n"
+              output += "Synchronization took #{fin-start} seconds \n"
+              infostack["fonction"] = result.count 
+            else
+              raise "alimentation type not supported #{service}" 
+           end
+          rescue => e 
+           output+="Error: #{e.message} \n"
+           infostack["error"].push(e.message)
+            #error!("Bad Request: #{e.message}", 400)
+          end               
+        end #Loop 
+      #output
+      infostack   
     end
     #---------------------------------------------------------#
   end # resource  
