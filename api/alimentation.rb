@@ -189,7 +189,31 @@ class AlimentationApi < Grape::API
       # types: bilan_regroupemenets, bilan_comptes
       begin 
         res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{params[:type]}&rne=#{params[:uai]}")) 
-        results = JSON.parse(res.body)    
+        results = JSON.parse(res.body)
+        if params[:type] == "bilan_comptes"
+          #eleves
+          no_of_eleves = results[0]["ELEVE"].select {|r| r["etat_previsu"] == "OK"}.empty? ? 0 : results[0]["ELEVE"].select {|r| r["etat_previsu"] == "OK"}[0]["nb"]
+          deleted_eleves = results[0]["ELEVE"].select {|r| r["etat_previsu"] == "DELETED"}.empty? ? 0 : results[0]["ELEVE"].select {|r| r["etat_previsu"] == "DELETED"}[0]["nb"] 
+          error_eleves = results[0]["ELEVE"].select {|r| r["etat_previsu"]== "ERROR"}.empty? ? 0 : results[0]["ELEVE"].select {|r| r["etat_previsu"]== "ERROR"}[0]["nb"]
+          eleves = {"nb" => no_of_eleves, "deleted" => deleted_eleves, "errors" => error_eleves}
+
+          # parents
+          no_of_parents = results[1]["PARENT"].select {|r| r["etat_previsu"] == "OK"}.empty? ? 0 : results[1]["PARENT"].select {|r| r["etat_previsu"] == "OK"}[0]["nb"]
+          deleted_parents = results[1]["PARENT"].select {|r| r["etat_previsu"] == "DELETED"}.empty? ? 0 : results[1]["PARENT"].select {|r| r["etat_previsu"] == "DELETED"}[0]["nb"] 
+          error_parents = results[1]["PARENT"].select {|r| r["etat_previsu"]== "ERROR"}.empty? ? 0 : results[1]["PARENT"].select {|r| r["etat_previsu"]== "ERROR"}[0]["nb"]
+          parents = {"nb" => no_of_parents, "deleted" => deleted_parents, "errors" => error_parents}
+
+          # person educ nat
+          no_of_persons = results[2]["PERSEDUCNAT"].select {|r| r["etat_previsu"] == "OK"}.empty? ? 0 : results[2]["PERSEDUCNAT"].select {|r| r["etat_previsu"] == "OK"}[0]["nb"]
+          deleted_persons = results[2]["PERSEDUCNAT"].select {|r| r["etat_previsu"] == "DELETED"}.empty? ? 0 : results[2]["PERSEDUCNAT"].select {|r| r["etat_previsu"] == "DELETED"}[0]["nb"] 
+          error_persons = results[2]["PERSEDUCNAT"].select {|r| r["etat_previsu"]== "ERROR"}.empty? ? 0 : results[2]["PERSEDUCNAT"].select {|r| r["etat_previsu"]== "ERROR"}[0]["nb"]
+          persons = {"nb" => no_of_parents, "deleted" => deleted_parents, "errors" => error_parents}
+
+          {"eleves" => eleves, "parents"=> parents, "pers_educ_nat" => persons}
+
+        else
+          results  
+        end     
       rescue => e 
         error!("Bad Request: #{e.message}", 400)
       end  

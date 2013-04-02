@@ -816,19 +816,25 @@ module Alimentation
     #---------------------------------------------------------#
     def dettache_eleve(eleve_id, etablissement_id)
       # delete profil from profil_user table
-      ProfilUser[:profil_id => 'ELV', :user_id => eleve_id, :etablissement_id => etablissement_id].destroy 
-      
-      # delete fonction from profil_user_has_fonction, eleve has no fonctions
+      profil = ProfilUser[:profil_id => 'ELV', :user_id => eleve_id, :etablissement_id => etablissement_id]
+      if profil
+        profil.destroy
+      end   
       
       # remove eleve from all regroupements in this etablissement
-      EleveDansRegroupement[:user_id => eleve_id, :regroupement => Regroupement.filter(:etablissement_id => etablissement_id)].destroy
-
+      eleve_regroupement = EleveDansRegroupement[:user_id => eleve_id, :regroupement => Regroupement.where(:etablissement_id => etablissement_id)]
+      if eleve_regroupement
+        eleve_regroupement.destroy
+      end  
       # delete user roles in the etablissement 
     end
     #--------------------------------------------------------#
     def dettache_parent(person_id, etablissement_id)
-       # delete profil from profil_user table
-      ProfilUser[:profil_id => 'TUT', :user_id => person_id, :etablissement_id => etablissement_id].destroy
+      # delete profil from profil_user table
+      profil = ProfilUser[:profil_id => 'TUT', :user_id => person_id, :etablissement_id => etablissement_id]
+      if profil
+        profil.destroy
+      end
 
       # delete user roles in the etablissement  
     end
@@ -839,7 +845,7 @@ module Alimentation
       # il faut trouver les profile 
       # may be pers_educ_nat has many profiles !!
       #ProfilUser[:profil_id => 'ENS', :user_id => person_id, :etablissement_id => etablissement_id].destroy 
-      ProfilUser[:profil_id => 'ENS', :user_id => person_id, :etablissement_id => etablissement_id].destroy 
+      ProfilUser[:user_id => person_id, :etablissement_id => etablissement_id].destroy 
 
       # delete fonction from profil_user_has_fonction
       ProfilUserFonction[ :user_id => person_id, :etablissement_id => etablissement_id].destroy

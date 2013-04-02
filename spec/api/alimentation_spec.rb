@@ -151,12 +151,13 @@ describe AlimentationApi do
     etablissement_id = Etablissement[:code_uai => @etablissement_uai].id
     # compare to bilan received from the server
     # bilan comptes 
-    bilan_comptes[0]["ELEVE"][1]["nb"].to_i.should == ProfilUser.where(:profil_id => 'ELV', 
+
+    bilan_comptes["eleves"]["nb"].to_i.should == ProfilUser.where(:profil_id => 'ELV', 
       :etablissement_id => Etablissement[:code_uai => @etablissement_uai].id).count
-    bilan_comptes[1]["PARENT"][2]["nb"].to_i.should ==  ProfilUser.where(:profil_id => 'TUT', 
+    bilan_comptes["parents"]["nb"].to_i.should ==  ProfilUser.where(:profil_id => 'TUT', 
       :etablissement_id => Etablissement[:code_uai => @etablissement_uai].id).count
     # i can not test the number of profs
-    bilan_comptes[2]["PERSEDUCNAT"][1]["nb"].to_i.should >= ProfilUser.where(:profil_id => 'ENS', 
+    bilan_comptes["pers_educ_nat"]["nb"].to_i.should >= ProfilUser.where(:profil_id => 'ENS', 
       :etablissement_id => Etablissement[:code_uai => @etablissement_uai].id).count
 
     # test regroupements
