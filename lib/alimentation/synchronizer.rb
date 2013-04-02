@@ -95,7 +95,7 @@ module Alimentation
         DB.transaction do 
           data.each do |fonction|
             begin 
-              record = Fonction[:code_men => fonction["code_men"]]
+              record = Fonction[:code_men => fonction["code_men"], :libelle => fonction["libelle"]]
               if record.nil? # not found => add matiere 
                 Fonction.create(:code_men => fonction["code_men"], :libelle => fonction["libelle"], 
                   :description => fonction["description"]) 
@@ -273,6 +273,8 @@ module Alimentation
       # "nom"=>"AISSOU", "prenom"=>"Yanis", "date_naissance"=>"15/08/2001", "sexe"=>"M", "date_last_maj_aaf"=>"2013-02-28"}
       # we must capture errors in order to treat all eleves
       @logger.debug("modify or create eleve is called")
+      etablissement_id = Etablissement[:code_uai => @uai].id
+      profil_id = 'ELV'
       DB.transaction do
         data.each do |eleve| 
           begin 
@@ -282,7 +284,7 @@ module Alimentation
               @logger.debug("create user #{eleve['id_jointure_aaf']}")
               # find a suitable login for the user
               login = User.find_available_login(eleve["prenom"],eleve["nom"])
-              #login = eleve["nom"]+eleve["id_jointure_aaf"]
+              #login = eleve["nom"]+eleve["prenom"]+eleve["id_jointure_aaf"]
               # insert the hash into user table
               # TODO: generate default password algorithm instead of this
               password = eleve['id_jointure_aaf']
@@ -292,8 +294,6 @@ module Alimentation
                 :password => password)
               
               # add profil eleve to user
-              profil_id = 'ELV'
-              etablissement_id = Etablissement[:code_uai => @uai].id
               user.add_profil(etablissement_id, profil_id)
             
               # add emails 
@@ -310,8 +310,6 @@ module Alimentation
               record.save
 
               # add profil to user if not added
-              profil_id = 'ELV'
-              etablissement_id = Etablissement[:code_uai => @uai].id
               record.add_profil(etablissement_id, profil_id)
             end
           rescue => e 
@@ -329,6 +327,7 @@ module Alimentation
     #"mail_academique":"Y","devant_eleve":"O","date_last_maj_aaf":"2013-03-12"}
     def modify_or_create_presons(data)
       @logger.debug("modify or create person educ nat  is called")
+      etablissement_id = Etablissement[:code_uai => @uai].id
       DB.transaction do 
         data.each do |person| 
           begin 
@@ -350,7 +349,6 @@ module Alimentation
               # add profile ENS to user
               if person["devant_eleve"] == "O"
               profil_id = 'ENS' #??
-              etablissement_id = Etablissement[:code_uai => @uai].id
               user.add_profil(etablissement_id, profil_id)
               end 
 
@@ -376,7 +374,6 @@ module Alimentation
               # add profil to user if not added for person educ nat is not easy
               if person["devant_eleve"] == "O"
               profil_id = 'ENS' #??
-              etablissement_id = Etablissement[:code_uai => @uai].id
               record.add_profil(etablissement_id, profil_id)
               end 
                
@@ -407,6 +404,8 @@ module Alimentation
     #"tel_home":"+33 4 78 25 03 43","tel_work":"","mail":"","date_last_maj_aaf":"2013-03-12"}  
     def modify_or_create_parents(data)
       @logger.debug("modify or create parents is called")
+      #profil_id = 'TUT'
+      #etablissement_id = Etablissement[:code_uai => @uai].id
       DB.transaction do 
         data.each do |parent| 
           begin 
@@ -713,7 +712,7 @@ module Alimentation
               raise "person with id_jointure_aaf : #{fonction['id_jointure_aaf']} does not exist"
             end 
             # find function 
-            fonction = Fonction[:code_men => rattachement["code_fct"]]
+            fonction = Fonction[:code_men => rattachement["code_fct"], :libelle => rattachement["lib_fct"]]
             if fonction.nil?
               raise "fonction with code : #{rattachement["code_fct"]} does not exist"
             end 
@@ -735,7 +734,7 @@ module Alimentation
                 profil_id ="ETA"
               when "EDUCATION"         
                 profil_id ="ETA"
-              when "PERSONNELS ADMINISTRATIFS"
+              when "PERSONNELS ADMINISTRATIFS" || "ADMINSTRATION"
                 profil_id ="ETA"
               when "PERSONNELS MEDICO-SOCIAUX"
                 profil_id ="EVS"
@@ -748,7 +747,7 @@ module Alimentation
             person.add_profil(Etablissement[:code_uai => @uai].id, profil_id)   
             
             # rattach function to  person
-            person.add_fonction(Etablissement[:code_uai => @uai].id, profil_id,rattachement["code_fct"] )  
+            person.add_fonction(Etablissement[:code_uai => @uai].id, profil_id,fonction.id)  
 
           rescue => e 
             @logger.error(e.message)

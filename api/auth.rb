@@ -86,7 +86,7 @@ class AuthApi < Grape::API
       
       begin
         AuthSession.delete(params[:session_key])
-      rescue AuthSession::UnauthorizedDeletion => e
+      rescue  AuthSession::UnauthorizedDeletion => e
         error!("Pas le droit de supprimer les sessions stockées", 403)
       end
     end

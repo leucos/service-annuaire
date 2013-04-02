@@ -13,6 +13,7 @@ RSpec.configure do |c|
     Sequel.transaction([DB, ORACLE], :rollback=>:always){example.run}
     #Sequel.transaction([DB, ORACLE]){example.run}
   end
+  c.filter_run_excluding :broken => true
 end
 
 

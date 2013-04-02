@@ -17,7 +17,8 @@ describe AlimentationApi do
 
   before :all do
     #etablissement du test
-    @etablissement_uai = "0690078K"
+    #@etablissement_uai = "0690078K"
+    @etablissement_uai = "0690002C"
   end
 
   after :all do
@@ -39,25 +40,24 @@ describe AlimentationApi do
     JSON.parse(last_response.body)["error"].should == "missing parameter: data"
   end
 
-=begin
+
   it "synchronize mef educ nat", :broken => true do
     get("/alimentation/sync_mef").status.should == 200
-    last_response.body.should == "Mef syncronized successfully"
+    JSON.parse(last_response.body)["niveaux"].should == Niveau.count
   end
 
   it "synchronize matieres", :broken => true do
-    get("/alimentation/sync_mat").status.should == 200
-    last_response.body.should == "Matieres syncronized successfully"  
-    #delete("/auth/#{session}").status.should == 200
+    get("/alimentation/sync_mat").status.should == 200  
+    JSON.parse(last_response.body)["matieres"].should == MatiereEnseignee.count
     #get("/auth/#{session}").status.should == 404
   end
 
   it "synchronize the fonctions" , :broken => true do
     get("/alimentation/sync_fonc").status.should == 200
-    last_response.body.should == "Fonctions syncronized successfully"
+    JSON.parse(last_response.body)["fonctions"].should == Fonction.count
   end
 
-
+=begin
   it "empty an aliemented etablissement" do
     etablissement_uai = "0690078K" 
     get("alimentation/empty/etablissement/#{etablissement_uai}").status.should == 200
@@ -76,7 +76,7 @@ describe AlimentationApi do
     #get("alimentation/empty/etablissement/#{etablissement_uai}").status.should == 200
   end
   
-  it "gets details from server about alimentation process", :broken => true do 
+  it "gets details(bilan) from server about alimentation process", :broken => true do 
     #etablissement_uai = "0690078K"
     types = ["bilan_comptes", "bilan_regroupements"]
     get("/alimentation/bilan/#{types[0]}/#{@etablissement_uai}").status.should == 200 
@@ -86,25 +86,39 @@ describe AlimentationApi do
     bilan_regroupement = JSON.parse(last_response.body)
     bilan_regroupement.should_not == {}
   end
-=end
-  it "alimentation should have the same results as the bilan" do
+=end 
+  it "alimentation should be correct" do
+
+    #TODO: test that received records number corresponds to mysql inserts and modifictioans
+    # test the validity of data (e.x name is string not a character)
+    # The big Question
     # aliment etablissement
     get("alimentation/aliment/etablissement/#{@etablissement_uai}").status.should == 200
-    result = JSON.parse(last_response.body) 
+    #result = JSON.parse(last_response.body)
+    puts last_response.body 
      
     types = ["bilan_comptes", "bilan_regroupements"]
     get("/alimentation/bilan/#{types[0]}/#{@etablissement_uai}").status.should == 200 
     bilan_comptes = JSON.parse(last_response.body)
-    #test results
-    bilan_comptes[0]["ELEVE"][0]["nb"].to_i.should == result["eleves"].to_i
-    bilan_comptes[1]["PARENT"][1]["nb"].to_i.should == result["parent"].to_i
-    bilan_comptes[2]["PERSEDUCNAT"][1]["nb"].to_i.should == result["pers_educ_nat"].to_i
+    
+    #test comptes info
+    bilan_comptes[0]["ELEVE"][0]["nb"].to_i.should == ProfilUser.where(:profil_id => 'ELV', 
+      :etablissement_id => Etablissement[:code_uai => @etablissement_uai].id).count
+    bilan_comptes[1]["PARENT"][1]["nb"].to_i.should ==  ProfilUser.where(:profil_id => 'TUT', 
+      :etablissement_id => Etablissement[:code_uai => @etablissement_uai].id).count
+    # i can not test the number of profs
+    bilan_comptes[2]["PERSEDUCNAT"][1]["nb"].to_i.should == ProfilUser.where(:profil_id => 'ENS', 
+      :etablissement_id => Etablissement[:code_uai => @etablissement_uai].id).count
 
+    # test regroupements
     get("/alimentation/bilan/#{types[1]}/#{@etablissement_uai}").status.should == 200 
     bilan_regroupement = JSON.parse(last_response.body)
-    bilan_regroupement[0]["CLASSES"].count.should == (result["classes"].nil? ? 0 : result["classes"])
-    bilan_regroupement[1]["GROUPES"].count.should == (result["groupes"].nil? ? 0 : result["groupes"])
+    bilan_regroupement[0]["CLASSES"].count.should == Regroupement.where(:type_regroupement_id => 'CLS',
+      :etablissement_id => Etablissement[:code_uai => @etablissement_uai].id).count
+    bilan_regroupement[1]["GROUPES"].count.should == Regroupement.where(:type_regroupement_id => 'GRP',
+      :etablissement_id => Etablissement[:code_uai => @etablissement_uai].id).count
+
+    #test 
     
   end  
-
 end

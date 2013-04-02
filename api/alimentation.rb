@@ -22,20 +22,23 @@ class AlimentationApi < Grape::API
     
     #-----------------------------------------#
     desc "start alimentation"
-    get "/started" do
-       puts "start alimentation #{Time.now}"
-       @@recieved = []
-       @@empty_db = true
+    get "/start" do
+       Laclasse::Log.info("start alimentation #{Time.now}")
+       @@recieved_requests = {}
+      "Le stack est initializé et l'alimentation a commence"
     end
     
     #-----------------------------------------#
     desc "terminate alimentation"
-    get "/terminated" do
-      puts "alimentation is terminated at #{Time.now}"
-      @@empty_db = false
+    get "/terminate" do
+      Laclasse::Log.info("alimentation is terminated at #{Time.now}")
+      puts @@recieved_requests.inspect
+      temp = @@recieved_requests
       #empty stack for other alimentations
-      @@recieved = []
-      "ok"     
+      @@recieved_requests = {}
+      #temp
+      "l'alimentation a termine"
+
     end
     
     
@@ -50,11 +53,17 @@ class AlimentationApi < Grape::API
         requires :data, :type => String, :desc => "data that is treated" 
       end
     post "/recieve" do 
-      puts "--------------------------------------------------------------"
-      puts "recieved data from etablissement #{params['uai']} for #{params['type_data']}"
-      @@recieved.push("recieved data from etablissement #{params['uai']} for #{params['type_data']}") 
+      Laclasse::Log.info("--------------------------------------------------------------")
+      Laclasse::Log.info("recieved data from etablissement #{params['uai']} for #{params['type_data']}")
       #algo
-      begin 
+      begin
+        # save the received requests
+        # if (@@recieved_requests.has_key?(params['uai'])) && !(@@recieved_requests[params['uai']].include?("#{params['type_data']}:#{params['profil']}"))
+        #   @@recieved_requests[params['uai']].push("#{params['type_data']}:#{params['profil']}")
+        # elsif !(@@recieved_requests.has_key?(params['uai']))
+        #   @@recieved_requests[params['uai']] = []
+        #   @@recieved_requests[params['uai']].push("#{params['type_data']}:#{params['profil']}")
+        # end    
         logger = Laclasse::Logging.new("log/alimentation_etab_#{params['uai']}.log", Configuration::LOG_LEVEL)
         puts "----------received params from alimentation server-----------\n"
         type_import = params['type_import']
@@ -197,7 +206,7 @@ class AlimentationApi < Grape::API
         else
             raise("no MEF data were received ") 
         end
-        "Mef syncronized successfully"    
+        {"niveaux" => result.count}    
       rescue => e 
         error!("Bad Request: #{e.message}", 400) 
       end 
@@ -217,7 +226,7 @@ class AlimentationApi < Grape::API
         else
             raise("no Matieres data were received ") 
         end
-        "Matieres syncronized successfully"    
+        {"matieres" => result.count}   
       rescue => e 
         error!("Bad Request: #{e.message}", 400) 
       end 
@@ -236,7 +245,7 @@ class AlimentationApi < Grape::API
         else
             raise("no Fonctions data were received ") 
         end
-        "Fonctions syncronized successfully"    
+        {"fonctions" => result.count}  
       rescue => e 
         error!("Bad Request: #{e.message}", 400) 
       end   
@@ -310,6 +319,7 @@ class AlimentationApi < Grape::API
               output += "number of classes = #{result.count} \n"
               output += "Synchronization took #{fin-start} seconds \n"
               infostack["classes"] = result.count 
+
             when "groupes"
               #synchronizer.type_data = "GROUPES"
               start = Time.now 
@@ -318,7 +328,8 @@ class AlimentationApi < Grape::API
               output += "Synchronize groupes:\n"
               output += "number of groups = #{result.count} \n"
               output += "Synchronization took #{fin-start} seconds \n"
-              infostack["groupes"] = result.count 
+              infostack["groupes"] = result.count
+
             when "eleves"
               #synchronizer.type_data = "COMPTES"
               #synchronizer.profil = "ELEVE"
@@ -329,6 +340,7 @@ class AlimentationApi < Grape::API
               output += "number of eleves = #{result.count} \n"
               output += "Synchronization took #{fin-start} seconds \n" 
               infostack["eleves"] = result.count 
+
             when "pers_educ_nat"
               #synchronizer.type_data = "COMPTES"
               #synchronizer.profil = "PERSEDUCNAT"
@@ -412,8 +424,8 @@ class AlimentationApi < Grape::API
             #error!("Bad Request: #{e.message}", 400)
           end               
         end #Loop 
-      #output
-      infostack   
+      output
+      #infostack   
     end
     #---------------------------------------------------------#
   end # resource  

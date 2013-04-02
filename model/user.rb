@@ -308,9 +308,9 @@ class User < Sequel::Model(:user)
     #add_role(etablissement_id, SRV_ETAB, Profil[profil_id].role_id)
   end
 
-  def add_fonction(etablissement_id, profil_id, fonction_code_men)
+  def add_fonction(etablissement_id, profil_id, fonction_id)
     ProfilUserFonction.find_or_create(:user_id => self.id, 
-        :etablissement_id => etablissement_id, :profil_id => profil_id, :fonction_code => fonction_code_men)
+        :etablissement_id => etablissement_id, :profil_id => profil_id, :fonction_id => fonction_id)
   end   
 
 
