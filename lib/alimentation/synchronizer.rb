@@ -7,7 +7,7 @@
 module Alimentation
   
   class Synchronizer
-    attr_accessor :profil, :type_data
+    attr_accessor :profil, :type_data, :errorstack
 
     def initialize(type_import, uai, profil, type_data, data)
       @type_import = type_import 
@@ -17,6 +17,8 @@ module Alimentation
       @data = data  # must be transformed to type json , refactor code 
       @logger = Laclasse::Logging.new("log/alimentation_etab_#{@uai}.log", Configuration::LOG_LEVEL)
       @logstack = {}
+      # a hash that contains errors
+      @errorstack = []
       #if we want to store data temporarly in mongoDB
       #@db =DataBase.connect({:server => "localhost", :db => "mydb"})
     end
@@ -233,7 +235,8 @@ module Alimentation
           end
         end 
       rescue => e
-        @logger.error(e.message) 
+        @logger.error(e.message)
+        @errorstack.push(e.message) 
       end 
     end
     
@@ -260,6 +263,7 @@ module Alimentation
           end   
       rescue => e
         @logger.error(e.message)
+        @errorstack.push(e.message)
       end  
    
     end #end modify_or_create_user
@@ -314,6 +318,7 @@ module Alimentation
             end
           rescue => e 
             @logger.error(e.message)
+            @errorstack.push(e.message)
           end     
         end # end each
       end 
@@ -390,6 +395,7 @@ module Alimentation
             end
           rescue => e 
             @logger.error(e.message)
+            @errorstack.push(e.message)
           end     
         end # end each
       end 
@@ -476,6 +482,7 @@ module Alimentation
             end
           rescue => e 
             @logger.error(e.message)
+            @errorstack.push(e.message)
           end     
         end # end each
       end # Transaction  
@@ -558,6 +565,7 @@ module Alimentation
             end
           rescue => e 
             @logger.error(e.message)
+            @errorstack.push(e.message)
           end
 
         end #end loop
@@ -619,6 +627,7 @@ module Alimentation
                
           rescue => e
             @logger.error(e.message)
+            @errorstack.push(e.message)
           end
         end #loop
       end # transaction
@@ -661,6 +670,7 @@ module Alimentation
             regroupement.add_prof(prof, matiere, rattachement["prof_principal"])
           rescue => e
             @logger.error(e.message)
+            @errorstack.push(e.message)
           end     
         end #end loop 
       end # Transaction  
@@ -692,6 +702,7 @@ module Alimentation
               rattachement["resp_legal"], rattachement["contact"], rattachement["paiement"])
           rescue => e
             @logger.error(e.message)
+            @errorstack.push(e.message)
           end     
         end #end loop
       end #transaction 
@@ -751,6 +762,7 @@ module Alimentation
 
           rescue => e 
             @logger.error(e.message)
+            @errorstack.push(e.message)
           end 
         end
       end # transaction     
@@ -796,6 +808,7 @@ module Alimentation
             end   
           rescue => e
             @logger.error(e.message)
+            @errorstack.push(e.message)
           end 
         end
       end # transaction
