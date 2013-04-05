@@ -205,9 +205,10 @@ class User < Sequel::Model(:user)
       # Solution pas terrible car spécifique à MySql mais je vois
       # pas comment autrement
       raise e if e.message.index(/Duplicate entry '.*' for key 'PRIMARY'/).nil?
+      #puts e.message 
       # On récupère le hash de l'objet en cours de construction
       hash = self.values
-      puts hash.inspect
+      #puts hash.inspect
       # Et on enlève l'id et la date de création qui seront
       # rajouté par la suite
       hash.delete(:id)

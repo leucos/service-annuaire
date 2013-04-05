@@ -89,7 +89,7 @@ class Etablissement < Sequel::Model(:etablissement)
   
   # les classes dans l'etablissement 
   def classes
-    Regroupement.filter(:etablissement => self, :type_regroupement_id => TYP_REG_CLS).all
+    Regroupement.filter(:etablissement => self, :type_regroupement_id => "CLS").all
   end
 
   # les groupes d'eleve  dans l'etablissement

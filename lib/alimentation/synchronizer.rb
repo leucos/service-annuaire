@@ -7,7 +7,7 @@
 module Alimentation
   
   class Synchronizer
-    attr_accessor :profil, :type_data, :errorstack
+    attr_accessor :profil, :type_data, :errorstack, :logger
 
     def initialize(type_import, uai, profil, type_data, data)
       @type_import = type_import 
@@ -120,7 +120,7 @@ module Alimentation
 
     #-----------------------------------------------------------# 
     def sync()
-      @logger.debug("sync() method is called")
+      @logger.debug("sync method is called")
       if @type_import == "Delta" 
         sync_delta()
       elsif @type_import =="Complet"
@@ -244,11 +244,6 @@ module Alimentation
     # syncronize user
     def modify_or_create_user(data)
       @logger.debug("modify or create user is called")
-
-      # three cases 
-        # eleves 
-        # perseducnat
-        # parent
       begin
         data = JSON.parse(@data)
         case @profil
@@ -285,7 +280,7 @@ module Alimentation
             record = User[:id_jointure_aaf => eleve["id_jointure_aaf"]]
             # search Users for corresponding records
             if record.nil? 
-              @logger.debug("create user #{eleve['id_jointure_aaf']}")
+              @logger.debug("create eleve with id_jointure: #{eleve['id_jointure_aaf']}")
               # find a suitable login for the user
               login = User.find_available_login(eleve["prenom"],eleve["nom"])
               #login = eleve["nom"]+eleve["prenom"]+eleve["id_jointure_aaf"]
@@ -303,7 +298,7 @@ module Alimentation
               # add emails 
               # add telephones
             else 
-              @logger.debug("update eleve #{eleve['id_jointure_aaf']}")
+              @logger.debug("update eleve with id_jointure: #{eleve['id_jointure_aaf']}")
               # update where id_jointure_aaf = eleve["id_jointure_aaf"] with new hash
               record[:id_sconet] = eleve["id_sconet"]
               record[:nom] = eleve["nom"] 
@@ -322,7 +317,7 @@ module Alimentation
           end     
         end # end each
       end 
-      @logger.info("treated #{data.count} records")
+      @logger.info("treated eleves #{data.count} records")
     end
 
     #------------------------------------------------------------#
@@ -340,7 +335,7 @@ module Alimentation
             record = User[:id_jointure_aaf => person["id_jointure_aaf"]]
             # search Users for corresponding records
             if record.nil? 
-              @logger.debug("create person #{person['id_jointure_aaf']}")
+              @logger.debug("create person_educ_nat with id_jointure: #{person['id_jointure_aaf']}")
               # find a suitable login for the user
               login = User.find_available_login(person["prenom"],person["nom"].capitalize)
               # insert the hash into user table
@@ -368,7 +363,7 @@ module Alimentation
               end  
               # add telephones
             else 
-              @logger.debug("update person  #{ person['id_jointure_aaf']}")
+              @logger.debug("update person_educ_nat with id_jointure: #{ person['id_jointure_aaf']}")
               # update where id_jointure_aaf = person["id_jointure_aaf"] with new hash
               record[:nom] = person["nom"] 
               record[:prenom] = person["prenom"].capitalize
@@ -399,7 +394,7 @@ module Alimentation
           end     
         end # end each
       end 
-      @logger.info("treated #{data.count} records")
+      @logger.info("treated person_educ_nat #{data.count} records")
     end
     #-----------------------------------------------------------#
     
@@ -418,17 +413,24 @@ module Alimentation
             record = User[:id_jointure_aaf => parent["id_jointure_aaf"]]
             # search Users for corresponding records
             if record.nil? 
-              @logger.debug("create user #{parent['id_jointure_aaf']}")
+              @logger.debug("create parent with id_jointure: #{parent['id_jointure_aaf']}")
               # find a suitable login for the user
               login = User.find_available_login(parent["prenom"],parent["nom"])
               # insert the hash into user table
               # TODO: generate default password algorithm instead of this
               password = parent['id_jointure_aaf']
+
               user = User.create(:login => login, :id_jointure_aaf => parent["id_jointure_aaf"], :nom => parent["nom"],
                 :prenom => parent["prenom"], :date_naissance => parent["date_naissance"],:sexe => parent["sexe"], 
-                :adresse => parent["adresse"], :code_postal => parent["code_postal"], :ville => parent["ville"],
+                :adresse => parent["adresse"], :ville => parent["ville"],
                 :password => password)
-              
+
+              # code postal  
+              if !parent["code_postal"].nil? && parent["code_postal"] != ""
+                user[:code_postal] = parent["code_postal"]
+                user.save
+              end 
+                 
               # add profil to user if not added
               profil_id = 'TUT'
               etablissement_id = Etablissement[:code_uai => @uai].id
@@ -449,14 +451,16 @@ module Alimentation
                 #user.add_telephone(parent["tel_work"], 3)
               #end
             else 
-              @logger.debug("update parent #{parent['id_jointure_aaf']}")
+              @logger.debug("update parent with id_jointure: #{parent['id_jointure_aaf']}")
               # update 
               record[:nom] = parent["nom"] 
               record[:prenom] = parent["prenom"]
               record[:date_naissance] = parent["date_naissance"]
               record[:sexe] = parent["sexe"]
               record[:adresse] = parent["adresse"]
-              record[:code_postal] = parent["code_postal"]
+              if !parent["code_postal"].nil? && parent["code_postal"] != ""
+                record[:code_postal] = parent["code_postal"]
+              end  
               record[:ville] = parent["ville"]
               record.save
 
@@ -486,7 +490,7 @@ module Alimentation
           end     
         end # end each
       end # Transaction  
-      @logger.info("treated #{data.count} records")
+     @logger.info("treated parents #{data.count} records")
     end 
 
     # -----------------------------------------------------------
@@ -520,7 +524,7 @@ module Alimentation
             # "code_mef_aaf":"1001000C11A","date_last_maj_aaf":"2013-03-12"}
 
             if found_one && regroupement["type_regroupement_id"] == "CLS"
-              @logger.debug("Modify class  #{regroupement['libelle_aaf']}")
+              @logger.debug("Modify class: #{regroupement['libelle_aaf']}")
               #modify class 
               # update only code_mef_aaf and date_last_maj_aaf
               record[:code_mef_aaf] = regroupement["code_mef_aaf"]
@@ -530,7 +534,7 @@ module Alimentation
               record.save
 
             elsif !found_one && regroupement["type_regroupement_id"] == "CLS"
-              @logger.debug("Add class #{regroupement['libelle_aaf']}")
+              @logger.debug("Add class: #{regroupement['libelle_aaf']}")
               # create class 
               Regroupement.create(:libelle_aaf => regroupement["libelle_aaf"],:etablissement_id => etablissement.id, 
                 :code_mef_aaf => regroupement["code_mef_aaf"], :type_regroupement_id => regroupement["type_regroupement_id"], 
@@ -541,7 +545,7 @@ module Alimentation
             # {"etablissement":"0690078K","libelle_aaf":"3A GR AL","type_regroupement_id":"GRP",
             # "libelle":"3A Gr Alld2","date_last_maj_aaf":"2013-03-12"}  
             elsif found_one && regroupement["type_regroupement_id"] == "GRP"
-              @logger.debug("Modify group #{regroupement['libelle_aaf']}")
+              @logger.debug("Modify group: #{regroupement['libelle_aaf']}")
               record[:code_mef_aaf] = regroupement["code_mef_aaf"]
               record[:date_last_maj_aaf] = regroupement["date_last_maj_aaf"] 
               record[:libelle] = regroupement["libelle"]
@@ -549,7 +553,7 @@ module Alimentation
               record.save
               
             elsif !found_one && regroupement["type_regroupement_id"] == "GRP"
-              @logger.debug("add group #{regroupement['libelle_aaf']}")
+              @logger.debug("Add group: #{regroupement['libelle_aaf']}")
               Regroupement.create(:libelle_aaf => regroupement["libelle_aaf"],:etablissement_id => etablissement.id, 
                 :code_mef_aaf => regroupement["code_mef_aaf"], :type_regroupement_id => regroupement["type_regroupement_id"], 
                 :date_last_maj_aaf => regroupement["date_last_maj_aaf"], :libelle => regroupement["libelle"])
@@ -570,24 +574,18 @@ module Alimentation
 
         end #end loop
       end # Transaction   
+      @logger.info("treated regoupements #{data.count} records")
 
     end # end modify_or_create_regroupement
 
     #----------------------------------------------------------------#
     def modify_or_create_rattachement(data)
-      # we have three cases 
-        # Eleves 
-        # Profs 
-        # Parents 
       case @profil
         when "ELEVE"
-          @logger.debug("Rattache eleves aux regroupements")
           rattache_eleves_regroupements(data) 
         when "PARENT"
-           @logger.debug("Rattache eleves aux personnes")
           rattache_eleves_persons(data)
         when "PERSEDUCNAT"
-           @logger.debug("Rattache profs aux regroupements")
           rattache_profs_regroupements(data)
         else
           raise "profil is not supported" 
@@ -595,6 +593,7 @@ module Alimentation
     end 
     #-----------------------------------------------------------------#
     def rattache_eleves_regroupements(data)
+      @logger.debug("Rattache eleves aux regroupements")
       DB.transaction do
         data.each do |rattachement|
           begin
@@ -631,7 +630,7 @@ module Alimentation
           end
         end #loop
       end # transaction
-      @logger.info("records treated #{data.count}")      
+      @logger.info("treated rattachement eleves regroupements#{data.count}")      
     end # end rattache_eleves_regroupements
     #---------------------------------------------------------------------#
 
@@ -640,6 +639,7 @@ module Alimentation
     # "libelle_regroupement"=>"6B", "prof_principal"=>"N", "TYPE"=>"CLS"}
 
     def rattache_profs_regroupements(data)
+      @logger.debug("Rattache profs aux regroupements")
       DB.transaction do 
         data.each do |rattachement|
           begin
@@ -673,7 +673,8 @@ module Alimentation
             @errorstack.push(e.message)
           end     
         end #end loop 
-      end # Transaction  
+      end # Transaction
+      @logger.info("treated rattachement profs regroupements#{data.count}")    
     end # end  rattache_profs_regroupements()  
     #---------------------------------------------------------------------#
     # Example received data 
@@ -681,6 +682,7 @@ module Alimentation
     #"resp_financier":"0","resp_legal":"0","contact":"1","paiement":"0"},
     #
     def rattache_eleves_persons(data)
+      @logger.debug("Rattache eleves aux parents")
       DB.transaction do 
         data.each do |rattachement|
           begin
@@ -693,11 +695,11 @@ module Alimentation
             # find person 
             person = User[:id_jointure_aaf => rattachement["id_jointure_aaf_parent"]]
             if person.nil?
-              raise "person with id_jointure_aaf: #{rattachement["id_jointure_aaf_parent"]} does not exist" 
+              raise "parent with id_jointure_aaf: #{rattachement["id_jointure_aaf_parent"]} does not exist" 
             end
             
             # rattache eleve to person
-             @logger.debug("eleve with id_jointure_aaf: #{rattachement['id_jointure_aaf_eleve']} to person with id_jointure_aaf: #{rattachement["id_jointure_aaf_parent"]}")
+             @logger.debug("rattache eleve with id_jointure_aaf: #{rattachement['id_jointure_aaf_eleve']} to person with id_jointure_aaf: #{rattachement["id_jointure_aaf_parent"]}")
             eleve.add_or_modify_parent(person, rattachement["type_relation_eleve_id"],  rattachement["resp_financier"], 
               rattachement["resp_legal"], rattachement["contact"], rattachement["paiement"])
           rescue => e
@@ -706,6 +708,7 @@ module Alimentation
           end     
         end #end loop
       end #transaction 
+      @logger.info("treated rattachement eleves persons #{data.count}")  
     end 
 
     #----------------------------------------------------------------------#
@@ -758,6 +761,7 @@ module Alimentation
             person.add_profil(Etablissement[:code_uai => @uai].id, profil_id)   
             
             # rattach function to  person
+            @logger.debug("rattache pers_educ_nat #{rattachement["id_jointure_aaf"]} with a function #{rattachement["code_fct"]}")
             person.add_fonction(Etablissement[:code_uai => @uai].id, profil_id,fonction.id)  
 
           rescue => e 
@@ -765,7 +769,8 @@ module Alimentation
             @errorstack.push(e.message)
           end 
         end
-      end # transaction     
+      end # transaction 
+      @logger.info("treated rattachement fonctions persons #{data.count}")      
     end # end  rattache_fonction_person(data)
     #---------------------------------------------------------#
     def dettache_profil(data)
@@ -794,7 +799,7 @@ module Alimentation
                 if user.nil? 
                   raise "le parent avec id_jointure_aaf: #{detachement['id_jointure_aaf']} n'exist pas"
                 else 
-                  dettache_eleve(user.id, etablissement_id)
+                  dettache_parent(user.id, etablissement_id)
                 end 
               when "PERSEDUCNAT"
                 @logger.debug("dettache person_educ_nat #{detachement['id_jointure_aaf']} de l\'etablissement #{@uai}")
@@ -812,6 +817,7 @@ module Alimentation
           end 
         end
       end # transaction
+      @logger.info("treated detachements #{data.count}") 
     end
     #---------------------------------------------------------#
     def dettache_eleve(eleve_id, etablissement_id)
@@ -838,21 +844,38 @@ module Alimentation
 
       # delete user roles in the etablissement  
     end
-    #--------------------------------------------------------#
 
+    #--------------------------------------------------------#
     def dettache_pers_educ_nat(person_id, etablissement_id)
       # delete profil from profil_user table
-      # il faut trouver les profile 
+      # il faut trouver les profils 
+      
+      # ProfilUser[:profil_id => 'ENS', :user_id => person_id, :etablissement_id => etablissement_id].destroy 
+      user_profils = ProfilUser.filter('profil_id NOT IN ?', ['TUT']).where(:user_id => person_id, :etablissement_id => etablissement_id)
+      
       # may be pers_educ_nat has many profiles !!
-      #ProfilUser[:profil_id => 'ENS', :user_id => person_id, :etablissement_id => etablissement_id].destroy 
-      ProfilUser[:user_id => person_id, :etablissement_id => etablissement_id].destroy 
+      if ! user_profils.empty?
+        user_profils.each do |profil|
+          profil.destroy
+        end
+      end      
 
       # delete fonction from profil_user_has_fonction
-      ProfilUserFonction[ :user_id => person_id, :etablissement_id => etablissement_id].destroy
+      # user may have many functions in the structure ( etablissement)
+      user_fonctions = ProfilUserFonction.where(:user_id => person_id, :etablissement_id => etablissement_id)
+      if ! user_fonctions.empty?
+        user_fonctions.each do |fonction| 
+          fonction.destroy
+        end  
+      end
       
       # remove prof from all regroupements in which he teaches
-      EnseigneDansRegroupement[:user_id => eleve_id, :regroupement => Regroupement.filter(:etablissement_id => etablissement_id)].destroy
-
+      user_regroupements = EnseigneDansRegroupement.where(:user_id => person_id, :regroupement => Regroupement.filter(:etablissement_id => etablissement_id))
+      if ! user_regroupements.empty?
+        user_regroupements.each do |attachement|
+          attachement.destroy
+        end
+      end     
       # delete user roles in the etablissement  
     end  
   end

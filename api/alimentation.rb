@@ -67,10 +67,9 @@ class AlimentationApi < Grape::API
         logger = Laclasse::Logging.new("log/alimentation_etab_#{params['uai']}.log", Configuration::LOG_LEVEL)
         puts "----------received params from alimentation server-----------\n"
         type_import = params['type_import']
-        #logger.info("type_import #{type_import}")
         
         profil = params['profil']
-        #logger.info "profil #{profil}"
+        
         
         uai = params['uai']
         logger.info "etablissement #{uai}"
@@ -93,7 +92,15 @@ class AlimentationApi < Grape::API
         fin = Time.now 
         puts "synchronization took #{fin-start} seconds"
         logger.info("synchronization took #{fin-start} seconds")
-        "Data synchronized succesfully"
+        if synchronizer.errorstack.empty?
+          "Data is completly synchronized"
+        else 
+          res = "Data is partialy synchronized with #{synchronizer.errorstack.count} errors <br/>"
+          synchronizer.errorstack.each do |error|
+            res += "#{error} <br>" 
+          end
+          res  
+        end
 
       rescue => e 
         error!("Bad Request: #{e.message}", 400) 
@@ -190,7 +197,9 @@ class AlimentationApi < Grape::API
       begin 
         res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{params[:type]}&rne=#{params[:uai]}")) 
         results = JSON.parse(res.body)
+        puts results.inspect
         if params[:type] == "bilan_comptes"
+          
           #eleves
           no_of_eleves = results[0]["ELEVE"].select {|r| r["etat_previsu"] == "OK"}.empty? ? 0 : results[0]["ELEVE"].select {|r| r["etat_previsu"] == "OK"}[0]["nb"]
           deleted_eleves = results[0]["ELEVE"].select {|r| r["etat_previsu"] == "DELETED"}.empty? ? 0 : results[0]["ELEVE"].select {|r| r["etat_previsu"] == "DELETED"}[0]["nb"] 
@@ -210,7 +219,6 @@ class AlimentationApi < Grape::API
           persons = {"nb" => no_of_parents, "deleted" => deleted_parents, "errors" => error_parents}
 
           {"eleves" => eleves, "parents"=> parents, "pers_educ_nat" => persons}
-
         else
           results  
         end     
@@ -317,6 +325,7 @@ class AlimentationApi < Grape::API
         output = ""
         infostack = {}
         infostack["errors"] = []
+        logger = nil 
         @@services.each do |service| 
           begin
           res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{service}&rne=#{params[:uai]}"))
@@ -325,6 +334,7 @@ class AlimentationApi < Grape::API
           #["etablissement", "classes", "groupes", "eleves", "pers_educ_nat", "parents", 
           #"pers_rel_eleve","rattachements_eleves", "rattachements_profs", "detachements","fonctions_pen"]
           synchronizer = Alimentation::Synchronizer.new("Complet", params[:uai],"","","")
+          logger = synchronizer.logger
           #puts service 
           case service
             when "etablissement"
@@ -463,8 +473,51 @@ class AlimentationApi < Grape::API
           end               
         end #Loop 
       #output
-      infostack   
+      logger.info("Bilan etablissement")
+      logger.info(JSON.pretty_generate(infostack))
+      JSON.pretty_generate(infostack)
     end
     #---------------------------------------------------------#
+    desc "delete (detache) users from the etablissement"
+    params do 
+      requires :uai, :type => String, :desc => "code_uai"
+    end
+    get "/detache/:uai"  do 
+      begin
+        #un service qui génère des données de détachements
+        #http://www.dev.laclasse.com/annuaire/?action=test_detachements&rne=0690078K
+
+        #un service pour reintilizer les detachements
+        #http://www.dev.laclasse.com/annuaire/?action=reset_detachements&rne=0690078K
+
+        #lien pour recuperer les detachements
+        #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=detachements&rne=0690078K 
+        # get list of user to delete ( detache)
+        res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=detachements&rne=#{params[:uai]}"))
+        detachements = JSON.parse(res.body)
+        
+        synchronizer = Alimentation::Synchronizer.new("Complet", params[:uai],"","","")
+        synchronizer.dettache_profil(detachements)
+      rescue => e
+        error!("Bad Request: #{e.message}", 400) 
+      end   
+    end
+
+    #-----------------------------------------------------------# 
+    desc "aliment a list of etablissement"
+    get "/aliment/etablissements" do 
+      etablissements_list = ["0690078K"]
+      response = "" 
+      etablissements_list.each do |etablissement_uai|
+        begin 
+          res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/?viewlog=NO&action=chargement-v3&rne=#{etablissement_uai}"))
+          response += res.body
+        rescue => e 
+          puts e.message 
+        end   
+      end #loop 
+      # show response
+      response
+    end   
   end # resource  
 end 

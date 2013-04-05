@@ -1,6 +1,7 @@
 #coding: utf-8
 require 'rspec'
 require 'rack/test'
+require 'rubygems'
 
 require_relative '../app'
 
@@ -10,8 +11,8 @@ require_relative '../app'
 
 RSpec.configure do |c|
   c.around(:each) do |example|
-    Sequel.transaction([DB, ORACLE], :rollback=>:always){example.run}
-    #Sequel.transaction([DB, ORACLE]){example.run}
+    #Sequel.transaction([DB, ORACLE], :rollback=>:always){example.run}
+    Sequel.transaction([DB, ORACLE]){example.run}
   end
   c.filter_run_excluding :broken => true
 end
@@ -20,6 +21,33 @@ end
 Mail.defaults do
   delivery_method :test
 end
+def get_etablissement_list 
+  begin
+    get("/alimentation/etablissements")
+    json_response= JSON.parse(last_response.body)
+    array_of_etablissements = json_response["data"]
+    array_of_etablissements.map{|etablissement| etablissement["code_uai"]}
+  rescue => e 
+    []
+  end    
+end
+
+def mock_list  
+  # list of etablissement
+  # TODO: Get the list dynamically 
+  ["0011241U", "0019999N", "0699999U", "0421943J", "0429999R", "0690015S", "0690133V", "0693307V", "0690016T", 
+    "0690036P", "0690002C", "0690005F", "0692699J", "0692578C", "0693365H", "0692693C", "0693331W", "0692521R", 
+    "0693834T", "0694007F", "0693975W", "0691484N", "0691497C", "0691498D", "0691666L", "0691669P", "0691670R", 
+    "0691727C", "0691824H", "0690040U", "0690053H", "0690060R", "0690070B", "0690075G", "0690076H", "0690078K", 
+    "0690097F", "0691479H", "0691645N", "0690131T", "0690280E", "0691478G", "0690614T", "0691481K", "0690001B", 
+    "0692937T", "0692696F", "0692163B", "0692155T", "0692164C", "0692334M", "0692335N", "0692339T", "0692343X", 
+    "0692346A", "0692419E", "0692420F", "0693890D", "0692520P", "0692448L", "0694151M", "0692703N", "0692865P", 
+    "0692933N", "0690007H", "0690022Z", "0690094C", "0690590S", "0691483M", "0691663H", "0691664J", "0691675W", 
+    "0691673U", "0691728D", "0692160Y", "0692337R", "0692338S", "0692340U", "0692422H", "0692704P", "0692925E", 
+    "0693046L", "0693287Y", "0693479G"
+  ]
+  #["0692578C", "0693365H", "0692693C", "0690078K"]
+end  
 
 def create_test_user(login = "test")
   User.create(:login => login, :password => 'test', :nom => 'test', :prenom => 'test')

@@ -60,15 +60,15 @@ class LastUid < Sequel::Model(:last_uid)
 
     # Incrémenter le nombre
     next_num = ((current_num + 1)%10000).to_s.rjust(4, '0')
-    change_lettre[0] = current_num > 9999
-
+    change_lettre[0] = (current_num == 9999)
+    
     2.times do |i|
       if change_lettre[i]
-        if current_char[i] != "Z"
+        if current_char[i] != 'Z'
           next_char[i] = alphabet[(alphabet.index(current_char[i]) + 1)]
         elsif i == 0
           change_lettre[i+1] = true
-          next_char[i] = "A"
+          next_char[i] = 'A'
         else
           raise "BIG PROBLEME : PLUS D'UID DISPONIBLE!! MODIFICATION DU SDET NECESSAIRE!!!"
         end
