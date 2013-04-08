@@ -28,13 +28,13 @@ describe User do
 
   it "gives the good next id to user even after a destroy" do
     last_id = DB[:last_uid].first[:last_uid]
-    awaited_next_id = LastUid.increment_uid(last_id)
+    available_next_id = LastUid.increment_uid(last_id)
 
     u = create_test_user()
-    u.id.should == awaited_next_id
+    u.id.should == available_next_id
     delete_test_users()
 
-    awaited_next_id = LastUid.increment_uid(awaited_next_id)
+    awaited_next_id = LastUid.increment_uid(available_next_id)
     u = create_test_user()
     u.id.should == awaited_next_id
   end

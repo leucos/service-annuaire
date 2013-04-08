@@ -11,8 +11,8 @@ require_relative '../app'
 
 RSpec.configure do |c|
   c.around(:each) do |example|
-    #Sequel.transaction([DB, ORACLE], :rollback=>:always){example.run}
-    Sequel.transaction([DB, ORACLE]){example.run}
+    Sequel.transaction([DB, ORACLE], :rollback=>:always){example.run}
+    #Sequel.transaction([DB, ORACLE]){example.run}
   end
   c.filter_run_excluding :broken => true
 end
