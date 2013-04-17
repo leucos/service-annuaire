@@ -10,33 +10,39 @@ describe User do
     delete_test_application()
     delete_test_role()
 
-    #@app = create_test_application_with_param()
+    @app = create_test_application_with_param()
   end
 
+  after(:each) do
+    delete_test_users
+  end
+  
   after(:all) do
-    #delete_test_application()
+  #   delete_test_users()
+    delete_test_application()
   end
 
   it "knows what is a valid uid" do
-    User.is_valid_id?("VAA60000").should == true
-    User.is_valid_id?("VGX61569").should == true
-    User.is_valid_id?("VAA6000").should == false
-    User.is_valid_id?("VAA70000").should == false
-    User.is_valid_id?("WAA60000").should == false
-    User.is_valid_id?(12360000).should == false
+    User.is_valid_ent_id?("VAA60000").should == true
+    User.is_valid_ent_id?("VGX61569").should == true
+    User.is_valid_ent_id?("VAA6000").should == false
+    User.is_valid_ent_id?("VAA70000").should == false
+    User.is_valid_ent_id?("WAA60000").should == false
+    User.is_valid_ent_id?(12360000).should == false
   end
 
   it "gives the good next id to user even after a destroy" do
+    # change id to id_ent
     last_id = DB[:last_uid].first[:last_uid]
     available_next_id = LastUid.increment_uid(last_id)
 
     u = create_test_user()
-    u.id.should == available_next_id
+    u.id_ent.should == available_next_id
     delete_test_users()
 
     awaited_next_id = LastUid.increment_uid(available_next_id)
     u = create_test_user()
-    u.id.should == awaited_next_id
+    u.id_ent.should == awaited_next_id
   end
 
   it "doesn't allow duplicated logins" do
@@ -45,7 +51,7 @@ describe User do
     u2.valid?.should == false
   end
 
-  it "doesn't allow bad code_postal" do
+  it "doesn't allow bad or empty code_postal" do
     u = User.new(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test', :code_postal => "69380A")
     u.valid?.should == false
     u = User.new(:login => 'test', :password => 'test', :nom => 'test', :prenom => 'test', :code_postal => "6938")
@@ -201,15 +207,15 @@ describe User do
 
   it "know user parents and children" do
     u = create_test_user()
-    p1 = create_test_user("parent1")
-    p2 = create_test_user("parent2")
-    p3 = create_test_user("parent3")
+    p1 = create_test_user("parent1") # pere
+    p2 = create_test_user("parent2") # mere
+    p3 = create_test_user("parent3") # tuteur
     # "vrai" parent
-    u.add_parent(p1)
+    u.add_or_modify_parent(p1)
     # Representant legal
-    p2.add_enfant(u, TYP_REL_RLGL)
+    p2.add_enfant(u, TYP_REL_MERE)
     # Et un correspondant
-    u.add_parent(p3, TYP_REL_CORR)
+    u.add_or_modify_parent(p3, TYP_REL_TUT)
 
     u.parents.length.should == 2
     u.relation_adulte.length.should == 3
@@ -229,8 +235,8 @@ describe User do
     u = create_test_user()
     p1 = create_test_user("parent1")
     p2 = create_test_user("parent2")
-    u.add_parent(p1)
-    u.add_parent(p2, TYP_REL_RLGL)
+    u.add_or_modify_parent(p1)
+    u.add_or_modify_parent(p2, TYP_REL_TUT)
 
     u.relations.length.should == 2
     p1.relations.length.should == 1
@@ -250,16 +256,20 @@ describe User do
 
   it ".ressource return associated ressource" do
     u = create_test_user()
-    u.ressource.id.should == u.id
+    u.ressource.id.to_i.should == u.id
     u.ressource.service_id.should == SRV_USER
   end
 
   it "add a profil and a role_user" do
     u = create_test_user()
+    create_test_etablissement
     e_id = Etablissement.first.id
     u.add_profil(e_id, PRF_ELV)
     u.profil_user.length.should == 1
+    
+    # Todo DO  add role
     u.role_user_dataset.filter(:ressource_id => e_id, :ressource_service_id => SRV_ETAB).count.should == 1
+    delete_test_etablissement
   end
 
   # it "modify a profil" do
@@ -322,11 +332,12 @@ describe User do
     #delete_test_users()
     u = create_test_user()
     e1 = create_test_etablissement()
-    r = create_test_role()
+    #r = create_test_role()
     c = e1.add_classe({})
-    u.add_classe(c.id, r.id)
+    u.add_to_regroupement(c.id)
 
-    RoleUser[:user => u, :ressource => c.ressource, :role => r].should_not == nil
+    EleveDansRegroupement[:user => u, :regroupement_id => c.id].should_not == nil
+    #RoleUser[:user => u, :ressource => c.ressource, :role => r].should_not == nil
   end
 
   it ".classes returns all the classes where user has a role" do

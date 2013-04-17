@@ -11,23 +11,30 @@ CHIFFR_PROJET_LACLASSE = "6"
 TYP_TEL_MAIS = "MAISON"
 TYP_TEL_PORT = "PORTABLE"
 TYP_TEL_TRAV = "TRAVAIL"
+TYP_TEL_FAX  = "FAX"
 TYP_TEL_AUTR = "AUTRE"
 
 #
 # TypeRelationEleve
 #
-TYP_REL_PAR = "PAR"
-TYP_REL_NPAR = "NPAR"
-TYP_REL_RLGL = "RLGL"
-TYP_REL_FINA = "FINA"
-TYP_REL_CORR = "CORR"
+TYP_REL_PERE  		 = 1
+TYP_REL_MERE  	     = 2
+TYP_REL_TUT          = 3
+TYP_REL_AUTRE_MEMBRE = 4
+TYP_REL_DDASS        = 5
+TYP_REL_AUTRE_CAS    = 6
+TYP_REL_ELV_LUI      = 7
 
 #
 # TypeRegroupement
 #
-TYP_REG_CLS = "CLASSE"
-TYP_REG_GRP = "GROUPE"
-TYP_REG_LBR = "LIBRE"
+# TYP_REG_CLS = "CLASSE"
+# TYP_REG_GRP = "GROUPE"
+# TYP_REG_LBR = "LIBRE"
+
+TYP_REG_CLS = "CLS"
+TYP_REG_GRP = "GRP"
+TYP_REG_LBR = "LBR"
 
 #
 # TypeEtablissement
@@ -38,21 +45,24 @@ TYP_ETB_CTR_PU = "PU"
 # Service
 #
 SRV_LACLASSE = "LACLASSE"
-SRV_ETAB = "ETAB"
+SRV_ETAB     = "ETAB"
+
+#Todo: change this to class names 
 # Le nom des service de regroupement est le même que les types de regroupement
-SRV_CLASSE = TYP_REG_CLS
-SRV_GROUPE = TYP_REG_GRP
-SRV_LIBRE = TYP_REG_LBR
-SRV_USER = "USER"
+SRV_CLASSE   = "CLASSE"
+SRV_GROUPE   = "GROUPE"
+SRV_LIBRE    = "LIBRE"
+SRV_USER     = "USER"
 
 #
 # Profil
+# TODO : add more profiles from profil_national_table
 #
 PRF_ELV = "ELV"
 PRF_ENS = "ENS"
 PRF_DIR = "DIR"
-PRF_PAR = "PAR"
-PRF_ADM = "ADM"
+PRF_PAR = "TUT"
+PRF_ADM = "ETA"
 
 #
 # Role
@@ -74,9 +84,10 @@ ROL_PRFP_CLS = "PRFP_CLS"
 # Activite
 #
 ACT_CREATE = "CREATE"
-ACT_READ = "READ"
+ACT_READ   = "READ"
 ACT_UPDATE = "UPDATE"
 ACT_DELETE = "DELETE"
+ACT_MANAGE = "MANAGE"
 
 #
 # TypeParam

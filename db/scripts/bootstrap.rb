@@ -116,12 +116,14 @@ def bootstrap_annuaire()
   
 
 =end 
+
   #--------------------------------------------------------------------------#
   # Création des activités
   Activite.create(:id => ACT_CREATE)
   Activite.create(:id => ACT_READ)
   Activite.create(:id => ACT_UPDATE)
   Activite.create(:id => ACT_DELETE)
+  Activite.create(:id => ACT_MANAGE)
   #--------------------------------------------------------------------------#
 
   # Création des services
@@ -147,6 +149,9 @@ def bootstrap_annuaire()
   # TODO : Rajouter le role de documentaliste qui a comme une role de prof sur toutes les classes
   # (accès aux documents, cahier de texte) sans avoir besoin de s'y rattacher
   #---------------------------------------------------------------------------#
+
+  # Création de root ressource Laclasse 
+  Ressource.create(:id => 0, :service_id => SRV_LACLASSE)
 
   # Création des roles associés à ce service
   #role_tech = Role.create(:id => ROL_TECH, :libelle => "Administrateur technique", :service_id => SRV_LACLASSE)

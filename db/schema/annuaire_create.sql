@@ -12,7 +12,7 @@ USE `annuaire` ;
 DROP TABLE IF EXISTS `annuaire`.`user` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`user` (
-  `id` CHAR(16) NOT NULL COMMENT 'Identifiant utilisé pour toutes les applications de l\'ent. Son format est définit dans le chaier des charges de l\'annuaire ENT p 43.' ,
+  `id` INT NOT NULL AUTO_INCREMENT COMMENT 'Identifiant utilisé pour toutes les applications de l\'ent. Son format est définit dans le chaier des charges de l\'annuaire ENT p 43.' ,
   `id_sconet` INT NULL COMMENT 'Identifiant sconet pour les élèves.\nCorrespond à @ENTEleveStructRattachId' ,
   `id_jointure_aaf` INT NULL COMMENT 'identifiant de jointure envoyé par l\'annuaire académique fédérateur' ,
   `login` VARCHAR(45) NULL COMMENT 'Login de l\'utilsateur normalement généré selon le principe première lettre du prenom + nom ou prenom+nom.' ,
@@ -30,12 +30,14 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`user` (
   `date_derniere_connexion` DATETIME NULL ,
   `bloque` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Si oui ou non le compte est bloqué (plus d\'accès à l\'établissement et autre).' ,
   `change_password` TINYINT(1) NULL DEFAULT 0 COMMENT 'doit changer son password' ,
+  `id_ent` CHAR(16) NOT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `id_jointure_aaf_UNIQUE` USING BTREE (`id_jointure_aaf` ASC) ,
   UNIQUE INDEX `id_sconet_UNIQUE` (`id_sconet` ASC) ,
-  UNIQUE INDEX `id_UNIQUE` (`id` ASC) ,
-  UNIQUE INDEX `login_UNIQUE` (`login` ASC) )
-ENGINE = InnoDB;
+  UNIQUE INDEX `login_UNIQUE` (`login` ASC) ,
+  UNIQUE INDEX `id_ent_UNIQUE` (`id_ent` ASC) )
+ENGINE = InnoDB
+COMMENT = 'change id to integer and \nmodify id_ent';
 
 
 -- -----------------------------------------------------
@@ -170,7 +172,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `annuaire`.`enseigne_dans_regroupement` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`enseigne_dans_regroupement` (
-  `user_id` CHAR(16) NOT NULL ,
+  `user_id` INT NOT NULL ,
   `regroupement_id` INT NOT NULL ,
   `matiere_enseignee_id` VARCHAR(10) NOT NULL ,
   `prof_principal` VARCHAR(45) NULL ,
@@ -217,7 +219,7 @@ COMMENT = 'Type de relation avec les élèves : parent, responsable légal' /* c
 DROP TABLE IF EXISTS `annuaire`.`relation_eleve` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`relation_eleve` (
-  `user_id` CHAR(16) NOT NULL COMMENT 'Personne en relation avec l\'élève.' ,
+  `user_id` INT NOT NULL COMMENT 'Personne en relation avec l\'élève.' ,
   `eleve_id` CHAR(16) NOT NULL COMMENT 'Eleve avec lequel la personne est en relation.' ,
   `type_relation_eleve_id` TINYINT(2) NOT NULL ,
   `resp_financier` TINYINT(1) NULL DEFAULT 0 ,
@@ -267,7 +269,7 @@ DROP TABLE IF EXISTS `annuaire`.`telephone` ;
 CREATE  TABLE IF NOT EXISTS `annuaire`.`telephone` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `numero` CHAR(32) NOT NULL ,
-  `user_id` CHAR(16) NOT NULL ,
+  `user_id` INT NOT NULL ,
   `type_telephone_id` CHAR(8) NOT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_telephone_user1` (`user_id` ASC) ,
@@ -314,8 +316,8 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`role` (
   CONSTRAINT `fk_role_application1`
     FOREIGN KEY (`application_id` )
     REFERENCES `annuaire`.`application` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB
 COMMENT = 'Un rôle est lié a une application, son libellé permet de com' /* comment truncated */;
 
@@ -437,7 +439,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`email` (
   `principal` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'adresse d\'envois par défaut' ,
   `valide` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Si l\'email a été validé suite à un envois de mail (comme GitHub).' ,
   `academique` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Si c\'est un mail académique (pour le PEN)' ,
-  `user_id` CHAR(16) NOT NULL ,
+  `user_id` INT NOT NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_email_user1` (`user_id` ASC) ,
   CONSTRAINT `fk_email_user1`
@@ -460,7 +462,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`service` (
   `url` VARCHAR(1024) NULL ,
   PRIMARY KEY (`id`) )
 ENGINE = InnoDB
-COMMENT = 'service or type of resource \n\nnote: is it important to name ' /* comment truncated */;
+COMMENT = 'service or type of resource, or type of subject\n\nnote: is it' /* comment truncated */;
 
 
 -- -----------------------------------------------------
@@ -513,7 +515,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `annuaire`.`param_user` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`param_user` (
-  `user_id` CHAR(16) NOT NULL ,
+  `user_id` INT NOT NULL ,
   `param_application_id` INT NOT NULL ,
   `valeur` VARCHAR(2000) NULL ,
   PRIMARY KEY (`user_id`, `param_application_id`) ,
@@ -538,12 +540,15 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `annuaire`.`role_user` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`role_user` (
-  `user_id` CHAR(16) NOT NULL ,
+  `user_id` INT NOT NULL ,
   `role_id` CHAR(8) NOT NULL ,
   `bloque` TINYINT(1) NOT NULL DEFAULT 0 ,
-  PRIMARY KEY (`user_id`, `role_id`) ,
+  `ressource_service_id` CHAR(8) NOT NULL ,
+  `ressource_id` VARCHAR(255) NOT NULL ,
+  PRIMARY KEY (`user_id`, `role_id`, `ressource_service_id`, `ressource_id`) ,
   INDEX `fk_role_user_user1` (`user_id` ASC) ,
   INDEX `fk_role_user_role1` (`role_id` ASC) ,
+  INDEX `fk_role_user_ressource1` (`ressource_service_id` ASC, `ressource_id` ASC) ,
   CONSTRAINT `fk_role_has_user_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuaire`.`user` (`id` )
@@ -552,6 +557,11 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`role_user` (
   CONSTRAINT `fk_role_user_role1`
     FOREIGN KEY (`role_id` )
     REFERENCES `annuaire`.`role` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_role_user_ressource1`
+    FOREIGN KEY (`ressource_service_id` , `ressource_id` )
+    REFERENCES `annuaire`.`ressource` (`service_id` , `id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -564,7 +574,7 @@ DROP TABLE IF EXISTS `annuaire`.`profil_user` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`profil_user` (
   `profil_id` CHAR(8) NOT NULL ,
-  `user_id` CHAR(16) NOT NULL ,
+  `user_id` INT NOT NULL ,
   `etablissement_id` INT NOT NULL ,
   PRIMARY KEY (`profil_id`, `user_id`, `etablissement_id`) ,
   INDEX `fk_profil_has_user_user1` (`user_id` ASC) ,
@@ -619,7 +629,7 @@ ENGINE = InnoDB;
 DROP TABLE IF EXISTS `annuaire`.`eleve_dans_regroupement` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`eleve_dans_regroupement` (
-  `user_id` CHAR(16) NOT NULL ,
+  `user_id` INT NOT NULL ,
   `regroupement_id` INT NOT NULL ,
   PRIMARY KEY (`user_id`, `regroupement_id`) ,
   INDEX `fk_user_has_regroupement_regroupement2` (`regroupement_id` ASC) ,
@@ -644,7 +654,7 @@ DROP TABLE IF EXISTS `annuaire`.`profil_user_fonction` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`profil_user_fonction` (
   `profil_id` CHAR(8) NOT NULL ,
-  `user_id` CHAR(16) NOT NULL ,
+  `user_id` INT NOT NULL ,
   `etablissement_id` INT NOT NULL ,
   `fonction_id` INT NOT NULL ,
   PRIMARY KEY (`user_id`, `etablissement_id`, `profil_id`, `fonction_id`) ,
@@ -665,52 +675,36 @@ COMMENT = 'this table generated from many to many between profil_user a' /* comm
 
 
 -- -----------------------------------------------------
--- Table `annuaire`.`role_has_service`
--- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuaire`.`role_has_service` ;
-
-CREATE  TABLE IF NOT EXISTS `annuaire`.`role_has_service` (
-  `role_id` CHAR(8) NOT NULL ,
-  `service_id` CHAR(8) NOT NULL ,
-  PRIMARY KEY (`role_id`, `service_id`) ,
-  INDEX `fk_role_has_service_service1` (`service_id` ASC) ,
-  INDEX `fk_role_has_service_role1` (`role_id` ASC) ,
-  CONSTRAINT `fk_role_has_service_role1`
-    FOREIGN KEY (`role_id` )
-    REFERENCES `annuaire`.`role` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
-  CONSTRAINT `fk_role_has_service_service1`
-    FOREIGN KEY (`service_id` )
-    REFERENCES `annuaire`.`service` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
-ENGINE = InnoDB;
-
-
--- -----------------------------------------------------
 -- Table `annuaire`.`activite_role`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `annuaire`.`activite_role` ;
 
 CREATE  TABLE IF NOT EXISTS `annuaire`.`activite_role` (
+  `activite_id` VARCHAR(45) NOT NULL ,
   `role_id` CHAR(8) NOT NULL ,
   `service_id` CHAR(8) NOT NULL ,
-  `activite_id` VARCHAR(45) NOT NULL ,
-  PRIMARY KEY (`role_id`, `service_id`, `activite_id`) ,
+  `condition` VARCHAR(45) NULL ,
+  PRIMARY KEY (`activite_id`, `role_id`, `service_id`) ,
   INDEX `fk_role_has_service_has_activite_activite1` (`activite_id` ASC) ,
-  INDEX `fk_role_has_service_has_activite_role_has_service1` (`role_id` ASC, `service_id` ASC) ,
-  CONSTRAINT `fk_role_has_service_has_activite_role_has_service1`
-    FOREIGN KEY (`role_id` , `service_id` )
-    REFERENCES `annuaire`.`role_has_service` (`role_id` , `service_id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+  INDEX `fk_activite_role_role1` (`role_id` ASC) ,
+  INDEX `fk_activite_role_service1` (`service_id` ASC) ,
   CONSTRAINT `fk_role_has_service_has_activite_activite1`
     FOREIGN KEY (`activite_id` )
     REFERENCES `annuaire`.`activite` (`id` )
     ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_activite_role_role1`
+    FOREIGN KEY (`role_id` )
+    REFERENCES `annuaire`.`role` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_activite_role_service1`
+    FOREIGN KEY (`service_id` )
+    REFERENCES `annuaire`.`service` (`id` )
+    ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+ENGINE = InnoDB
+COMMENT = 'condition in activite_role \nare: :all, :self, belongs_to';
 
 
 
@@ -777,11 +771,11 @@ COMMIT;
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `annuaire`;
-INSERT INTO `annuaire`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('1', 'Domicile', 'Numéro au domicile');
-INSERT INTO `annuaire`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('2', 'Portable', 'Numéro de portable');
-INSERT INTO `annuaire`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('3', 'Travail', 'Numéro professionnel bureau');
-INSERT INTO `annuaire`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('4', 'Fax', 'Numéro du fax ou téléphone/fax');
-INSERT INTO `annuaire`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('5', 'Autre', 'Autre numéro de téléphone');
+INSERT INTO `annuaire`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('MAISON', 'Domicile', 'Numéro au domicile');
+INSERT INTO `annuaire`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('PORTABLE', 'Portable', 'Numéro de portable');
+INSERT INTO `annuaire`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('TRAVAIL', 'Travail', 'Numéro professionnel bureau');
+INSERT INTO `annuaire`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('FAX', 'Fax', 'Numéro du fax ou téléphone/fax');
+INSERT INTO `annuaire`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('AUTRE', 'Autre', 'Autre numéro de téléphone');
 
 COMMIT;
 

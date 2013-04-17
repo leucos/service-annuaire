@@ -60,17 +60,17 @@ class Etablissement < Sequel::Model(:etablissement)
   end
 
   def add_classe(hash)
-    hash[:type_regroupement_id] = TYP_REG_CLS
+    hash[:type_regroupement_id] = 'CLS'
     add_regroupement(hash)
   end
 
   def add_groupe_eleve(hash)
-    hash[:type_regroupement_id] = TYP_REG_GRP
+    hash[:type_regroupement_id] = 'GRP'
     add_regroupement(hash)
   end
 
   def add_groupe_libre(hash)
-    hash[:type_regroupement_id] = TYP_REG_LBR
+    hash[:type_regroupement_id] = 'LBR'
     add_regroupement(hash)
   end
 
@@ -89,7 +89,9 @@ class Etablissement < Sequel::Model(:etablissement)
   
   # les classes dans l'etablissement 
   def classes
-    Regroupement.filter(:etablissement => self, :type_regroupement_id => "CLS").all
+    #Regroupement.where(:etablissement => self, :type_regroupement_id => "CLS").to_hash
+    #DB[:regroupement].where(:etablissement => self, :type_regroupement_id => "CLS").to_hash
+    regroupement_dataset.where(:type_regroupement_id => "CLS").all
   end
 
   # les groupes d'eleve  dans l'etablissement

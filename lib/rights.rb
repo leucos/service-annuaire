@@ -1,41 +1,64 @@
 module Rights
+  #------------------------------------------------------------------------#
   # Function qui récupère les droits sur une ressource de manière récursive
   # en remontant tous les ancètres
-  def self.find_rights(user_id, ressource, initial_service_id, rights)
-    ds = RoleUser.filter(:user_id => user_id, 
-      :ressource_id => ressource.id, :ressource_service_id => ressource.service_id)
+  
+  # find all rights for a specific user
+  # example output 
+  #[{:activite=>"CREATE", :subject_class=>"USER", :condition=>"belongs_to", :parent_class=>"ETAB", :parent_id=>"41"}, 
+  #{:activite=>"DELETE", :subject_class=>"CLASSE", :condition=>"belongs_to", :parent_class=>"ETAB", :parent_id=>"41"},
+  #{:activite=>"READ", :subject_class=>"ETAB", :condition=>"self", :parent_class=>"ETAB", :parent_id=>"41"}, 
+  #{:activite=>"UPDATE", :subject_class=>"ETAB", :condition=>"self", :parent_class=>"ETAB", :parent_id=>"41"}]
+
+  def self.find_rights(user_id)
+    rights = [] 
+    
+    # find user roles
+    ds = RoleUser.filter(:user_id => user_id, :bloque => false)
+    #puts ds.all.inspect
     ds.each do |role_user|
-      activites = ActiviteRole.filter(:role_id => role_user.role_id, :service_id => initial_service_id)
+      activites = ActiviteRole.filter(:role_id => role_user.role_id)
       activites.each do |act|
-        #puts "rights=#{act[:activite_id]}"
-        rights.push(act[:activite_id])
+        #puts "#{{:activite => act[:activite_id], :subject_class => act[:service_id], 
+          #:condition => act[:condition], :parent_class => role_user[:ressource_service_id], :parent_id => role_user[:ressource_id]}}"
+        
+        rights.push({:activite => act[:activite_id], :subject_class => act[:service_id], 
+          :condition => act[:condition], :parent_class => role_user[:ressource_service_id], :parent_id => role_user[:ressource_id]})
       end
     end
-    if ressource.parent
-      #puts "parent=#{ressource.parent.inspect}"
-      find_rights(user_id, ressource.parent, initial_service_id, rights)
-    end
-
-    rights.uniq!
+    rights.uniq
+    #rights.uniq!
   end
+  #-------------------------------------------------------------------------------------------------------------#
+  # get rights on a specific resource
 
   ##/rights/:service_name/:ressource_external_id/:user_id” ⇒ [“create_user”, “assign_role_user”, “create_classe”]
   # @param user_id : utilisateur sur lequel on veut récupérer les droits
-  # @param service_id : service de la ressource sur laquelle on teste les droits
+  # @param service_id ou type_ressource: service de la ressource sur laquelle on teste les droits
   # @param ressource_id : id de la ressource liée au service
   # @param initial_service_id : si pas précisé == service_id
   # sinon correspond au service sur lequel on veut connaitre les droits.
   # ex: on veut savoir si une personne a le droit de créer des utilisateurs dans un établissement
   # on fera get_rights("VAA60001", "ETAB", 0, "USER")
-  def self.get_rights(user_id, service_id, ressource_id, initial_service_id = service_id)
-    # Il est possible que la ressource n'existe pas
-    ressource = Ressource[:id => ressource_id, :service_id => service_id]
-    #puts "ressource=#{ressource.parent}"
-    rights = []
-    return rights if ressource.nil?
 
-    find_rights(user_id, ressource, initial_service_id, rights)
+  def self.get_activities(user_id, ressource_id, type_ressource)
+    # Il est possible que la ressource n'existe pas
+    ressource = Ressource[:id => ressource_id, :service_id => type_ressource]
+    #puts "ressource=#{ressource.parent}"
+    activities = []
+    return activities if ressource.nil?
+
+    rights = find_rights(user_id) 
+    rights.each do |activity|
+      if activity[:condition] == "self" && ressource_id == activity[:parent_id] && type_ressource == activity[:parent_class]
+        activities.push(activity[:activite])
+      elsif  activity[:condition] == "belongs_to" && type_ressource == activity[:subject_class] 
+        activities.push(activity[:activite]) if ressource.belongs_to(Ressource[:id => activity[:parent_id], :service_id => activity[:parent_class]])
+      elsif activity[:condition] == "all" && type_ressource == activity[:subject_class] 
+        activities.push(activity[:activite]) 
+      end   
+    end 
     
-    return rights
+    return activities.uniq.sort
   end
 end 

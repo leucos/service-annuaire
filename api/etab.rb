@@ -16,6 +16,10 @@ class EtabApi < Grape::API
       return parameters
     end
   end
+  before do
+    header "Access-Control-Allow-Origin", "*" 
+  end
+
   resource :etablissement do
     ####################################
     # Gestion de l'etablissement (CRUD)#

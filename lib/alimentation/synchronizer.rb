@@ -443,13 +443,13 @@ module Alimentation
 
               # add home telephone
               if !parent["tel_home"].nil? && parent["tel_home"] != ""
-                user.add_telephone(parent["tel_home"], 1)
+                user.add_telephone(parent["tel_home"])
               end
 
               # add work telephone
-              #if !parent["tel_work"].nil? && parent["tel_work"] != ""
-                #user.add_telephone(parent["tel_work"], 3)
-              #end
+              if !parent["tel_work"].nil? && parent["tel_work"] != ""
+                user.add_telephone(parent["tel_work"],TYP_TEL_TRAV)
+              end
             else 
               @logger.debug("update parent with id_jointure: #{parent['id_jointure_aaf']}")
               # update 
@@ -476,12 +476,12 @@ module Alimentation
 
               # add home telephone
               if !parent["tel_home"].nil? && parent["tel_home"] != ""
-                record.add_telephone(parent["tel_home"], 1)
+                record.add_telephone(parent["tel_home"])
               end
 
               # add work telephone
               if !parent["tel_work"].nil? && parent["tel_work"] != ""
-                record.add_telephone(parent["tel_work"], 3)
+                record.add_telephone(parent["tel_work"],TYP_TEL_TRAV)
               end 
             end
           rescue => e 
@@ -501,10 +501,6 @@ module Alimentation
     def modify_or_create_regroupement(data)
       @logger.debug("modify or create Regroupement is called")
         # verify data length 
-      if data.length == 0
-        raise "no regroupements to be treated" 
-      end
-      
       DB.transaction do 
         data.each do |regroupement|
           # search Regroupements table  for corresponding records

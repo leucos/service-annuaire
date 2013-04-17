@@ -6,7 +6,7 @@
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 # COLUMN_NAME                   | DATA_TYPE           | NULL?    | KEY      | DEFAULT    | EXTRA
 # ------------------------------+---------------------+----------+----------+------------+--------------------
-# id                            | char(8)             | false    | PRI      |            | 
+# id                            | INT                 | false    | PRI      |            | 
 # id_sconet                     | int(11)             | true     | UNI      |            | 
 # id_jointure_aaf               | int(11)             | true     | UNI      |            | 
 # login                         | varchar(45)         | false    |          |            | 
@@ -24,6 +24,7 @@
 # date_derniere_connexion       | date                | true     |          |            | 
 # bloque                        | tinyint(1)          | false    |          | 0          | 
 # change_password               | tinyint(1)          | false    |          | 0          | 
+# id_ent                        | char(16)            | false    | UNI      |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
 class User < Sequel::Model(:user)
@@ -53,7 +54,7 @@ class User < Sequel::Model(:user)
     :join_table => :relation_eleve, :class => self
   many_to_many :enfants, :left_key => :user_id, :right_key => :eleve_id, 
     :join_table => :relation_eleve, :class => self do |ds|
-      ds.where(:type_relation_eleve_id => [TYP_REL_PAR, TYP_REL_RLGL])
+      ds.where(:type_relation_eleve_id => [TYP_REL_PERE, TYP_REL_MERE])
     end
   # Liste de tous les utilisateurs (adultes) avec qui l'élève est en relation
   many_to_many :relation_adulte, :left_key => :eleve_id, :right_key => :user_id, 
@@ -61,12 +62,12 @@ class User < Sequel::Model(:user)
   # Liste de tous les parents d'un élève
   many_to_many :parents, :left_key => :eleve_id, :right_key => :user_id, 
     :join_table => :relation_eleve, :class => self do |ds|
-      ds.where(:type_relation_eleve_id => [TYP_REL_PAR, TYP_REL_RLGL])
+      ds.where(:type_relation_eleve_id => [TYP_REL_PERE, TYP_REL_MERE])
     end
 
     
   # Check si l'id passé en paramètre correspond bien aux critères d'identifiant ENT
-  def self.is_valid_id?(id)
+  def self.is_valid_ent_id?(id)
     !!(id.class == String and id.length == 8 and id[0] == 'V' and id[3] == '6' and id[1..2] =~ /[a-zA-Z]{2}/ and id[4..7] =~ /\d{4}/)
   end
 
@@ -121,12 +122,12 @@ class User < Sequel::Model(:user)
       select(:user__nom, :user__prenom, :login, :user__id).
       select_json_array!(:emails, {:email__id => "i_id", :email__adresse => "adresse"}).
       select_json_array!(:telephones, {:telephone__id => "i_id", :telephone__numero => "numero"}).
-      select_json_array!(:profils, {:profil__libelle => "libelle", :etablissement__nom => "nom"}).
+      select_json_array!(:profils, {:profil_national__description => "libelle", :etablissement__nom => "nom"}).
       left_join(:email, :email__user_id => :user__id).
       left_join(:telephone, :telephone__user_id => :user__id).
       left_join(:profil_user, :profil_user__user_id => :user__id).
       left_join(:etablissement, :etablissement__id => :etablissement_id).
-      left_join(:profil, :id => :profil_user__profil_id).
+      left_join(:profil_national, :id => :profil_user__profil_id).
       group(:user__id)
   end
 
@@ -150,7 +151,7 @@ class User < Sequel::Model(:user)
 
   # Très important : Hook qui génère l'id unique du user avant de l'inserer dans la BDD
   def before_create
-    self.id = LastUid::get_next_uid()
+    self.id_ent = LastUid::get_next_uid()
     self.date_creation ||= Time.now
     super
   end
@@ -169,7 +170,7 @@ class User < Sequel::Model(:user)
     
     # Et les enseignements
     EnseigneDansRegroupement.where(:user_id => self.id).destroy()
-    EleveRegroupement.where(:user_id => self.id).destroy()
+    EleveDansRegroupement.where(:user_id => self.id).destroy()
     #enseigne_dans_regroupement_dataset.destroy()
 
     # Enfin tous ses profils dans l'établissement
@@ -325,7 +326,7 @@ class User < Sequel::Model(:user)
     "#{nom.capitalize} #{prenom.capitalize}"
   end
 
-  def add_or_modify_parent(parent, type_relation_id, resp_financier, resp_legal, contact, paiement)
+  def add_or_modify_parent(parent, type_relation_id = 1, resp_financier = 1, resp_legal = 1, contact =1, paiement = 1)
     record = RelationEleve[:user_id => parent.id, :eleve_id => self.id, :type_relation_eleve_id => type_relation_id]
     if record.nil?
       RelationEleve.create(:user_id => parent.id, :eleve_id => self.id, 
@@ -337,7 +338,7 @@ class User < Sequel::Model(:user)
     end 
   end
 
-  def add_enfant(enfant, type_relation_id=TYP_REL_PAR)
+  def add_enfant(enfant, type_relation_id = TYP_REL_PERE)
     RelationEleve.create(:user_id => self.id, :eleve_id => enfant.id, :type_relation_eleve_id => type_relation_id)
   end
 
@@ -399,11 +400,10 @@ class User < Sequel::Model(:user)
   # @param academique : si oui ou non il s'agit d'un mail académique
   # todo : détecter automatiquement le type académique ?
   def add_email(adresse, academique = false)
-    mail = Email.find_or_create(:adresse => adresse, :user_id => self.id, :academique => academique)
-    # Si l'utilisateur n'a pas d'email c'est son mail principal
-    principal = email.count == 0 
-    mail[:principal] = principal
-    mail.save
+    # Si l'utilisateur n'a pas d'email c'est son mail principal 
+    principal = (Email.filter(:user_id => self.id).count == 0)
+    mail = Email.find_or_create(:adresse => adresse, :user_id => self.id, 
+      :academique => academique, :principal => principal)    
   end
 
   def delete_email(adresse)

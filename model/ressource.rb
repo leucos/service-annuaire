@@ -51,20 +51,76 @@ class Ressource < Sequel::Model(:ressource)
 
   # A la destruction d'une ressource, il faut supprimer ses ressources enfants
   def destroy_children()
-    self.children.each do |c|
-      class_const = Service.class_map[c.service_id]
-      raise NoClassError.new("Pas de classe rattachée au service=#{c.service_id}") if class_const.nil?
-      child = class_const[c.id]
-      child.destroy()
-    end
+    # self.children.each do |c|
+    #   class_const = Service.class_map[c.service_id]
+    #   raise NoClassError.new("Pas de classe rattachée au service=#{c.service_id}") if class_const.nil?
+    #   child = class_const[c.id]
+    #   child.destroy()
+    # end
   end
 
   # Renvois toutes les ressources qui ont comme parent la ressource en cours
   def children()
-    Ressource.filter(:parent_id => self.id, :parent_service_id => self.service_id).all
+    #Ressource.filter(:parent_id => self.id, :parent_service_id => self.service_id).all
   end
 
   def parent()
-    self.parent_id ? Ressource[:id => self.parent_id, :service_id => self.parent_service_id] : nil
+    #self.parent_id ? Ressource[:id => self.parent_id, :service_id => self.parent_service_id] : nil
   end
+
+  # belongs_to function returns true if actual ressource belongs to parent_ressource
+  def belongs_to(ressource)
+    belongs_to = false
+    
+    if ressource.nil?
+      belongs_to = false 
+    end
+    
+    # all ressources belongs to root
+    if ressource == Ressource.laclasse 
+      belongs_to = true
+    
+    # ressource user belongs to an etablissement or regroupement  
+    elsif self[:service_id] == "USER"
+      case ressource.service_id
+        when "ETAB"
+          belongs_to = (ProfilUser.filter(:user_id => self.id.to_i, :etablissement_id => ressource.id.to_i).count > 0)
+        when "CLASSE" 
+          belongs_to = (EnseigneDansRegroupement.filter(:user_id => self.id.to_i, :regroupement_id => ressource.id.to_i).count > 0)
+          belongs_to ||= (EleveDansRegroupement.filter(:user_id => self.id.to_i, :regroupement_id => ressource.id.to_i).count > 0) 
+        when "GROUPE"
+          belongs_to = (EnseigneDansRegroupement.filter(:user_id => self.id.to_i, :regroupement_id => ressource.id.to_i).count > 0)
+          belongs_to ||= (EleveDansRegroupement.filter(:user_id => self.id.to_i, :regroupement_id => ressource.id.to_i).count > 0)   
+        else 
+          belongs_to = false  
+      end
+    
+    # ressource regroupement belongs to an etablissement
+    elsif self[:service_id] == "CLASSE" || self[:service_id] == "GROUPE"    
+      if ressource.service_id == "ETAB" && Regroupement[:id => self.id.to_i, :etablissement_id => ressource.id.to_i]
+        belongs_to = true 
+      end
+    
+    # ressource application belongs to an etablissement
+    elsif self[:service_id] == "APPLICATION"
+      if ressource.service_id == "ETAB" && !ApplicationEtablissement[:application_id => self.id, :etablissement_id => ressource.id.to_i].nil?
+        belongs_to = true 
+      end
+    
+    # ressource parameter may belongs to a user or etablissment or application 
+    elsif self[:service_id] == "PARAM"
+      if ressource.service_id == "ETAB" && !ParamEtablissement[:param_application_id => self.id.to_i, :etablissement_id => ressource.id.to_i].nil?
+        belongs_to = true
+      elsif ressource.service_id == "USER" && !ParamUser[:param_application_id => self.id.to_i, :user_id => ressource.id.to_i].nil?
+        belongs_to = true 
+
+      elsif ressource.service_id == "APPLICATION" && !ParamApplication[:id => self.id.to_i, :application_id => ressource.id].nil?
+        belongs_to = true  
+      end
+    # TODO: ressource Role
+    else 
+      belongs_to = false 
+    end
+    belongs_to   
+  end 
 end

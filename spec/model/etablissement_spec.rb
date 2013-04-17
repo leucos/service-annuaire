@@ -2,9 +2,25 @@
 require_relative '../helper'
 
 describe Etablissement do
-  delete_test_etablissements()
-  delete_test_application()
-  delete_test_users()
+  
+  before(:all) do
+    #In case of something went wrong
+    delete_test_etablissements()
+    delete_test_application()
+    delete_test_users()
+  end
+
+  # after(:each) do
+  #   delete_test_users
+  # end
+  
+  after(:all) do
+    delete_test_etablissements()
+    delete_test_application()
+    delete_test_users()
+  end
+
+
   it "create and destroy a ressource on creation/deletion" do
     e = Etablissement.create(:type_etablissement => TypeEtablissement.first)
     Ressource[:service_id => SRV_ETAB, :id => e.id].should_not == nil

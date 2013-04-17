@@ -2,7 +2,16 @@
 require_relative '../helper'
 
 describe Regroupement do
-  Regroupement.filter(:libelle => "test").destroy()
+  
+  before(:all) do
+    #In case of something went wrong
+    Regroupement.filter(:libelle => "test").destroy()
+  end
+
+  after(:all) do 
+    Regroupement.filter(:libelle => "test").destroy()
+  end  
+  
   it "return the right ressource for classe, groupe and groupe libre with the good service_id" do
     classe = Regroupement.create(:type_regroupement_id => TYP_REG_CLS, :libelle => "test")
     groupe = Regroupement.create(:type_regroupement_id => TYP_REG_GRP, :libelle => "test")
@@ -15,13 +24,13 @@ describe Regroupement do
     libre.ressource.service_id.should == SRV_LIBRE
   end 
 
-  it " adds a prof to  classe" do
+  it " adds a prof to classe" do
     # create  a class 
     classe = Regroupement.create(:type_regroupement_id => TYP_REG_CLS, :libelle => "test")
-
-    user = User.create(:login => "test", :nom => "test", :prenom => "test")
+    user = create_test_user()
+    #user = User.create(:login => "test", :nom => "test", :prenom => "test")
     # a list of matieres   
-    matieres = [200, 400]  
+    matieres = ["000400","000700"]  
     # add user_role
     classe.add_prof(user.id, matieres)
 

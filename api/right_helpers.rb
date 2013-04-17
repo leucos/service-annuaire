@@ -11,6 +11,7 @@ module RightHelpers
     # Puis enfin dans l'en-tête 
     # comme ça si on veut se faire passer pour quelqu'un, on change juste le header et pas les requètes
     # Technique de Daniel ;)
+    # TODO se connecter par CAS server
     session = request.env[AuthConfig::HTTP_HEADER] if request.env[AuthConfig::HTTP_HEADER]
 
     error!("Clé de session introuvable", 401) if  session.nil?

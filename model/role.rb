@@ -21,15 +21,15 @@ class Role < Sequel::Model(:role)
   unrestrict_primary_key()
 
   # Referential integrity
-  many_to_many :service
-  #one_to_many :activite_role
-  many_to_one :application
+  #many_to_many :service
+  one_to_many :activite_role
+  #many_to_one :application
   one_to_many :role_user
 
   # Not nullable cols and unicity validation
   def validate
     super
-    validates_presence [:service_id]
+    #validates_presence [:service_id]
   end
 
   def before_destroy
@@ -38,7 +38,8 @@ class Role < Sequel::Model(:role)
     super
   end
 
-  def add_activite(service_id, activite_id)
-    ActiviteRole.create(:service_id => service_id, :role_id => self.id, :activite_id => activite_id)
+  def add_activite(service_id, activite_id, condition = "self")
+    ActiviteRole.create(:service_id => service_id, :role_id => self.id, 
+      :activite_id => activite_id, :condition => condition)
   end
 end

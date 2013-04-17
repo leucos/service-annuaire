@@ -21,6 +21,7 @@ end
 Mail.defaults do
   delivery_method :test
 end
+
 def get_etablissement_list 
   begin
     get("/alimentation/etablissements")
@@ -49,6 +50,8 @@ def mock_list
   #["0692578C", "0693365H", "0692693C", "0690078K"]
 end  
 
+#----------------------------------------------------------#
+# create and delete test users functions
 def create_test_user(login = "test")
   User.create(:login => login, :password => 'test', :nom => 'test', :prenom => 'test')
 end
@@ -65,14 +68,21 @@ end
 def delete_test_user(login = "test")
   User.filter(:login => login).destroy()
 end
-
-def create_test_etablissement(nom = "test")
+#-----------------------------------------------------------#
+# create and delete test etablissement functions
+def create_test_etablissement(nom = "test_etablissement")
   Etablissement.create(:nom => nom, :type_etablissement => TypeEtablissement.first)
 end
 
 def delete_test_etablissements
-  Etablissement.filter(:nom => "test").destroy()
+  Etablissement.filter(:nom => "test_etablissement").destroy()
 end
+
+def create_class_in_etablissement(etablissement_id)
+  r = Regroupement.create(:libelle => "test class", :type_regroupement_id => "CLS", 
+      :etablissement_id => etablissement_id, :code_mef_aaf => "00010001310")
+end 
+#------------------------------------------------------------#
 
 def create_test_application_with_param
   a = Application.create(:id => "test")
@@ -84,7 +94,6 @@ def create_test_application_with_param
     :application => a, :type_param_id => TYP_PARAM_NUMBER)
   return a
 end
-
 # input params = {"param_name" => true/false } true/false signifies preference or parameter
 def create_test_application_with_params(app_id, parameters)
   a = Application.create(:id => app_id)
@@ -102,16 +111,46 @@ end
 def delete_test_application
   Application.filter(:id => "test").destroy()
 end
+#------------------------------------------------------------#
 
 ROL_TEST = "TEST"
-def create_test_role()
-  r = Role.find_or_create(:id => ROL_TEST, :service_id => SRV_ETAB)
-  r.add_activite(SRV_USER, ACT_CREATE)
-  r.add_activite(SRV_ETAB, ACT_UPDATE)
-  r.add_activite(SRV_ETAB, ACT_READ)
-  r.add_activite(SRV_CLASSE, ACT_DELETE)
+def create_test_role(application_id)
+  # example test role for etablissement admin
+  r = Role.find_or_create(:id => ROL_TEST, :application_id => application_id)
+  r.add_activite(SRV_USER, ACT_CREATE, "belongs_to")
+  r.add_activite(SRV_ETAB, ACT_UPDATE, "self")
+  r.add_activite(SRV_ETAB, ACT_READ, "self")
+  r.add_activite(SRV_CLASSE, ACT_DELETE, "belongs_to")
   return r
 end
+def create_admin_etab_test_role(application_id)
+  # example test role for etablissement admin
+  r = Role.find_or_create(:id => ROL_TEST, :application_id => application_id)
+  r.add_activite(SRV_USER, ACT_READ, "belongs_to")
+  r.add_activite(SRV_USER, ACT_UPDATE, "belongs_to")
+  r.add_activite(SRV_USER, ACT_CREATE, "belongs_to")
+  r.add_activite(SRV_USER, ACT_DELETE, "belongs_to")
+  r.add_activite(SRV_ETAB, ACT_UPDATE, "self")
+  r.add_activite(SRV_ETAB, ACT_READ, "self")
+  r.add_activite(SRV_CLASSE, ACT_READ, "belongs_to")
+  r.add_activite(SRV_CLASSE, ACT_DELETE, "belongs_to")
+  r.add_activite(SRV_CLASSE, ACT_CREATE, "belongs_to")
+  return r
+end
+
+def create_admin_laclasse_role(application_id)
+  r = Role.find_or_create(:id => "admin", :application_id => application_id)
+  r.add_activite(SRV_USER, ACT_READ, "all")
+  r.add_activite(SRV_USER, ACT_UPDATE, "all")
+  r.add_activite(SRV_USER, ACT_CREATE, "all")
+  r.add_activite(SRV_USER, ACT_DELETE, "all")
+  r.add_activite(SRV_ETAB, ACT_UPDATE, "all")
+  r.add_activite(SRV_ETAB, ACT_READ, "all")
+  r.add_activite(SRV_CLASSE, ACT_READ, "all")
+  r.add_activite(SRV_CLASSE, ACT_DELETE, "all")
+  r.add_activite(SRV_CLASSE, ACT_CREATE, "all")
+  r
+end  
 
 def create_test_role_with_id(role_id)
   r = Role.create(:id => role_id, :service_id => SRV_ETAB)
@@ -135,7 +174,6 @@ def create_user_with_role(role_id, ressource = nil)
   RoleUser.create(:user_id => u.id, 
     :ressource_id => ressource.id, :ressource_service_id => ressource.service_id,
     :role_id => role_id)
-
   return u
 end
 
@@ -166,13 +204,14 @@ def delete_test_eleve_with_parents
   User.filter(:login => "test2").destroy
 end 
 
-def create_test_user_in_etab(etb_id, login)
+def create_test_user_in_etab(etb_id, login, profil_id = "ELV")
   u = create_test_user(login)
   # On assigne manuellement la ressource utilisateur à cet établissement
-  r = Ressource[:id => u.id, :service_id => SRV_USER]
-  r.parent_id = etb_id
-  r.parent_service_id = SRV_ETAB
-  r.save()
+  #r = Ressource[:id => u.id, :service_id => SRV_USER]
+  #r.parent_id = etb_id
+  #r.parent_service_id = SRV_ETAB
+  #r.save()
+  ProfilUser.create(:user_id => u.id, :etablissement_id => etb_id, :profil_id => profil_id)
   u
 end
 
