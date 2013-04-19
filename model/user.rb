@@ -64,7 +64,6 @@ class User < Sequel::Model(:user)
     :join_table => :relation_eleve, :class => self do |ds|
       ds.where(:type_relation_eleve_id => [TYP_REL_PERE, TYP_REL_MERE])
     end
-
     
   # Check si l'id passé en paramètre correspond bien aux critères d'identifiant ENT
   def self.is_valid_ent_id?(id)
@@ -338,6 +337,18 @@ class User < Sequel::Model(:user)
     end 
   end
 
+  def add_parent(parent, type_relation_id = 1, resp_financier = 1, resp_legal = 1, contact =1, paiement = 1)
+    record = RelationEleve[:user_id => parent.id, :eleve_id => self.id, :type_relation_eleve_id => type_relation_id]
+    if record.nil?
+      RelationEleve.create(:user_id => parent.id, :eleve_id => self.id, 
+        :type_relation_eleve_id => type_relation_id, :resp_financier => resp_financier, 
+        :resp_legal => resp_legal, :contact => contact, :paiement => paiement)
+    else
+      record.update(:resp_financier => resp_financier, :resp_legal => resp_legal, 
+        :contact => contact, :paiement => paiement)
+    end 
+  end
+
   def add_enfant(enfant, type_relation_id = TYP_REL_PERE)
     RelationEleve.create(:user_id => self.id, :eleve_id => enfant.id, :type_relation_eleve_id => type_relation_id)
   end
@@ -347,7 +358,10 @@ class User < Sequel::Model(:user)
   end
 
   def etablissements
-    Etablissement.filter(:id => RoleUser.filter(:ressource_service_id => SRV_ETAB).select(:ressource_id))
+    ProfilUser.where(:user_id => self.id).map do |profil|
+      {:id => profil.etablissement.id, :nom => profil.etablissement.nom}
+    end 
+    #Etablissement.filter(:id => RoleUser.filter(:ressource_service_id => SRV_ETAB).select(:ressource_id))
   end
 
   def add_to_regroupement(regroupement_id)
@@ -359,38 +373,77 @@ class User < Sequel::Model(:user)
     add_role(classe_id, TYP_REG_CLS, role_id)
   end
 
-  #toutes les classes dans lesquelles l'utilisateur à un rôle
-  def classes(etablissement_id = nil)
-    regroupements(etablissement_id, TYP_REG_CLS)
+  #toutes les classes dans lesquelles l'eleve est inscrit
+  def classes_eleve(etablissement_id = nil)
+    regroupement_eleve =  self.eleve_dans_regroupement.map do |eleve_regroupement|
+      {:id => eleve_regroupement.regroupement_id, :etablissement_id => eleve_regroupement.regroupement.etablissement_id, 
+      :type_regroupement => eleve_regroupement.regroupement.type_regroupement_id, 
+      :libelle => eleve_regroupement.regroupement.libelle_aaf }
+    end
+    if etablissement_id.nil? # return all etablissements
+      return regroupement_eleve.select{|r| r[:type_regroupement] == TYP_REG_CLS}
+    else
+      return regroupement_eleve.select{|r| r[:type_regroupement] == TYP_REG_CLS && r[:etablissement_id] == etablissement_id} 
+    end 
   end
 
   #Groupes auxquel l'élève est inscrit
-  def groupes_eleves(etablissement_id = nil)
-    regroupements(etablissement_id, TYP_REG_GRP)
+  def groupes_eleve(etablissement_id = nil)
+    regroupement_eleve =  self.eleve_dans_regroupement.map do |eleve_regroupement|
+      {:id => eleve_regroupement.regroupement_id, :etablissement_id => eleve_regroupement.regroupement.etablissement_id, 
+      :type_regroupement => eleve_regroupement.regroupement.type_regroupement_id, 
+      :libelle => eleve_regroupement.regroupement.libelle_aaf}
+    end
+    if etablissement_id.nil? # return all etablissements
+      return regroupement_eleve.select{|r| r[:type_regroupement] == TYP_REG_GRP}
+    else
+      return regroupement_eleve.select{|r| r[:type_regroupement] == TYP_REG_GRP && r[:etablissement_id] == etablissement_id} 
+    end 
   end
 
   def groupes_libres(etablissement_id = nil)
-    regroupements(etablissement_id, TYP_REG_LBR)
+    #regroupements(etablissement_id, TYP_REG_LBR)
   end
 
-
-  def enseigne_classes
-    enseigne_regroupements('CLS').all
+  #toutes les classes dans lesquelles l'utilisateur enseigne
+  def enseigne_classes(etablissement_id = nil)
+    regroupement_enseingant = self.enseigne_dans_regroupement.map do |enseigne_regroupement|
+      {:id => enseigne_regroupement.regroupement_id, :etablissement_id => enseigne_regroupement.regroupement.etablissement_id, 
+      :type_regroupement => enseigne_regroupement.regroupement.type_regroupement_id, 
+      :libelle => enseigne_regroupement.regroupement.libelle_aaf}
+    end
+    if etablissement_id.nil? # return all etablissements
+      return regroupement_enseingant.select{|r| r[:type_regroupement] == TYP_REG_CLS}
+    else
+      return regroupement_enseingant.select{|r| r[:type_regroupement] == TYP_REG_CLS && r[:etablissement_id] == etablissement_id} 
+    end 
   end
 
-  def enseigne_groupes
-    enseigne_regroupements('GRP').all
+  # Groupes auxquel l'utilisateur enseinge
+  def enseigne_groupes(etablissement_id = nil)
+    regroupement_enseingant = self.enseigne_dans_regroupement.map do |enseigne_regroupement|
+      {:id => enseigne_regroupement.regroupement_id, :etablissement_id => enseigne_regroupement.regroupement.etablissement_id, 
+      :type_regroupement => enseigne_regroupement.regroupement.type_regroupement_id, 
+      :libelle => enseigne_regroupement.regroupement.libelle_aaf}
+    end
+    if etablissement_id.nil? # return all etablissements
+      return regroupement_enseingant.select{|r| r[:type_regroupement] == TYP_REG_GRP}
+    else
+      return regroupement_enseingant.select{|r| r[:type_regroupement] == TYP_REG_GRP && r[:etablissement_id] == etablissement_id} 
+    end
   end
 
+  # retourne les matieres enseignees par l'utilisateur dans l'etablissement dont l'id = etablissement_id 
   def matiere_enseigne(etablissement_id)
-    MatiereEnseigne.
+    MatiereEnseignee.
       filter(:enseigne_dans_regroupement => EnseigneDansRegroupement.
         filter(:user => self, :regroupement => Regroupement.
           filter(:etablissement_id => etablissement_id))).all
   end
 
+  # retourne les matieres enseignees par l'utilisateur dans un groupe dont i'id = groupe_id
   def matiere_enseigne(groupe_id)
-    MatiereEnseigne.
+    MatiereEnseignee.
       filter(:enseigne_dans_regroupement => EnseigneDansRegroupement.
         filter(:user => self, :regroupement_id  => groupe_id)).all
   end

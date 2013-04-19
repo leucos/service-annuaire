@@ -22,7 +22,7 @@ module Rights
         #puts "#{{:activite => act[:activite_id], :subject_class => act[:service_id], 
           #:condition => act[:condition], :parent_class => role_user[:ressource_service_id], :parent_id => role_user[:ressource_id]}}"
         
-        rights.push({:activite => act[:activite_id], :subject_class => act[:service_id], 
+        rights.push({:activite => act[:activite_id], :subject_class => act[:service_id], :subject_id => role_user[:user_id].to_s, 
           :condition => act[:condition], :parent_class => role_user[:ressource_service_id], :parent_id => role_user[:ressource_id]})
       end
     end
@@ -50,12 +50,14 @@ module Rights
 
     rights = find_rights(user_id) 
     rights.each do |activity|
-      if activity[:condition] == "self" && ressource_id == activity[:parent_id] && type_ressource == activity[:parent_class]
+      if activity[:condition] == "self" && activity[:subject_class] == type_ressource && ressource_id == activity[:subject_id]
         activities.push(activity[:activite])
       elsif  activity[:condition] == "belongs_to" && type_ressource == activity[:subject_class] 
         activities.push(activity[:activite]) if ressource.belongs_to(Ressource[:id => activity[:parent_id], :service_id => activity[:parent_class]])
       elsif activity[:condition] == "all" && type_ressource == activity[:subject_class] 
         activities.push(activity[:activite]) 
+      elsif activity[:condition] == "parent" && ressource_id == activity[:parent_id] && type_ressource == activity[:parent_class]
+        activities.push(activity[:activite])
       end   
     end 
     

@@ -123,34 +123,76 @@ def create_test_role(application_id)
   r.add_activite(SRV_CLASSE, ACT_DELETE, "belongs_to")
   return r
 end
+#-------------------------------------------------------------#
 def create_admin_etab_test_role(application_id)
   # example test role for etablissement admin
+    # can :manage  users that belongs to his etablissement 
+    # can :update, read (self) his etablissement info
+    # can :manage  classes that belongs to his etablissement 
+    # can :manage groupes that belongs to his etablissement 
+    # TODO: add roles, applications and params
   r = Role.find_or_create(:id => ROL_TEST, :application_id => application_id)
-  r.add_activite(SRV_USER, ACT_READ, "belongs_to")
-  r.add_activite(SRV_USER, ACT_UPDATE, "belongs_to")
-  r.add_activite(SRV_USER, ACT_CREATE, "belongs_to")
-  r.add_activite(SRV_USER, ACT_DELETE, "belongs_to")
-  r.add_activite(SRV_ETAB, ACT_UPDATE, "self")
-  r.add_activite(SRV_ETAB, ACT_READ, "self")
-  r.add_activite(SRV_CLASSE, ACT_READ, "belongs_to")
-  r.add_activite(SRV_CLASSE, ACT_DELETE, "belongs_to")
-  r.add_activite(SRV_CLASSE, ACT_CREATE, "belongs_to")
+  #r = Role.create(:id => "admin_etab", :application_id => application_id)
+  r.add_activite(SRV_USER, ACT_MANAGE, "belongs_to")
+  r.add_activite(SRV_ETAB, ACT_UPDATE, "parent")
+  r.add_activite(SRV_ETAB, ACT_READ, "parent")
+  r.add_activite(SRV_CLASSE, ACT_MANAGE, "belongs_to")
+  r.add_activite(SRV_GROUPE, ACT_MANAGE, "belongs_to")
   return r
 end
 
+# admin laclasse test role 
+#---------------------------------------------------------------#
 def create_admin_laclasse_role(application_id)
-  r = Role.find_or_create(:id => "admin", :application_id => application_id)
-  r.add_activite(SRV_USER, ACT_READ, "all")
-  r.add_activite(SRV_USER, ACT_UPDATE, "all")
-  r.add_activite(SRV_USER, ACT_CREATE, "all")
-  r.add_activite(SRV_USER, ACT_DELETE, "all")
-  r.add_activite(SRV_ETAB, ACT_UPDATE, "all")
-  r.add_activite(SRV_ETAB, ACT_READ, "all")
-  r.add_activite(SRV_CLASSE, ACT_READ, "all")
-  r.add_activite(SRV_CLASSE, ACT_DELETE, "all")
-  r.add_activite(SRV_CLASSE, ACT_CREATE, "all")
+  # example admin_laclasse_role
+    # can manage all users 
+    # can manage all etablissements 
+    # can manage all classes 
+    # can manage all groupes 
+    # can manage all applications 
+    # can manage all ressources
+  r = Role.find_or_create(:id => ROL_TEST, :application_id => application_id)  
+  #r = Role.find_or_create(:id => "admin_laclasse", :application_id => application_id)
+  r.add_activite(SRV_USER, ACT_MANAGE, "all")
+  r.add_activite(SRV_ETAB, ACT_MANAGE, "all")
+  r.add_activite(SRV_CLASSE, ACT_MANAGE, "all")
+  r.add_activite(SRV_GROUPE, ACT_MANAGE, "all")
   r
-end  
+end
+#--------------------------------------------------------------#  
+# prof test role on etab
+#----------------------------------------------------------------# 
+def create_prof_test_role_on_etab(application_id)
+  r = Role.find_or_create(:id => ROL_TEST, :application_id => application_id)
+  r.add_activite(SRV_USER, ACT_READ, "belongs_to")
+  r.add_activite(SRV_CLASSE, ACT_READ, "belongs_to")
+  r.add_activite(SRV_GROUPE, ACT_READ, "belongs_to")
+  r.add_activite(SRV_ETAB, ACT_READ, "parent")
+  # Todo cahier_text
+  return r 
+end 
+#----------------------------------------------------------------#
+#----------------------------------------------------------------# 
+def create_prof_test_role_on_class(application_id)
+  r = Role.find_or_create(:id => 'prof', :application_id => application_id)
+  r.add_activite(SRV_USER, ACT_MANAGE, "belongs_to")
+  r.add_activite(SRV_CLASSE, ACT_READ, "parent")
+  r.add_activite(SRV_GROUPE, ACT_READ, "parent")
+  # Todo cahier_text
+  return r 
+end 
+
+# eleve test role 
+#----------------------------------------------------------------#
+def create_eleve_test_role(application_id)
+  r = Role.find_or_create(:id => ROL_TEST, :application_id => application_id)
+  r.add_activite(SRV_USER, ACT_READ, "self")
+  r.add_activite(SRV_USER, ACT_UPDATE, "self")
+  r.add_activite(SRV_CLASSE, ACT_READ, "parent")
+  r.add_activite(SRV_GROUPE, ACT_READ, "parent")
+  r
+end
+#----------------------------------------------------------------#
 
 def create_test_role_with_id(role_id)
   r = Role.create(:id => role_id, :service_id => SRV_ETAB)

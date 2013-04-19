@@ -696,7 +696,7 @@ module Alimentation
             
             # rattache eleve to person
              @logger.debug("rattache eleve with id_jointure_aaf: #{rattachement['id_jointure_aaf_eleve']} to person with id_jointure_aaf: #{rattachement["id_jointure_aaf_parent"]}")
-            eleve.add_or_modify_parent(person, rattachement["type_relation_eleve_id"],  rattachement["resp_financier"], 
+            eleve.add_parent(person, rattachement["type_relation_eleve_id"],  rattachement["resp_financier"], 
               rattachement["resp_legal"], rattachement["contact"], rattachement["paiement"])
           rescue => e
             @logger.error(e.message)

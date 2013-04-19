@@ -71,26 +71,46 @@ class Ressource < Sequel::Model(:ressource)
   # belongs_to function returns true if actual ressource belongs to parent_ressource
   def belongs_to(ressource)
     belongs_to = false
-    
+
     if ressource.nil?
       belongs_to = false 
-    end
     
-    # all ressources belongs to root
-    if ressource == Ressource.laclasse 
+    # a ressource belongs to itself
+    elsif ressource == self
+      belongs_to = true   
+
+    # all ressources belongs to root (Laclasse)
+    elsif ressource == Ressource.laclasse 
       belongs_to = true
     
-    # ressource user belongs to an etablissement or regroupement  
+    # ressource user belongs to an etablissement and/or regroupement  
     elsif self[:service_id] == "USER"
       case ressource.service_id
         when "ETAB"
           belongs_to = (ProfilUser.filter(:user_id => self.id.to_i, :etablissement_id => ressource.id.to_i).count > 0)
-        when "CLASSE" 
+        when "CLASSE"
+          
+          # enseingant 
           belongs_to = (EnseigneDansRegroupement.filter(:user_id => self.id.to_i, :regroupement_id => ressource.id.to_i).count > 0)
+          # eleve  
           belongs_to ||= (EleveDansRegroupement.filter(:user_id => self.id.to_i, :regroupement_id => ressource.id.to_i).count > 0) 
+          # parent_eleve belongs_to the class of his(her) child
+          user = User[:id => self.id.to_i]
+            user.enfants.each do |enfant|
+              belongs_to ||= (EleveDansRegroupement.filter(:user_id => enfant.id, :regroupement_id => ressource.id.to_i).count > 0) 
+            end  
         when "GROUPE"
+          #enseignant
           belongs_to = (EnseigneDansRegroupement.filter(:user_id => self.id.to_i, :regroupement_id => ressource.id.to_i).count > 0)
-          belongs_to ||= (EleveDansRegroupement.filter(:user_id => self.id.to_i, :regroupement_id => ressource.id.to_i).count > 0)   
+
+          #eleve
+          belongs_to ||= (EleveDansRegroupement.filter(:user_id => self.id.to_i, :regroupement_id => ressource.id.to_i).count > 0)
+
+          # parent_eleve belongs_to the group of his(her) child
+          user = User[:id => self.id.to_i]
+            user.enfants.each do |enfant|
+              belongs_to ||= (EleveDansRegroupement.filter(:user_id => enfant.id, :regroupement_id => ressource.id.to_i).count > 0) 
+            end    
         else 
           belongs_to = false  
       end
@@ -121,6 +141,7 @@ class Ressource < Sequel::Model(:ressource)
     else 
       belongs_to = false 
     end
+    #puts belongs_to
     belongs_to   
   end 
 end

@@ -13,7 +13,7 @@ describe Ressource do
   before(:each) do
     delete_test_users()
     delete_test_etablissements()
-    @test_ressource = create_test_ressources_tree()
+    #@test_ressource = create_test_ressources_tree()
     @e = create_test_etablissement()
     @u1 = create_test_user_in_etab(@e.id, "test1")
     @u2 = create_test_user_in_etab(@e.id, "test3")
@@ -39,7 +39,7 @@ describe Ressource do
     @test_ressource.parent.should == Ressource[:service_id => SRV_LACLASSE]
   end
 
-  it "all resources belongs to root(laclasse)" do
+  it "all resources belongs to root (laclasse)" do
     root = Ressource.laclasse
     @e.ressource.belongs_to(root).should == true
     @u1.ressource.belongs_to(root).should == true 
@@ -59,10 +59,40 @@ describe Ressource do
     test_classe = Regroupement.create(:libelle => "test class", :type_regroupement_id => "CLS", 
       :etablissement_id => @e.id,:code_mef_aaf => "00010001310")
     test_classe.ressource.belongs_to(@e.ressource).should == true
-    @u1.ressource.belongs_to(test_classe.ressource) == false 
+    @u1.ressource.belongs_to(test_classe.ressource).should == false 
     @u1.add_to_regroupement(test_classe.id)
-    @u1.ressource.belongs_to(test_classe.ressource) == true
+    @u1.ressource.belongs_to(test_classe.ressource).should == true
     @u1.ressource.belongs_to(@e.ressource) == true
+    test_classe.destroy
+  end
+
+  it "a user belongs to his class or group" do 
+    test_classe = Regroupement.create(:libelle => "test class", :type_regroupement_id => "CLS", 
+      :etablissement_id => @e.id,:code_mef_aaf => "00010001310")
+    test_classe.ressource.belongs_to(@e.ressource).should == true
+    @u1.ressource.belongs_to(test_classe.ressource).should == false 
+    @u1.add_to_regroupement(test_classe.id)
+    @u1.ressource.belongs_to(test_classe.ressource).should == true
+    @u1.ressource.belongs_to(@e.ressource) == true
+    test_classe.destroy  
+  end
+
+  it "a ressource belongs to itself" do 
+    @e.ressource.belongs_to(@e.ressource).should == true
+    @u1.ressource.belongs_to(@u1.ressource).should == true 
+  end
+
+  it "a parent belongs to classes, groupes of his children" do 
+    p1 = create_test_user("parent")
+    @u1.add_parent(p1)
+    test_classe = Regroupement.create(:libelle => "test class", :type_regroupement_id => "CLS", 
+      :etablissement_id => @e.id,:code_mef_aaf => "00010001310")
+    test_classe.ressource.belongs_to(@e.ressource).should == true
+    @u1.ressource.belongs_to(test_classe.ressource).should == false 
+    p1.ressource.belongs_to(test_classe.ressource).should == false
+    @u1.add_to_regroupement(test_classe.id)
+    @u1.ressource.belongs_to(test_classe.ressource).should == true
+    p1.ressource.belongs_to(test_classe.ressource).should == true
     test_classe.destroy
   end
 

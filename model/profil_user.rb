@@ -27,6 +27,10 @@ class ProfilUser < Sequel::Model(:profil_user)
   many_to_many :fonction, :left_key=>[:profil_id, :user_id,:etablissement_id], :right_key=>:code_men,
     :join_table=>:profil_user_has_fonction
   #one_to_many :profil_user_has_fonction
+  # def self.eleves
+  #   filter(:profil_id == "ELV")
+  # end
+
 
   # Not nullable cols and unicity validation
   def validate
