@@ -153,10 +153,10 @@ def create_admin_laclasse_role(application_id)
     # can manage all ressources
   r = Role.find_or_create(:id => ROL_TEST, :application_id => application_id)  
   #r = Role.find_or_create(:id => "admin_laclasse", :application_id => application_id)
-  r.add_activite(SRV_USER, ACT_MANAGE, "all")
-  r.add_activite(SRV_ETAB, ACT_MANAGE, "all")
-  r.add_activite(SRV_CLASSE, ACT_MANAGE, "all")
-  r.add_activite(SRV_GROUPE, ACT_MANAGE, "all")
+  r.add_activite(SRV_USER, ACT_MANAGE, "all", "LACLASSE", "0")
+  r.add_activite(SRV_ETAB, ACT_MANAGE, "all", "LACLASSE", "0")
+  r.add_activite(SRV_CLASSE, ACT_MANAGE, "all", "LACLASSE", "0")
+  r.add_activite(SRV_GROUPE, ACT_MANAGE, "all", "LACLASSE", "0")
   r
 end
 #--------------------------------------------------------------#  
@@ -213,9 +213,7 @@ def create_user_with_role(role_id, ressource = nil)
   # On créer un role de test sur l'ensemble de LACLASSE.com si la ressource
   # n'est pas précisée
   ressource = Ressource[:service_id => SRV_LACLASSE] if ressource.nil?
-  RoleUser.create(:user_id => u.id, 
-    :ressource_id => ressource.id, :ressource_service_id => ressource.service_id,
-    :role_id => role_id)
+  RoleUser.create(:user_id => u.id, :role_id => role_id)
   return u
 end
 

@@ -69,24 +69,25 @@ class Ressource < Sequel::Model(:ressource)
   end
 
   # belongs_to function returns true if actual ressource belongs to parent_ressource
-  def belongs_to(ressource)
+  def belongs_to(subject_user, type_ressource)
     belongs_to = false
 
-    if ressource.nil?
+    if type_ressource.nil?
       belongs_to = false 
     
     # a ressource belongs to itself
-    elsif ressource == self
+    elsif type_ressource == self.service_id 
       belongs_to = true   
 
     # all ressources belongs to root (Laclasse)
-    elsif ressource == Ressource.laclasse 
+    elsif type_ressource == "SRV_LACLASSE" 
       belongs_to = true
     
     # ressource user belongs to an etablissement and/or regroupement  
     elsif self[:service_id] == "USER"
       case ressource.service_id
         when "ETAB"
+          user_etabs =  
           belongs_to = (ProfilUser.filter(:user_id => self.id.to_i, :etablissement_id => ressource.id.to_i).count > 0)
         when "CLASSE"
           
