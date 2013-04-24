@@ -42,7 +42,7 @@ def clean_annuaire()
 end
 
 def bootstrap_annuaire()
-  #puts "TRUNCATE ALL TABLES"
+  #puts "truncateNCATE ALL TABLES"
   #ATTENTION : CODE SPECIFIQUE MYSQL
   #On ne peut pas faire un bete DB.tables.each car il faut respecter l'ordre des foreign keys
   # TODO : supprimer les ressources en faisant attention aux parents
@@ -137,6 +137,10 @@ def bootstrap_annuaire()
   Service.create(:id => SRV_GROUPE, :libelle => "Service de gestion des groupes d'élèves", :url => "/groupe")
   # service /libre
   Service.create(:id => SRV_LIBRE, :libelle => "Service de gestion des groupes libres", :url => "/libre")
+  # service /application
+  Service.create(:id => SRV_APP, :libelle => "Service de gestion des applications", :url => "/app")
+  # service /role 
+  Service.create(:id => SRV_ROLE, :libelle => "Service de gestion des role", :url => "/role")
   
 
   # TODO 

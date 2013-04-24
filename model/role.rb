@@ -38,9 +38,8 @@ class Role < Sequel::Model(:role)
     super
   end
 
-  def add_activite(service_id, activite_id, condition = "self", type_ressource , ressource_id)
+  def add_activite(service_id, activite_id, condition = "self", type_ressource)
     ActiviteRole.create(:service_id => service_id, :role_id => self.id, 
-      :activite_id => activite_id, :condition => condition, :ressource_service_id => type_ressource, 
-      :ressource_id => ressource_id)
+      :activite_id => activite_id, :condition => condition, :parent_service_id => type_ressource)
   end
 end

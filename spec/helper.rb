@@ -192,6 +192,16 @@ def create_eleve_test_role(application_id)
   r.add_activite(SRV_GROUPE, ACT_READ, "parent")
   r
 end
+
+#----------------------------------------------------------------#
+def create_user_with_role_in_etab(role_id, etablissement_id)
+  u = create_test_user("test_admin")
+  if etablissement_id
+    RoleUser.create(:user_id => u.id, :role_id => role_id, :etablissement_id => etablissement_id)
+    return u
+  end 
+  return nil
+end
 #----------------------------------------------------------------#
 
 def create_test_role_with_id(role_id)

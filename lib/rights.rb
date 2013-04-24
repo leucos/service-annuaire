@@ -5,25 +5,81 @@ module Rights
   
   # find all rights for a specific user
   # example output 
-  #[{:activite=>"CREATE", :subject_class=>"USER", :condition=>"belongs_to", :parent_class=>"ETAB", :parent_id=>"41"}, 
-  #{:activite=>"DELETE", :subject_class=>"CLASSE", :condition=>"belongs_to", :parent_class=>"ETAB", :parent_id=>"41"},
-  #{:activite=>"READ", :subject_class=>"ETAB", :condition=>"self", :parent_class=>"ETAB", :parent_id=>"41"}, 
-  #{:activite=>"UPDATE", :subject_class=>"ETAB", :condition=>"self", :parent_class=>"ETAB", :parent_id=>"41"}]
+  #[{:user_id=>1324, :activite=>"DELETE", :target_class=>"CLASSE", :condition=>"belongs_to", :parent_class=>"ETAB", :parent_id => "123", :etablissement_id => "22"}]
+  def self.find_rights(user_id, etablissement_id = nil)
+    rights = []
 
-  def self.find_rights(user_id)
-    rights = [] 
-    
-    # find user roles
-    ds = RoleUser.filter(:user_id => user_id, :bloque => false)
-    #puts ds.all.inspect
+    # if user does not exists
+    user = User[:id => user_id]
+    if user.nil?
+      return []
+    end 
+
+    if etablissement_id.nil? 
+      # find user roles in all etablissements
+      ds = RoleUser.filter(:user_id => user_id, :bloque => false)
+    else 
+      # find user roles in an etablissement with id = etablissement_id 
+      ds = RoleUser.filter(:user_id => user_id, :etablissement_id => etablissement_id, :bloque => false)
+    end 
+
+
     ds.each do |role_user|
       activites = ActiviteRole.filter(:role_id => role_user.role_id)
       activites.each do |act|
-        #puts "#{{:activite => act[:activite_id], :subject_class => act[:service_id], 
-          #:condition => act[:condition], :parent_class => role_user[:ressource_service_id], :parent_id => role_user[:ressource_id]}}"
-        
-        rights.push({:activite => act[:activite_id], :subject_class => act[:service_id], :subject_id => role_user[:user_id].to_s, 
-          :condition => act[:condition], :parent_class => act[:ressource_service_id]})
+
+          case act[:parent_service_id]
+            
+            when  SRV_LACLASSE
+              parent_id = "0"
+              rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
+                :condition => act[:condition], :parent_service => act[:parent_service_id], :parent_id => parent_id, 
+                :etablissement_id => role_user[:etablissement_id]})
+            
+            when SRV_ETAB 
+              parent_id = role_user[:etablissement_id].to_s 
+              rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
+                :condition => act[:condition], :parent_service => act[:parent_service_id], :parent_id => parent_id, 
+                :etablissement_id => role_user[:etablissement_id]})
+            
+            when SRV_CLASSE
+              # prof
+              classes = user.enseigne_classes(etablissement_id) 
+              classes.each do |classe| 
+                rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
+                :condition => act[:condition], :parent_service => act[:parent_service_id], :parent_id => classe[:id].to_s, 
+                :etablissement_id => role_user[:etablissement_id]})
+              end
+              #eleve 
+              classes = user.classes_eleve(etablissement_id)
+              classes.each do |classe| 
+                rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
+                :condition => act[:condition], :parent_service => act[:parent_service_id], :parent_id => classe[:id].to_s, 
+                :etablissement_id => role_user[:etablissement_id]})
+              end 
+              #parent
+              user.enfants.each do |enfant|
+                classes = enfant.classes_eleve(etablissement_id)
+                classes.each do |classe| 
+                  rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
+                  :condition => act[:condition], :parent_service => act[:parent_service_id], :parent_id => classe[:id].to_s, 
+                  :etablissement_id => role_user[:etablissement_id]})
+                end 
+              end
+            
+            #TODO: ADD Groupe, Applications, Roles, Params  #modifier 
+            when SRV_GROUPE
+              rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
+                :condition => act[:condition], :parent_service => act[:parent_service_id], 
+                :etablissement_id => role_user[:etablissement_id]}) 
+            
+            when SRV_USER 
+             rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
+                :condition => act[:condition], :parent_service => act[:parent_service_id], :parent_id => role_user[:user_id].to_s,
+                :etablissement_id => role_user[:etablissement_id]}) 
+            else 
+              #do nothing  
+          end     
       end
     end
     rights.uniq
@@ -52,13 +108,19 @@ module Rights
     #TODO modifier les droits 
     rights = find_rights(user_id) 
     rights.each do |activity|
-      if activity[:condition] == "self" && activity[:subject_class] == type_ressource && ressource_id == activity[:subject_id]
+
+      # user has activities on himself
+      if activity[:condition] == "self" && activity[:target_service] == type_ressource  && ressource_id == activity[:user_id].to_s
         activities.push(activity[:activite])
-      elsif  activity[:condition] == "belongs_to" && type_ressource == activity[:subject_class] 
-        # activities.push(activity[:activite]) if ressource.belongs_to(Ressource[:id => activity[:parent_id], :service_id => activity[:parent_class]])
-        activities.push(activity[:activite]) if ressource.belongs_to(activity[:parent_class]) 
-      elsif activity[:condition] == "all" && type_ressource == activity[:subject_class] 
+      # user has activites on a service that belongs to an etablissement  
+      elsif  activity[:condition] == "belongs_to" && type_ressource == activity[:target_service] 
+        activities.push(activity[:activite]) if ressource.belongs_to(Ressource[:id => activity[:parent_id], :service_id => activity[:parent_service]])
+      
+      # user has activites on all memebers of a service 
+      elsif activity[:condition] == "all" && activity[:parent_service] == SRV_LACLASSE && ressource.service_id == activity[:target_service] 
         activities.push(activity[:activite]) 
+      
+      # for the moment it is not necessary
       elsif activity[:condition] == "parent" && ressource_id == activity[:parent_id] && type_ressource == activity[:parent_class]
         activities.push(activity[:activite])
       end   

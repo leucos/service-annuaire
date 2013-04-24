@@ -47,12 +47,14 @@ TYP_ETB_CTR_PU = "PU"
 SRV_LACLASSE = "LACLASSE"
 SRV_ETAB     = "ETAB"
 
-#Todo: change this to class names 
+#Todo: may be change this to class names 
 # Le nom des service de regroupement est le même que les types de regroupement
 SRV_CLASSE   = "CLASSE"
 SRV_GROUPE   = "GROUPE"
 SRV_LIBRE    = "LIBRE"
 SRV_USER     = "USER"
+SRV_APP 	 = "APPLICATION"
+SRV_ROLE     = "ROLE"
 
 #
 # Profil

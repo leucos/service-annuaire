@@ -15,27 +15,45 @@ describe Rights do
   end
 
   it "returns all activities for a certain user" do
-    # creat admin_laclasse role 
-    r = create_admin_laclasse_role(@app.id)
-
-    # attach le role avec un utilisateur 
-    admin = create_user_with_role(r.id)
+    # creat test role 
+    r = Role.find_or_create(:id => "test_role", :application_id => @app.id)
+    r.add_activite(SRV_USER, ACT_READ, "belongs_to", SRV_ETAB)
+    r.add_activite(SRV_ETAB, ACT_READ, "belongs_to", SRV_ETAB)
+    r.add_activite(SRV_CLASSE, ACT_DELETE, "belongs_to", SRV_ETAB)
+    
+    # attach le role avec un utilisateur  
+    # create user with role on etablissement ressource  
+    
     e1 = create_test_etablissement("etab1")
     e2 = create_test_etablissement("etab2")
 
-    puts Rights.find_rights(admin.id).inspect
+    # create test user
+    u = create_test_user("test_user")
+   
+    RoleUser.find_or_create(:user_id => u.id, :role_id => r.id, :etablissement_id => e1.id)
+
+    #admin = create_user_with_role(r.id, e1.ressource)
+    Rights.find_rights(u.id).should_not == []
 
   end  
 
-  it "returns all activities for admin laclasse",:broken => true do
+  it "returns all activities for admin laclasse" do
     # creat admin_laclasse role 
-    r = create_admin_laclasse_role(@app.id)
+    #r = create_admin_laclasse_role(@app.id)
+    r = Role.find_or_create(:id =>"admin_laclasse", :application_id => @app.id)  
+    #r = Role.find_or_create(:id => "admin_laclasse", :application_id => application_id)
+    r.add_activite(SRV_USER, ACT_MANAGE, "all", SRV_LACLASSE)
+    r.add_activite(SRV_ETAB, ACT_MANAGE, "all", SRV_LACLASSE)
+    r.add_activite(SRV_CLASSE, ACT_MANAGE, "all", SRV_LACLASSE)
+    r.add_activite(SRV_GROUPE, ACT_MANAGE, "all", SRV_LACLASSE)
 
     # attach le role avec un utilisateur 
-    admin = create_user_with_role(r.id)
+    #admin = create_user_with_role(r.id)
+    
     e1 = create_test_etablissement("etab 1")
     e2 = create_test_etablissement("etab 2")
-
+    # may be create an etablissement for laclasse ?!
+    admin = create_user_with_role_in_etab(r.id , e1.id)
     # add user to e1
     u1 = create_test_user_in_etab(e1.id, "user1")
     # add user to e2
@@ -49,42 +67,52 @@ describe Rights do
     Rights.get_activities(admin.id, u2.ressource.id, u2.ressource.service_id).should == [ACT_MANAGE]
   end
 
-  it "returns update, read  activites for user on ressource etablissement if user has Admin role on the etab",:broken => true do
+  it "returns update, read  activites for user on ressource etablissement if user has Admin role on the etab" do
     # create admin etab role
     r = Role.find_or_create(:id => "admnEtab", :application_id => @app.id)
     
     # create test etablissement e1
     e1 = create_test_etablissement("etab 1")
-    # add activities to role admnEtab
-    # can :manage Users belongs_to e1
-    # can :manage Classes belongs_to e1 
-    # can :manage groupes belongs_to e1 
-    # can :update e1 
-    # can :read e1 
-    # can :read all Etabs belongs_to Laclasse 
-    r.add_activite(SRV_USER, ACT_MANAGE, "belongs_to", e1.ressource.service_id, e1.ressource.id)
-    r.add_activite(SRV_ETAB, ACT_UPDATE, "belongs_to", e1.ressource.service_id, e1.ressource.id)
-    r.add_activite(SRV_ETAB, ACT_READ, "belongs_to", e1.ressource.service_id, e1.ressource.id)
-    r.add_activite(SRV_CLASSE, ACT_MANAGE, "belongs_to", e1.ressource.service_id, e1.ressource.id)
-    r.add_activite(SRV_GROUPE, ACT_MANAGE, "belongs_to", e1.ressource.service_id, e1.ressource.id)
-    r.add_activite(SRV_ETAB, ACT_READ, "belongs_to", SRV_LACLASSE, "0")
+
+    # admin etab 
+        # can :manage users that belongs to etablissement e1 
+        # can :read, update e1
+        # can :manage classes that belongs to e1 
+        # can :manage groupes that belongs to e1 
+
+    r.add_activite(SRV_USER, ACT_MANAGE, "belongs_to", SRV_ETAB)
+    r.add_activite(SRV_ETAB, ACT_UPDATE, "belongs_to", SRV_ETAB)
+    r.add_activite(SRV_ETAB, ACT_READ, "belongs_to", SRV_ETAB)
+    r.add_activite(SRV_CLASSE, ACT_MANAGE, "belongs_to", SRV_ETAB)
+    r.add_activite(SRV_GROUPE, ACT_MANAGE, "belongs_to", SRV_ETAB)
+    
+    #r.add_activite(SRV_ETAB, ACT_READ, "belongs_to", SRV_LACLASSE)
+    r.add_activite(SRV_ETAB, ACT_READ, "all", SRV_LACLASSE)
     
     # On créer un deuxième etab
     e2 = create_test_etablissement("etab 2")
-
     #create a user with admnEtab role
-    admin_etab = create_user_with_role(r.id)
+    admin_etab = create_user_with_role_in_etab(r.id, e1.id)
+    #puts Rights.find_rights(admin_etab.id).inspect
 
+    # create a test classe
+    c1 = create_class_in_etablissement(e1.id)
+
+    #create test user in e1
+    u1 = create_test_user_in_etab(e1.id, "user1")
 
     #puts Rights.find_rights(admin_etab.id).inspect
-    Rights.get_activities(admin_etab.id, e1.ressource.id, e1.ressource.service_id).should == [ACT_UPDATE, ACT_READ].sort
-
+    #Rights.get_activities(admin_etab.id, e1.ressource.id, e1.ressource.service_id).should == [ACT_UPDATE, ACT_READ].sort
     # admin_etab has only read activities on e2 
+    Rights.get_activities(admin_etab.id, e1.ressource.id, e1.ressource.service_id).should == [ACT_READ, ACT_UPDATE].sort
     Rights.get_activities(admin_etab.id, e2.ressource.id, e2.ressource.service_id).should == [ACT_READ]
+
+    Rights.get_activities(admin_etab.id, c1.ressource.id, c1.ressource.service_id).should == [ACT_MANAGE]
+    Rights.get_activities(admin_etab.id, u1.ressource.id, u1.ressource.service_id).should == [ACT_MANAGE]
     admin_etab.destroy
   end
 
-  it "returns manage user activity  if user has Admin role on the etab",:broken => true do 
+  it "returns manage user activity  if user has Admin role on the etab" do 
     # create admin etab role
     r = Role.find_or_create(:id => "admnEtab", :application_id => @app.id)
     
@@ -97,12 +125,12 @@ describe Rights do
     # can :update e1 
     # can :read e1 
     # can :read all Etabs belongs_to Laclasse 
-    r.add_activite(SRV_USER, ACT_MANAGE, "belongs_to", e1.ressource.service_id, e1.ressource.id)
-    r.add_activite(SRV_ETAB, ACT_UPDATE, "belongs_to", e1.ressource.service_id, e1.ressource.id)
-    r.add_activite(SRV_ETAB, ACT_READ, "belongs_to", e1.ressource.service_id, e1.ressource.id)
-    r.add_activite(SRV_CLASSE, ACT_MANAGE, "belongs_to", e1.ressource.service_id, e1.ressource.id)
-    r.add_activite(SRV_GROUPE, ACT_MANAGE, "belongs_to", e1.ressource.service_id, e1.ressource.id)
-    r.add_activite(SRV_ETAB, ACT_READ, "belongs_to", SRV_LACLASSE, "0")
+    r.add_activite(SRV_USER, ACT_MANAGE, "belongs_to", SRV_ETAB)
+    r.add_activite(SRV_ETAB, ACT_UPDATE, "belongs_to", SRV_ETAB)
+    r.add_activite(SRV_ETAB, ACT_READ, "belongs_to", SRV_ETAB)
+    r.add_activite(SRV_CLASSE, ACT_MANAGE, "belongs_to", SRV_ETAB)
+    r.add_activite(SRV_GROUPE, ACT_MANAGE, "belongs_to", SRV_ETAB)
+    r.add_activite(SRV_ETAB, ACT_READ, "belongs_to", SRV_LACLASSE)
     e2 = create_test_etablissement("etab 2")
 
     # add user to e1
@@ -112,8 +140,8 @@ describe Rights do
     
     classe = create_class_in_etablissement(e1.id)
     #create role admin etablissement on etablissement e1
-    admin_etab = create_user_with_role(r.id)
-
+    admin_etab = create_user_with_role_in_etab(r.id, e1.id)
+    #puts Rights.find_rights(admin_etab.id).inspect
     # admin_etab has activities on e1(self) 
     Rights.get_activities(admin_etab.id, e1.ressource.id, e1.ressource.service_id).should == [ACT_UPDATE, ACT_READ].sort
     Rights.get_activities(admin_etab.id, e2.ressource.id, e2.ressource.service_id).should == [ACT_READ]
@@ -129,7 +157,7 @@ describe Rights do
     classe.destroy
   end
 
-  it "returns right activites for a user with role prof in the etablissement",:broken => true do 
+  it "returns right activites for a user with role prof in the etablissement" do 
     #r1 = create_prof_test_role_on_etab(@app.id)
     # create prof test role 
     prof_role = Role.find_or_create(:id => "prof", :application_id => @app.id)
@@ -138,10 +166,10 @@ describe Rights do
     e1 = create_test_etablissement("etab 1")    
 
     # add activities related to etablissement e1
-    prof_role.add_activite(SRV_USER, ACT_READ, "belongs_to", e1.ressource.service_id, e1.ressource.id)
-    prof_role.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", e1.ressource.service_id, e1.ressource.id)
-    prof_role.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", e1.ressource.service_id, e1.ressource.id)
-    prof_role.add_activite(SRV_ETAB, ACT_READ, "belongs_to", e1.ressource.service_id, e1.ressource.id)
+    prof_role.add_activite(SRV_USER, ACT_READ, "belongs_to", SRV_ETAB)
+    prof_role.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", SRV_ETAB)
+    prof_role.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", SRV_ETAB)
+    prof_role.add_activite(SRV_ETAB, ACT_READ, "belongs_to",SRV_ETAB)
 
     # create another test etablissement e2
     e2 = create_test_etablissement("etab 2")
@@ -157,16 +185,19 @@ describe Rights do
     u1.add_to_regroupement(c1.id)
 
     #add activities related to class c1 
-    prof_role.add_activite(SRV_USER, ACT_MANAGE, "belongs_to", c1.ressource.service_id, c1.ressource.id)
-    prof_role.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", c1.ressource.service_id, c1.ressource.id)
-    prof_role.add_activite(SRV_CLASSE, ACT_UPDATE, "belongs_to", c1.ressource.service_id, c1.ressource.id)
-    prof_role.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", c1.ressource.service_id, c1.ressource.id)
-    prof_role.add_activite(SRV_GROUPE, ACT_UPDATE, "belongs_to", c1.ressource.service_id, c1.ressource.id)
+    prof_role.add_activite(SRV_USER, ACT_MANAGE, "belongs_to", SRV_CLASSE)
+    prof_role.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", SRV_CLASSE)
+    prof_role.add_activite(SRV_CLASSE, ACT_UPDATE, "belongs_to", SRV_CLASSE)
+    prof_role.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", SRV_GROUPE)
+    prof_role.add_activite(SRV_GROUPE, ACT_UPDATE, "belongs_to", SRV_GROUPE)
 
-    prof = create_user_with_role(prof_role.id)
+    prof = create_user_with_role_in_etab(prof_role.id, e1.id)
 
-    
-    #puts Rights.find_rights(prof.id).inspect 
+    # add prof to c1 
+    EnseigneDansRegroupement.find_or_create(:regroupement_id => c1.id, :user_id => prof.id,
+      :matiere_enseignee_id => "000400", :prof_principal => "O")
+
+
     Rights.get_activities(prof.id, c1.ressource.id, c1.ressource.service_id).should == [ACT_READ, ACT_UPDATE]
 
     # prof can manage elees in his class, group
@@ -175,7 +206,7 @@ describe Rights do
   end
 
 
-  it "returns right activities for an eleve role in a class, groupe",:broken => true do 
+  it "returns right activities for an eleve role in a class, groupe" do 
     #r = create_eleve_test_role(@app.id)
     # create admin etab role
     r = Role.find_or_create(:id => "eleve", :application_id => @app.id)
@@ -183,52 +214,130 @@ describe Rights do
     # create test etablissement e1
     e1 = create_test_etablissement("etab 1")
 
+    # create test etablissement e2
+    e2 = create_test_etablissement("etab 2")
+
     # add activities on etablissement level
-    r.add_activite(SRV_ETAB, ACT_READ,   "belongs_to", e1.ressource.service_id, e1.ressource.id)
-    r.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", e1.ressource.service_id, e1.ressource.id)
-    r.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", e1.ressource.service_id, e1.ressource.id)
+    r.add_activite(SRV_ETAB, ACT_READ,   "belongs_to", SRV_ETAB)
+    r.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", SRV_ETAB)
+    r.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", SRV_ETAB)
     
 
     #create test eleve 
     u1 = create_test_user_in_etab(e1.id, "user1")
 
+    # create another test eleve in e1 
+    u2 = create_test_user_in_etab(e1.id, "user2")
+
+    # create test eleve in e2 
+    u3 = create_test_user_in_etab(e2.id, "user3")
+
     # create test classe
     c1 = create_class_in_etablissement(e1.id)
     
     # add activities on classe level 
-    r.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", c1.ressource.service_id, c1.ressource.id)
-    r.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", c1.ressource.service_id, c1.ressource.id)
-    r.add_activite(SRV_USER, ACT_READ, "belongs_to", c1.ressource.service_id, c1.ressource.id)
+    r.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", SRV_CLASSE)
+    r.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", SRV_GROUPE)
+    r.add_activite(SRV_USER, ACT_READ, "belongs_to", SRV_CLASSE)
     
     # add activities on user level
-    r.add_activite(SRV_USER, ACT_UPDATE, "self", u1.ressource.service_id, u1.ressource.id)
-    r.add_activite(SRV_USER, ACT_READ, "self", u1.ressource.service_id, u1.ressource.id)
+    r.add_activite(SRV_USER, ACT_UPDATE, "self", SRV_USER)
+    r.add_activite(SRV_USER, ACT_READ, "self", SRV_USER)
     
-    role_eleve = RoleUser.find_or_create(:user_id => u1.id, :role_id => r.id)
     # add role eleve to u1 
+    role_eleve = RoleUser.find_or_create(:user_id => u1.id, :role_id => r.id,:etablissement_id => e1.id)
     
-    # an eleve can read and update ressources that belongs to himself
+    # add u1 to c1
+    u1.add_to_regroupement(c1.id)
+    u2.add_to_regroupement(c1.id)
+
+    #puts Rights.find_rights(u1.id).inspect
+    
+
+    Rights.get_activities(u1.id, e1.ressource.id, e1.ressource.service_id).should == [ACT_READ]
+    Rights.get_activities(u1.id, e2.ressource.id, e2.ressource.service_id).should == []
+
+     # an eleve can read and update ressources that belongs to himself
     Rights.get_activities(u1.id, u1.ressource.id, u1.ressource.service_id).should == [ACT_READ, ACT_UPDATE]
+
+
+    Rights.get_activities(u1.id, u2.ressource.id, u2.ressource.service_id).should == [ACT_READ]
+    Rights.get_activities(u1.id, u3.ressource.id, u3.ressource.service_id).should == []
+
     Rights.get_activities(u1.id, c1.ressource.id, c1.ressource.service_id).should == [ACT_READ]
   end
 
-  it "returns right activities for a parent of an eleve " do 
+  it "returns right activities for a parent of an eleve" do 
     # r = create_parent_test_role(@app.id)
-    # create parent role
-    r = Role.find_or_create(:id => "parent", :application_id => @app.id)  
+    # create parent role that has the same rights as his enfants
+    r = Role.find_or_create(:id => "parent", :application_id => @app.id) 
 
+    # role parent
+      # can :read etablissment in which he has a profil
+      # can :read classes in the etablissement 
+      # can :read groups in the etablissement
+    r.add_activite(SRV_ETAB, ACT_READ,   "belongs_to", SRV_ETAB)
+    r.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", SRV_ETAB)
+    r.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", SRV_ETAB) 
+
+    # add activities on classe level
+    # can read classes of his child(ren)
+    # can read groupes of his child(ren)
+    # can read users in his child(ren) classes
+    # can read his son info ?!
+    r.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", SRV_CLASSE)
+    r.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", SRV_GROUPE)
+    r.add_activite(SRV_USER, ACT_READ, "belongs_to", SRV_CLASSE)
+
+
+    #add activities on user level
+    # can read himself 
+    # can update himself 
+    r.add_activite(SRV_USER, ACT_UPDATE, "self", SRV_USER)
+    r.add_activite(SRV_USER, ACT_READ, "self", SRV_USER)
+
+
+    # create first test etablissement
     e1 = create_test_etablissement("etab 1")
 
-    # # create test eleve 
-    eleve = create_test_user_in_etab(e1.id, "eleve1")
-    
+    # create second test etablissement
+    e2 = create_test_etablissement("etab 2")
+ 
     # # create test classe 
     c1 = create_class_in_etablissement(e1.id)
+    c2 = create_class_in_etablissement(e1.id)
 
-    #  create test parent 
-    # parent = create_test_parent_in_etab(e1.id)
-    # # add relation parent eleve
-    # parent
+    #  create test eleve 
+    eleve = create_test_user_in_etab(e1.id, "eleve1")
+    eleve.add_to_regroupement(c1.id)
+   
+    # create test parents 
+    p1 = create_test_user("pere")
+    p2 = create_test_user("mere")
+    p1.add_profil(e1.id, PRF_PAR)
+    p2.add_profil(e1.id, PRF_PAR)
+
+    # add (pére) to eleve 
+    eleve.add_parent(p1, TYP_REL_PERE)
+    # add (mére) to eleve
+    eleve.add_parent(p2, TYP_REL_MERE)
+
+    role_parent = RoleUser.find_or_create(:user_id => p1.id, :role_id => r.id, :etablissement_id => e1.id)
+    #puts Rights.find_rights(p1.id).inspect
+    Rights.get_activities(p1.id, e1.ressource.id, e1.ressource.service_id).should == [ACT_READ]
+    Rights.get_activities(p1.id, e2.ressource.id, e2.ressource.service_id).should == []
+
+     # an eleve can read and update ressources that belongs to himself
+    Rights.get_activities(p1.id, eleve.ressource.id, eleve.ressource.service_id).should == [ACT_READ]
+
+
+    Rights.get_activities(p1.id, p1.ressource.id, p1.ressource.service_id).should == [ACT_READ, ACT_UPDATE]
+    
+
+    Rights.get_activities(p1.id, c1.ressource.id, c1.ressource.service_id).should == [ACT_READ]
+
+    # how to say that p1 has the same rights as eleve 
+
   end   
 
   it "return create_user rights for user in ressource etablissement if user has role on laclasse", :broken => true do
