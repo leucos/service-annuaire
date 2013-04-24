@@ -16,7 +16,7 @@ describe Rights do
 
   it "returns all activities for a certain user" do
     # creat test role 
-    r = Role.find_or_create(:id => "test_role", :application_id => @app.id)
+    r = Role.find_or_create(:id => "test_role")
     r.add_activite(SRV_USER, ACT_READ, "belongs_to", SRV_ETAB)
     r.add_activite(SRV_ETAB, ACT_READ, "belongs_to", SRV_ETAB)
     r.add_activite(SRV_CLASSE, ACT_DELETE, "belongs_to", SRV_ETAB)
@@ -40,7 +40,7 @@ describe Rights do
   it "returns all activities for admin laclasse" do
     # creat admin_laclasse role 
     #r = create_admin_laclasse_role(@app.id)
-    r = Role.find_or_create(:id =>"admin_laclasse", :application_id => @app.id)  
+    r = Role.find_or_create(:id =>"admin_laclasse")  
     #r = Role.find_or_create(:id => "admin_laclasse", :application_id => application_id)
     r.add_activite(SRV_USER, ACT_MANAGE, "all", SRV_LACLASSE)
     r.add_activite(SRV_ETAB, ACT_MANAGE, "all", SRV_LACLASSE)
@@ -69,7 +69,7 @@ describe Rights do
 
   it "returns update, read  activites for user on ressource etablissement if user has Admin role on the etab" do
     # create admin etab role
-    r = Role.find_or_create(:id => "admnEtab", :application_id => @app.id)
+    r = Role.find_or_create(:id => "admnEtab")
     
     # create test etablissement e1
     e1 = create_test_etablissement("etab 1")
@@ -114,7 +114,7 @@ describe Rights do
 
   it "returns manage user activity  if user has Admin role on the etab" do 
     # create admin etab role
-    r = Role.find_or_create(:id => "admnEtab", :application_id => @app.id)
+    r = Role.find_or_create(:id => "admnEtab")
     
     # create test etablissement e1
     e1 = create_test_etablissement("etab 1")
@@ -160,7 +160,7 @@ describe Rights do
   it "returns right activites for a user with role prof in the etablissement" do 
     #r1 = create_prof_test_role_on_etab(@app.id)
     # create prof test role 
-    prof_role = Role.find_or_create(:id => "prof", :application_id => @app.id)
+    prof_role = Role.find_or_create(:id => "prof")
     
     # create test etablissmenet e1 
     e1 = create_test_etablissement("etab 1")    
@@ -209,7 +209,7 @@ describe Rights do
   it "returns right activities for an eleve role in a class, groupe" do 
     #r = create_eleve_test_role(@app.id)
     # create admin etab role
-    r = Role.find_or_create(:id => "eleve", :application_id => @app.id)
+    r = Role.find_or_create(:id => "eleve")
     #r = Role.create(:id => "admin_etab", :application_id => application_id)
     # create test etablissement e1
     e1 = create_test_etablissement("etab 1")
@@ -270,7 +270,7 @@ describe Rights do
   it "returns right activities for a parent of an eleve" do 
     # r = create_parent_test_role(@app.id)
     # create parent role that has the same rights as his enfants
-    r = Role.find_or_create(:id => "parent", :application_id => @app.id) 
+    r = Role.find_or_create(:id => "parent") 
 
     # role parent
       # can :read etablissment in which he has a profil
