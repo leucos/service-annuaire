@@ -273,7 +273,7 @@ module Alimentation
       # we must capture errors in order to treat all eleves
       @logger.debug("modify or create eleve is called")
       etablissement_id = Etablissement[:code_uai => @uai].id
-      profil_id = 'ELV'
+      profil_id = PRF_ELV
       DB.transaction do
         data.each do |eleve| 
           begin 
@@ -828,7 +828,15 @@ module Alimentation
       if eleve_regroupement
         eleve_regroupement.destroy
       end  
+      
       # delete user roles in the etablissement 
+      roles_user = RoleUser.filter(:user_id => eleve_id, :etablissement_id => etablissement_id)
+      if roles_user.count > 0
+        roles_user.each do |role|
+          role.destroy
+        end   
+      end  
+
     end
     #--------------------------------------------------------#
     def dettache_parent(person_id, etablissement_id)
@@ -838,7 +846,13 @@ module Alimentation
         profil.destroy
       end
 
-      # delete user roles in the etablissement  
+      # delete user roles in the etablissement
+      roles_user = RoleUser.filter(:user_id => eleve_id, :etablissement_id => etablissement_id)
+      if roles_user.count > 0
+        roles_user.each do |role|
+          role.destroy
+        end   
+      end   
     end
 
     #--------------------------------------------------------#
@@ -872,7 +886,14 @@ module Alimentation
           attachement.destroy
         end
       end     
-      # delete user roles in the etablissement  
+      
+      # delete user roles in the etablissement
+      roles_user = RoleUser.filter(:user_id => eleve_id, :etablissement_id => etablissement_id)
+      if roles_user.count > 0
+        roles_user.each do |role|
+          role.destroy
+        end   
+      end   
     end  
   end
 end

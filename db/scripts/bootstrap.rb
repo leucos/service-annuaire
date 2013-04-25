@@ -50,7 +50,7 @@ def bootstrap_annuaire()
   #:telephone, :profil_user, :etablissement, :enseigne_dans_regroupement, :regroupement, :application_etablissement,
   #:user, :type_telephone, :type_regroupement, :type_relation_eleve, :profil_national, :niveau, :relation_eleve, :eleve_dans_regroupement
   [
-  :activite_role, :role_user, :activite, :role, :param_application, :type_param, :ressource, :service
+  :activite_role, :role_user, :activite, :role, :param_application, :type_param, :ressource, :service, :profil_national
   ].each do |table|
     if table == :ressource
       truncate_ressource()
@@ -141,13 +141,13 @@ def bootstrap_annuaire()
   Service.create(:id => SRV_APP, :libelle => "Service de gestion des applications", :url => "/app")
   # service /role 
   Service.create(:id => SRV_ROLE, :libelle => "Service de gestion des role", :url => "/role")
-  
-
   # TODO 
   # service /alimentation
   # service /preference 
   # service /application
   # service /rights 
+
+
   
   # TODO : Rajouter les roles de prof et eleve dans une classe (cela sera des constantes)
   # TODO : Rajouter le role de documentaliste qui a comme une role de prof sur toutes les classes
@@ -157,28 +157,98 @@ def bootstrap_annuaire()
   # Création de root ressource Laclasse 
   Ressource.create(:id => 0, :service_id => SRV_LACLASSE)
 
-  # Création des roles associés à ce service
-  #role_tech = Role.create(:id => ROL_TECH, :libelle => "Administrateur technique", :service_id => SRV_LACLASSE)
-  #role_tech.add_activite(SRV_USER, ACT_CREATE)
-  #role_tech.add_activite(SRV_USER, ACT_READ)
-  #role_tech.add_activite(SRV_USER, ACT_UPDATE)
-  #role_tech.add_activite(SRV_USER, ACT_DELETE)
+  # Création des Roles et definitions des activités 
+  # Role => admin Laclasse
+  role_tech = Role.create(:id => ROL_TECH, :libelle => "Administrateur technique")
+  # Activities => 
+  role_tech.add_activite(SRV_USER, ACT_MANAGE, "all", SRV_LACLASSE)
+  role_tech.add_activite(SRV_ETAB, ACT_MANAGE, "all", SRV_LACLASSE)
+  role_tech.add_activite(SRV_CLASSE, ACT_MANAGE, "all", SRV_LACLASSE)
+  role_tech.add_activite(SRV_GROUPE, ACT_MANAGE, "all", SRV_LACLASSE)
+  role_tech.add_activite(SRV_LIBRE, ACT_MANAGE, "all", SRV_LACLASSE)
+  role_tech.add_activite(SRV_APP, ACT_MANAGE, "all", SRV_LACLASSE)
+  role_tech.add_activite(SRV_ROLE, ACT_MANAGE, "all", SRV_LACLASSE)
 
-
-  # Et des Role et ActiviteRole
-  #Role.create(:id => ROL_PROF_ETB, :libelle => "Professeur", :service_id => SRV_ETAB)
-  #Role.create(:id => ROL_ELV_ETB, :libelle => "Elève", :service_id => SRV_ETAB)
+  #---------------------------------------------------------------------------#
+  # Role => admin Etab 
+  role_admin = Role.create(:id => ROL_ADM_ETB, :libelle => "Administrateur d'établissement")
+  # Activities => etablissement level 
+  role_admin.add_activite(SRV_USER, ACT_MANAGE, "belongs_to", SRV_ETAB)
+  role_admin.add_activite(SRV_ETAB, ACT_UPDATE, "belongs_to", SRV_ETAB)
+  role_admin.add_activite(SRV_ETAB, ACT_READ, "belongs_to", SRV_ETAB)
+  role_admin.add_activite(SRV_CLASSE, ACT_MANAGE, "belongs_to", SRV_ETAB)
+  role_admin.add_activite(SRV_GROUPE, ACT_MANAGE, "belongs_to", SRV_ETAB)
+  # role_admin.add_activite(SRV_LIBRE, ACT_MANAGE, "belongs_to", SRV_ETAB)
+  # role_admin.add_activite(SRV_APP, ACT_MANAGE, "belongs_to", SRV_ETAB)
+  # role_admin.add_activite(SRV_ROLE, ACT_MANAGE, "belongs_to", SRV_ETAB)
   
-  #role_admin = Role.create(:id => ROL_ADM_ETB, :libelle => "Administrateur d'établissement", :service_id => SRV_ETAB)
-  #role_admin.add_activite(SRV_USER, ACT_CREATE)
-  #role_admin.add_activite(SRV_USER, ACT_READ)
-  #role_admin.add_activite(SRV_USER, ACT_UPDATE)
-  #role_admin.add_activite(SRV_USER, ACT_DELETE)
+  # Activities => laclasse(root) level
+  role_admin.add_activite(SRV_ETAB, ACT_READ, "belongs_to", SRV_LACLASSE)
+  
+  #---------------------------------------------------------------------------#
+  # Role => Prof  
+  prof_role = Role.create(:id => ROL_PROF_ETB, :libelle => "Professeur")
+  
+  # Activities => etablissement level 
+  prof_role.add_activite(SRV_USER, ACT_READ, "belongs_to", SRV_ETAB)
+  prof_role.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", SRV_ETAB)
+  prof_role.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", SRV_ETAB)
+  prof_role.add_activite(SRV_ETAB, ACT_READ, "belongs_to",SRV_ETAB)
 
-  #Role.create(:id => ROL_PAR_ETB, :libelle => "Parent", :service_id => SRV_ETAB)
-  #Role.create(:id => ROL_DIR_ETB, :libelle => "Principal", :service_id => SRV_ETAB)
-  #Role.create(:id => ROL_CPE_ETB, :libelle => "CPE", :service_id => SRV_ETAB)
-  #Role.create(:id => ROL_BUR_ETB, :libelle => "Personnel administratif", :service_id => SRV_ETAB)
+  # Activities => class or group level 
+  prof_role.add_activite(SRV_USER, ACT_MANAGE, "belongs_to", SRV_CLASSE)
+  prof_role.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", SRV_CLASSE)
+  prof_role.add_activite(SRV_CLASSE, ACT_UPDATE, "belongs_to", SRV_CLASSE)
+  prof_role.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", SRV_GROUPE)
+  prof_role.add_activite(SRV_GROUPE, ACT_UPDATE, "belongs_to", SRV_GROUPE)
+  #TODO: add role et app activities 
+  
+  #---------------------------------------------------------------------------#
+  # Role => eleve
+  role_eleve = Role.create(:id => ROL_ELV_ETB, :libelle => "Elève")
+  # add activities on etablissement level
+  role_eleve.add_activite(SRV_ETAB, ACT_READ,   "belongs_to", SRV_ETAB)
+  role_eleve.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", SRV_ETAB)
+  role_eleve.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", SRV_ETAB)
+  # add activities on classe level 
+  role_eleve.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", SRV_CLASSE)
+  role_eleve.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", SRV_GROUPE)
+  role_eleve.add_activite(SRV_USER, ACT_READ, "belongs_to", SRV_CLASSE)
+  # add activities on user level
+  role_eleve.add_activite(SRV_USER, ACT_UPDATE, "self", SRV_USER)
+  role_eleve.add_activite(SRV_USER, ACT_READ, "self", SRV_USER)
+  #----------------------------------------------------------------------------#
+  # Role => parent
+  role_parent = Role.create(:id => ROL_PAR_ETB, :libelle => "Parent")
+  # role parent
+      # can :read etablissment in which he has a profil
+      # can :read classes in the etablissement 
+      # can :read groups in the etablissement
+  role_parent.add_activite(SRV_ETAB, ACT_READ,   "belongs_to", SRV_ETAB)
+  role_parent.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", SRV_ETAB)
+  role_parent.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", SRV_ETAB) 
+
+  # add activities on classe level
+  # can read classes of his child(ren)
+  # can read groupes of his child(ren)
+  # can read users in his child(ren) classes
+  # can read his son info ?!
+  role_parent.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", SRV_CLASSE)
+  role_parent.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", SRV_GROUPE)
+  role_parent.add_activite(SRV_USER, ACT_READ, "belongs_to", SRV_CLASSE)
+
+
+  #add activities on user level
+  # can read himself 
+  # can update himself 
+  role_parent.add_activite(SRV_USER, ACT_UPDATE, "self", SRV_USER)
+  role_parent.add_activite(SRV_USER, ACT_READ, "self", SRV_USER)
+  
+  #------------------------------------------------------------------------------#
+  # create aother role
+  Role.create(:id => ROL_DIR_ETB, :libelle => "Direction")
+  Role.create(:id => ROL_CPE_ETB, :libelle => "CPE")
+  Role.create(:id => ROL_AVS_ETB, :libelle => "Assistance vie scolaire")
 
   
 
@@ -190,23 +260,25 @@ def bootstrap_annuaire()
   #Role.create(:id => ROL_ELV_CLS, :libelle => "Elève", :service_id => SRV_CLASSE)
 
   #--------------------------------------------------------#
-  # Profils utilisateurs
+  # Profils utilisateurs with default role 
   # TODO: à modifier aussi
   # Les codes nationaux sont pris de la FAQ de l'annuaire ENT du SDET
   # http://eduscol.education.fr/cid57076/l-annuaire-ent-second-degre-et-son-alimentation-automatique.html
-=begin
+
   Profil.create(:id => 'ELV', :description => 'Elève', :code_national => 'National_ELV', :role_id => ROL_ELV_ETB)
   Profil.create(:id => 'ETA', :description => 'Personnel adminstartif, technique ou d\'encadrement', :code_national => 'National_ETA', :role_id => ROL_ADM_ETB)
   Profil.create(:id => 'TUT', :description => "Responsable d'un élève", :code_national => 'National_TUT', :role_id => ROL_PAR_ETB) #role à revoir
   Profil.create(:id => 'DIR', :description => "Personel de direction de l'etablissement", :code_national => 'National_DIR', :role_id => ROL_DIR_ETB)
-  Profil.create(:id => 'ENS', :description => 'Enseignant', :code_men => 'ENS', :code_national => 'National_ENS', :role_id => ROL_PROF_ETB)
-  Profil.create(:id => 'EVS', :description => 'Personnel de vie scolaire', :code_national => 'National_EVS', :role_id => ROL_BUR_ETB)
-  Profil.create(:id => 'ACA', :description => "Personnel de rectorat, DRAF, inspection", :code_national => 'National_ACA', :role_id => ROL_BUR_ETB)
-  Profil.create(:id => 'DOC', :description => 'Documentaliste', :code_national => 'National_DOC', :role_id => ROL_PROF_ETB)
+  Profil.create(:id => 'ENS', :description => 'Enseignant', :code_national => 'ENS', :code_national => 'National_ENS', :role_id => ROL_PROF_ETB)
+  Profil.create(:id => 'EVS', :description => 'Personnel de vie scolaire', :code_national => 'National_EVS', :role_id => ROL_AVS_ETB)
+  Profil.create(:id => 'ACA', :description => "Personnel de rectorat, DRAF, inspection", :code_national => 'National_ACA', :role_id => ROL_AVS_ETB)
+  Profil.create(:id => 'DOC', :description => 'Documentaliste', :code_national => 'National_DOC', :role_id =>   ROL_PROF_ETB)
   Profil.create(:id => 'COL', :description => "Personnel de collectivité territoriale",  :code_national => 'National_COL', :role_id => ROL_CPE_ETB)
   #--------------------------------------------------------#
-=end  
-
+  
+  # create super admin user 
+  u = User.create(:nom => "Saleh", :prenom => "Bashar", :sexe => "M", :login => "bsaleh", :password => "toortoor")
+  RoleUser.create(:user_id => u.id, :etablissement_id => 4813, :role_id => ROL_TECH)
 
 
   #Tout d'abord on créer des applications

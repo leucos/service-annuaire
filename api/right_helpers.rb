@@ -20,7 +20,7 @@ module RightHelpers
     user_id = AuthSession.get(session)
     if !user_id.nil?
       # Et on teste ses droits sur la ressource
-      rights = Rights.get_rights(user_id, ressource.service_id, ressource.id, service_id)
+      activities = Rights.get_activities(user_id,  ressource.id, ressource.service_id )
       #puts "rights user_id=#{user_id}, service_id=#{ressource.service_id}, ressource=#{ressource.id}, service_id=#{service_id }=#{rights}"
       authorized = false
       # Si un des droits renvoyé correspond à une des activités passé en paramètre

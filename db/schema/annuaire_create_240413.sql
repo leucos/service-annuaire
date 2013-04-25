@@ -310,7 +310,7 @@ CREATE  TABLE IF NOT EXISTS `annuaire`.`profil_national` (
   `id` CHAR(8) NOT NULL COMMENT 'Identifiant à 4 caractère maximum.\n=code_men si code_men présent' ,
   `description` VARCHAR(100) NULL ,
   `code_national` VARCHAR(45) NULL COMMENT 'Code du profil type National_1.' ,
-  `role_id` CHAR(8) NULL ,
+  `role_id` VARCHAR(20) NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_profil_role1` (`role_id` ASC) ,
   CONSTRAINT `fk_profil_role1`
@@ -781,16 +781,16 @@ COMMIT;
 -- -----------------------------------------------------
 -- Data for table `annuaire`.`profil`
 -- -----------------------------------------------------
-START TRANSACTION;
-USE `annuaire`;
-INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('ELV', 'élève', 'National_ELV', NULL);
-INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('TUT', 'Responsable d\'un élève(parent, tuteur légal)', 'National_TUT', NULL);
-INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('ENS', 'Enseignant', 'National_ENS', NULL);
-INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('DIR', 'Personnel de direction de l\'établissement', 'National_DIR', NULL);
-INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('EVS', 'Personnel de vie scolaire travaillant dans l\'établissement', 'National_EVS', NULL);
-INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('ETA', 'Personnel administratif, technique ou d\'encadrement ', 'National_ETA', NULL);
-INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('ACA', 'Personnel de rectorat, de DRAF, d\'inspection académique', 'National_ACA', NULL);
-INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('DOC', 'Documentaliste', 'National_DOC', NULL);
-INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('COL', 'Personnel de collectivité teritoriale ', 'National_COL', NULL);
+-- START TRANSACTION;
+-- USE `annuaire`;
+-- INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('ELV', 'élève', 'National_ELV', NULL);
+-- INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('TUT', 'Responsable d\'un élève(parent, tuteur légal)', 'National_TUT', NULL);
+-- INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('ENS', 'Enseignant', 'National_ENS', NULL);
+-- INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('DIR', 'Personnel de direction de l\'établissement', 'National_DIR', NULL);
+-- INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('EVS', 'Personnel de vie scolaire travaillant dans l\'établissement', 'National_EVS', NULL);
+-- INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('ETA', 'Personnel administratif, technique ou d\'encadrement ', 'National_ETA', NULL);
+-- INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('ACA', 'Personnel de rectorat, de DRAF, d\'inspection académique', 'National_ACA', NULL);
+-- INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('DOC', 'Documentaliste', 'National_DOC', NULL);
+-- INSERT INTO `annuaire`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('COL', 'Personnel de collectivité teritoriale ', 'National_COL', NULL);
 
-COMMIT;
+-- COMMIT;

@@ -33,7 +33,7 @@ describe Rights do
     RoleUser.find_or_create(:user_id => u.id, :role_id => r.id, :etablissement_id => e1.id)
 
     #admin = create_user_with_role(r.id, e1.ressource)
-    Rights.find_rights(u.id).should_not == []
+    Rights.resolve_rights(u.id).should_not == []
 
   end  
 

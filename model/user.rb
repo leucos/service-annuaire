@@ -306,7 +306,7 @@ class User < Sequel::Model(:user)
     end
     
     # later i will see the problem of roles commented on 12/03/2013
-    #add_role(etablissement_id, SRV_ETAB, Profil[profil_id].role_id)
+    add_role(etablissement_id, Profil[profil_id].role_id)
   end
 
   def add_fonction(etablissement_id, profil_id, fonction_id)
@@ -325,17 +325,17 @@ class User < Sequel::Model(:user)
     "#{nom.capitalize} #{prenom.capitalize}"
   end
 
-  def add_or_modify_parent(parent, type_relation_id = 1, resp_financier = 1, resp_legal = 1, contact =1, paiement = 1)
-    record = RelationEleve[:user_id => parent.id, :eleve_id => self.id, :type_relation_eleve_id => type_relation_id]
-    if record.nil?
-      RelationEleve.create(:user_id => parent.id, :eleve_id => self.id, 
-        :type_relation_eleve_id => type_relation_id, :resp_financier => resp_financier, 
-        :resp_legal => resp_legal, :contact => contact, :paiement => paiement)
-    else
-      record.update(:resp_financier => resp_financier, :resp_legal => resp_legal, 
-        :contact => contact, :paiement => paiement)
-    end 
-  end
+  # def add_or_modify_parent(parent, type_relation_id = 1, resp_financier = 1, resp_legal = 1, contact =1, paiement = 1)
+  #   record = RelationEleve[:user_id => parent.id, :eleve_id => self.id, :type_relation_eleve_id => type_relation_id]
+  #   if record.nil?
+  #     RelationEleve.create(:user_id => parent.id, :eleve_id => self.id, 
+  #       :type_relation_eleve_id => type_relation_id, :resp_financier => resp_financier, 
+  #       :resp_legal => resp_legal, :contact => contact, :paiement => paiement)
+  #   else
+  #     record.update(:resp_financier => resp_financier, :resp_legal => resp_legal, 
+  #       :contact => contact, :paiement => paiement)
+  #   end 
+  # end
 
   def add_parent(parent, type_relation_id = 1, resp_financier = 1, resp_legal = 1, contact =1, paiement = 1)
     record = RelationEleve[:user_id => parent.id, :eleve_id => self.id, :type_relation_eleve_id => type_relation_id]
@@ -512,22 +512,15 @@ class User < Sequel::Model(:user)
       all
   end
 
-  # renvois tous les droits qu'un role sur une ressource nous donne sur des services
-  def rights(ressource)
-    all_rights = []
-    # On appel get_rights avec la ressource sur tous les services
-    Service.each do |s|
-      rights_service = {:service_id => s.id}
-      rights_service[:rights] = Rights.get_rights(self.id, ressource.service_id, ressource.id, s.id)
-      all_rights.push(rights_service) if rights_service[:rights].length > 0
-    end
-
-    return all_rights
+  # renvois tous les droits 
+  def rights(etablissement_id = nil)
+    rights = Rights.resolve_rights(self.id, etablissement_id)
+    return rights
   end
 
-  def add_role(ressource_id, service_id, role_id)
-    RoleUser.create(:user_id => self.id, :role_id => role_id,
-      :ressource_id => ressource_id, :ressource_service_id => service_id)
+  def add_role(etablissement_id, role_id)
+    RoleUser.find_or_create(:user_id => self.id, :role_id => role_id,
+      :etablissement_id => etablissement_id)
   end
 
   # Créé une session utilisateur temporaire

@@ -6,7 +6,7 @@ module Rights
   # find all rights for a specific user
   # example output 
   #[{:user_id=>1324, :activite=>"DELETE", :target_class=>"CLASSE", :condition=>"belongs_to", :parent_class=>"ETAB", :parent_id => "123", :etablissement_id => "22"}]
-  def self.find_rights(user_id, etablissement_id = nil)
+  def self.resolve_rights(user_id, etablissement_id = nil)
     rights = []
 
     # if user does not exists
@@ -73,10 +73,21 @@ module Rights
                 :condition => act[:condition], :parent_service => act[:parent_service_id], 
                 :etablissement_id => role_user[:etablissement_id]}) 
             
+            # to be modified
             when SRV_USER 
-             rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
+              rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
+                :condition => act[:condition], :parent_service => act[:parent_service_id], :parent_id => role_user[:user_id].to_s,
+                :etablissement_id => role_user[:etablissement_id]})
+
+            when SRV_APP 
+              rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
                 :condition => act[:condition], :parent_service => act[:parent_service_id], :parent_id => role_user[:user_id].to_s,
                 :etablissement_id => role_user[:etablissement_id]}) 
+
+            when SRV_ROLE
+              rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
+                :condition => act[:condition], :parent_service => act[:parent_service_id], :parent_id => role_user[:user_id].to_s,
+                :etablissement_id => role_user[:etablissement_id]})  
             else 
               #do nothing  
           end     
@@ -106,7 +117,7 @@ module Rights
     return activities if ressource.nil?
 
     #TODO modifier les droits 
-    rights = find_rights(user_id) 
+    rights = resolve_rights(user_id) 
     rights.each do |activity|
 
       # user has activities on himself
