@@ -1,15 +1,16 @@
 module API
   module Entities
-    class User < Grape::Entity
+    class DetailedUser < Grape::Entity
       #root 'users', 'user'
-      expose :id, :id_sconet, :login, :nom, :prenom, :sexe
+      # TODO expose resource url instead of ids
+      expose :id, :id_sconet, :login, :nom, :prenom, :sexe, :id_ent
       expose(:full_name) {|user,options| user.full_name}
       expose :profil_user, :as => :profils
       expose :email, :as => :adresse_emails
       # etablissement + rights + profils
       expose(:etablissements) do |user,options|
         user.etablissements.map do |etab| 
-           {:id => etab.id, :nom =>  etab.nom, :profils => etab.profil_user_dataset.filter(:user_id => user.id), :rights => user.rights(etab.ressource)}
+           {:id => etab[:id], :nom =>  etab[:nom], :profils => ProfilUser.filter(:user_id => user.id), :rights => user.rights(etab[:id])}
         end
       end
       expose(:preferences) do |user,options|
@@ -22,13 +23,13 @@ module API
         end 
       end 
       expose(:classes) do |user,options|
-        user.classes.map do |classe|
+        user.classes_eleve.map do |classe|
           {:id => classe.id, :libelle  => classe.libelle, :rights => user.rights(classe.ressource)}
         end 
       end 
       expose :telephone, :as => :telephones
       expose(:groupes_eleves) do |user,options|
-        user.groupes_eleves do |groupe|
+        user.groupes_eleve do |groupe|
           {:id => groupe.id, :libelle  => groupe.libelle, :rights => user.rights(groupe.ressource)}
         end 
       end 
@@ -38,6 +39,13 @@ module API
         end
       end 
     end
+
+    class SimpleUser < Grape::Entity
+      #root 'users', 'user'
+      expose :id, :id_sconet, :login, :nom, :prenom, :sexe, :id_ent
+      expose(:full_name) {|user,options| user.full_name}
+      expose :profil_user, :as => :profils 
+    end  
   end 
     
 end

@@ -276,9 +276,11 @@ def bootstrap_annuaire()
   Profil.create(:id => 'COL', :description => "Personnel de collectivité territoriale",  :code_national => 'National_COL', :role_id => ROL_CPE_ETB)
   #--------------------------------------------------------#
   
+  # create root etablissement 
+  e = Etablissement.create(:nom => "ERASME", :type_etablissement_id => 1)
   # create super admin user 
   u = User.create(:nom => "Saleh", :prenom => "Bashar", :sexe => "M", :login => "bsaleh", :password => "toortoor")
-  RoleUser.create(:user_id => u.id, :etablissement_id => 4813, :role_id => ROL_TECH)
+  RoleUser.create(:user_id => u.id, :etablissement_id => e.id, :role_id => ROL_TECH)
 
 
   #Tout d'abord on créer des applications

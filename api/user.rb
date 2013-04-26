@@ -1,7 +1,9 @@
 #coding: utf-8
 
 class UserApi < Grape::API
+  version 'v1', :using => :param, :parameter => "v"
   format :json
+  content_type :json, "application/json; charset=utf-8"
   default_error_formatter :json
   default_error_status 400
 
@@ -14,8 +16,10 @@ class UserApi < Grape::API
   helpers SearchHelpers
   helpers do
     def check_user!(message = "Utilisateur non trouvé", param_id = :user_id)
-      user = User[params[param_id]]
+      authenticate!
+      user = User[:id_ent => params[param_id]]
       error!(message, 404) if user.nil?
+      #puts user.inspect
       return user
     end
 
@@ -35,12 +39,16 @@ class UserApi < Grape::API
     end
   end
 
-  resource :user do
+  resource :users do
     desc "Renvois le profil utilisateur si on donne le bon id. Nécessite une authentification."
     get "/:user_id", :requirements => { :user_id => /.{8}/ } do
-      user = check_user!()
-      authorize_activites!(ACT_READ, user.ressource)
-      present user, with: API::Entities::User
+      user = check_user!() 
+      authorize_activites!([ACT_READ, ACT_MANAGE], user.ressource)
+      if params[:expand] == "true"
+        present user, with: API::Entities::DetailedUser
+      else 
+        present user, with: API::Entities::SimpleUser
+      end 
     end
 
     # Renvois la ressource user
@@ -60,13 +68,13 @@ class UserApi < Grape::API
       optional :id_jointure_aaf, type: Integer
     end
     post do
-      authorize_activites!(ACT_CREATE, Ressource.laclasse, SRV_USER)
-      user = User.new()
-
+      authorize_activites!([ACT_CREATE, ACT_MANAGE], Ressource.laclasse, SRV_USER)
+      user = User.new
       modify_user(user)
-      
-      present user, with: API::Entities::User
+      present user, with: API::Entities::SimpleUser
     end
+
+
 
     # Même chose que post mais peut ne pas prendre des champs require
     # Renvois la ressource user complète
@@ -86,11 +94,11 @@ class UserApi < Grape::API
     end
     put "/:user_id" do
       user = check_user!()
-      authorize_activites!(ACT_UPDATE, user.ressource)
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
 
       modify_user(user)
 
-      present user, with: API::Entities::User
+      present user, with: API::Entities::SimpleUser
     end
 
     # Récupération des relations 
@@ -99,7 +107,7 @@ class UserApi < Grape::API
     get "/:user_id/relations" do 
       user = check_user!()
       
-      authorize_activites!(ACT_READ, user.ressource)
+      authorize_activites!([ACT_READ, ACT_MANAGE], user.ressource)
       user.relations
     end
 
@@ -114,7 +122,7 @@ class UserApi < Grape::API
       user = check_user!("Adulte non trouvé")
       eleve = check_user!("Eleve non trouvé", :eleve_id)
 
-      authorize_activites!(ACT_UPDATE, user.ressource)
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
 
       type_rel = TypeRelationEleve[params[:type_relation_id]]
       error!("Type de relation invalide", 400) if type_rel.nil? 
@@ -123,7 +131,7 @@ class UserApi < Grape::API
 
       user.add_enfant(eleve, type_rel.id)
 
-      present user, with: API::Entities::User
+      present user, with: API::Entities::SimpleUser
     end
 
     desc "Modification de la relation"
@@ -135,7 +143,7 @@ class UserApi < Grape::API
       user = check_user!("Adulte non trouvé")
       eleve = check_user!("Eleve non trouvé", :eleve_id)
 
-      authorize_activites!(ACT_UPDATE, user.ressource)
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
 
       type_rel = TypeRelationEleve[params[:type_relation_id]]
       relation = user.find_relation(eleve)
@@ -144,7 +152,7 @@ class UserApi < Grape::API
 
       relation.update(:type_relation_eleve_id => type_rel.id)
 
-      present user, with: API::Entities::User
+      present user, with: API::Entities::SimpleUser
     end
     
 
@@ -159,21 +167,21 @@ class UserApi < Grape::API
       user = check_user!("Adulte non trouvé")
       eleve = check_user!("Eleve non trouvé", :eleve_id)
 
-      authorize_activites!(ACT_UPDATE, user.ressource)
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
 
       relation = user.find_relation(eleve)
       error!("Relation inexistante", 404) if relation.nil?
 
       relation.destroy()
 
-      present user, with: API::Entities::User
+      present user, with: API::Entities::SimpleUser
     end
 
     desc "recuperer la liste des emails"
     get "/:user_id/emails" do 
       user = check_user!()
 
-      authorize_activites!(ACT_READ, user.ressource)
+      authorize_activites!([ACT_READ, ACT_MANAGE], user.ressource)
 
       emails = user.email
       emails.map  do |email|
@@ -189,12 +197,12 @@ class UserApi < Grape::API
     post ":user_id/email" do
       user = check_user!()
 
-      authorize_activites!(ACT_UPDATE, user.ressource)
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
 
       academique = params[:academique] ? true : false 
       user.add_email(params[:adresse], academique)
 
-      present user, with: API::Entities::User
+      present user, with: API::Entities::SimpleUser
     end
 
     # modifier l'adresse et le type de l'email
@@ -210,7 +218,7 @@ class UserApi < Grape::API
       user = check_user!()
       email = check_email!(user)
       
-      authorize_activites!(ACT_UPDATE, user.ressource)
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
 
       email.adresse = params[:adresse] if params[:adresse]
       email.academique = params[:academique] if params[:academique]
@@ -218,7 +226,7 @@ class UserApi < Grape::API
       #Todo : si l'utilisateur à déjà un email principal, faut-il l'enlever ou générer une erreur ?
       email.save()
 
-      present user, with: API::Entities::User
+      present user, with: API::Entities::SimpleUser
     end
 
     # supprimer un des email de l'utilisateur 
@@ -230,11 +238,11 @@ class UserApi < Grape::API
       user = check_user!()
       email = check_email!(user)
 
-      authorize_activites!(ACT_UPDATE, user.ressource)
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
 
       email.destroy()
 
-      present user, with: API::Entities::User
+      present user, with: API::Entities::SimpleUser
     end
 
     desc "Envois un email de verification à l'utilisateur sur l'email choisit"
@@ -246,7 +254,7 @@ class UserApi < Grape::API
       user = check_user!()
       email = check_email!(user)
 
-      authorize_activites!(ACT_UPDATE, user.ressource)
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
 
       email.send_validation_mail()
     end
@@ -260,7 +268,7 @@ class UserApi < Grape::API
       user = check_user!()
       email = check_email!(user)
 
-      authorize_activites!(ACT_UPDATE, user.ressource)
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
 
       valide = email.check_validation_key(params[:validation_key])
       error!("Clé de validation invalide ou périmée", 404) unless valide
@@ -271,7 +279,7 @@ class UserApi < Grape::API
     get ":user_id/telephones" do
       user = check_user!()
       
-      authorize_activites!(ACT_READ, user.ressource)
+      authorize_activites!([ACT_READ, ACT_MANAGE], user.ressource)
 
       user.telephone.map{|tel| {id: tel.id, numero: tel.numero, type: tel.type_telephone_id} } 
     end 
@@ -285,7 +293,7 @@ class UserApi < Grape::API
     post ":user_id/telephone"do
       user = check_user!()
 
-      authorize_activites!(ACT_UPDATE, user.ressource)
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
 
       numero = params["numero"]
       if !params["type_telephone_id"].nil? and ["MAIS", "PORT", "TRAV", "AUTR"].include?(params["type_telephone_id"])
@@ -306,7 +314,7 @@ class UserApi < Grape::API
     put ":user_id/telephone/:telephone_id"  do 
       user = check_user!()
 
-      authorize_activites!(ACT_UPDATE, user.ressource)
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
 
       tel = user.telephone_dataset[params[:telephone_id]]  
       error!("ressource non trouvée", 404) if tel.nil?
@@ -326,7 +334,7 @@ class UserApi < Grape::API
     delete ":user_id/telephone/:telephone_id"  do
       user = check_user!()
 
-      authorize_activites!(ACT_UPDATE, user.ressource)
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
 
       if params["telephone_id"].nil? or params["telephone_id"].empty? 
         error!("mouvaise requete", 400)
@@ -344,7 +352,7 @@ class UserApi < Grape::API
     get ":user_id/application/:application_id/preferences" do 
       user = check_user!()
       
-      authorize_activites!(ACT_READ, user.ressource)
+      authorize_activites!([ACT_READ, ACT_MANAGE], user.ressource)
 
       application_id = params["application_id"]
       application = Application[:id => application_id]
@@ -356,7 +364,7 @@ class UserApi < Grape::API
     put ":user_id/application/:application_id/preferences" do
       user = check_user!()
 
-      authorize_activites!(ACT_UPDATE, user.ressource)
+      authorize_activites!([ACT_UPDATE,ACT_MANAGE], user.ressource)
 
       application_id = params["application_id"]
       application = Application[:id => application_id]
@@ -391,7 +399,7 @@ class UserApi < Grape::API
     delete ":user_id/application/:application_id/preferences" do 
       user = check_user!()
 
-      authorize_activites!(ACT_UPDATE, user.ressource)
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
 
       application_id = params["application_id"]
       application = Application[:id => application_id]
@@ -468,7 +476,7 @@ class UserApi < Grape::API
       end
     end
     get do
-      authorize_activites!(ACT_READ, Ressource.laclasse, SRV_USER)
+      authorize_activites!([ACT_READ, ACT_MANAGE], Ressource.laclasse, SRV_USER)
       # todo : manque user_id et etablissement
       accepted_fields = {
         prenom: :prenom, nom: :user__nom, login: :login, etablissement: :etablissement__nom, id: :user__id
@@ -486,7 +494,7 @@ class UserApi < Grape::API
       #   u[:profils] = user.profil_user_display.naked.all
       # end
 
-
+      # puts results.inspect
       results
       
     end

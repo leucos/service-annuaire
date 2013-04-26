@@ -123,6 +123,10 @@ def create_test_role(application_id)
   r.add_activite(SRV_CLASSE, ACT_DELETE, "belongs_to")
   return r
 end
+
+def create_test_role()
+  r = Role.find_or_create(:id => ROL_TEST)
+end 
 #-------------------------------------------------------------#
 def create_admin_etab_test_role(application_id)
   # example test role for etablissement admin

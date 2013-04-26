@@ -42,6 +42,7 @@ describe Rights do
     #r = create_admin_laclasse_role(@app.id)
     r = Role.find_or_create(:id =>"admin_laclasse")  
     #r = Role.find_or_create(:id => "admin_laclasse", :application_id => application_id)
+
     r.add_activite(SRV_USER, ACT_MANAGE, "all", SRV_LACLASSE)
     r.add_activite(SRV_ETAB, ACT_MANAGE, "all", SRV_LACLASSE)
     r.add_activite(SRV_CLASSE, ACT_MANAGE, "all", SRV_LACLASSE)
@@ -60,7 +61,14 @@ describe Rights do
     u2 = create_test_user_in_etab(e2.id, "user2")
     classe = create_class_in_etablissement(e1.id)
     # admin laclasse  
-      # can  :manage all ressources
+      
+      # can  :manage all services
+    Rights.get_activities(admin.id, "0", SRV_LACLASSE, SRV_USER).should == [ACT_MANAGE]
+    Rights.get_activities(admin.id, "0", SRV_LACLASSE, SRV_ETAB).should == [ACT_MANAGE]
+    Rights.get_activities(admin.id, "0", SRV_LACLASSE, SRV_CLASSE).should == [ACT_MANAGE]
+    Rights.get_activities(admin.id, "0", SRV_LACLASSE, SRV_GROUPE).should == [ACT_MANAGE]
+
+    # can  :manage all ressources
     Rights.get_activities(admin.id, e1.ressource.id, e1.ressource.service_id).should == [ACT_MANAGE]
     Rights.get_activities(admin.id, e2.ressource.id, e2.ressource.service_id).should == [ACT_MANAGE]
     Rights.get_activities(admin.id, u1.ressource.id, u1.ressource.service_id).should == [ACT_MANAGE]

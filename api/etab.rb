@@ -1,8 +1,16 @@
 #coding: utf-8
 require 'grape-swagger'
 class EtabApi < Grape::API
+   version 'v1', :using => :param, :parameter => "v"
   format :json
+  content_type :json, "application/json; charset=utf-8"
   default_error_formatter :json
+  default_error_status 400
+
+  # Tout erreur de validation est gérée à ce niveau
+  # Va renvoyer le message d'erreur au format json
+  # avec le default error status
+  rescue_from :all
 
   helpers RightHelpers 
   helpers SearchHelpers
@@ -17,10 +25,10 @@ class EtabApi < Grape::API
     end
   end
   before do
-    header "Access-Control-Allow-Origin", "*" 
+    authenticate! 
   end
 
-  resource :etablissement do
+  resource :etablissements do
     ####################################
     # Gestion de l'etablissement (CRUD)#
     ####################################
@@ -47,7 +55,7 @@ class EtabApi < Grape::API
       optional :ip_pub_passerelle,  type: String
     end
     post  do
-      #authorize_activites!(ACT_CREATE, Ressource.laclasse, SRV_ETAB)
+      authorize_activites!([ACT_CREATE, ACT_MANAGE], Ressource.laclasse, SRV_ETAB)
       begin
         etab = Etablissement.new()
         parameters = exclude_hash(params, ["id", "route_info", "session"])
@@ -75,7 +83,8 @@ class EtabApi < Grape::API
       etab = Etablissement[:id => params[:id]]
       #authorize_activites!(ACT_READ,etab.ressource)
       # construct etablissement entity.
-      if !etab.nil? 
+      if !etab.nil?
+        authorize_activites!([ACT_READ, ACT_MANAGE], etab.ressource) 
         etab
       else
         error!("ressource non trouve", 404) 
@@ -105,6 +114,9 @@ class EtabApi < Grape::API
     put "/:id" do
       etab = Etablissement[:id => params[:id]]
       error!("ressource nont trouvee", 404) if etab.nil?
+      
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], etab.ressource)
+
       parameters = exclude_hash(params, ["id", "route_info", "session"])
       #authorize_activites!(ACT_UPDATE,etab.ressource)
       begin
@@ -142,6 +154,7 @@ class EtabApi < Grape::API
       end
     end
     get  do
+      authorize_activites!([ACT_READ, ACT_MANAGE], Ressource.laclasse, SRV_ETAB)
       accepted_fields = {
         nom: :nom, code_uai: :code_uai, adresse: :adresse, type_etablissement_id: :type_etablissement_id
       }
@@ -154,12 +167,11 @@ class EtabApi < Grape::API
       results
     end   
 
-
     ##########################################
     # Gestion des roles dans l'etablissement #
     ##########################################
     
-    #Note: use authori
+    #Note: use authorize
 
     #{role_id : "ADM_ETB"}
     desc "Assigner un role a quelqu'un"
@@ -172,6 +184,7 @@ class EtabApi < Grape::API
       # check if user is authorized to  change the role of an other user
       #authorize_activites!(ACT_CREATE, etab.ressource)
       etab = Etablissement[:id => params[:id]]
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], etab.ressource, SRV_USER)
       error!("ressource non trouvee", 404) if etab.nil?
       user = User[:id => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
@@ -187,8 +200,8 @@ class EtabApi < Grape::API
       #as i understood this 
       # ressource is the actual etablissement
       begin 
-        ressource = etab.ressource
-        user.add_role(ressource.id, ressource.service_id, role.id)  
+        #ressource = etab.ressource
+        user.add_role(etab.id, role.id)  
       rescue => e
         #puts e.message
         error!("Validation Failed", 400)

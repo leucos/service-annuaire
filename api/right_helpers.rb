@@ -1,7 +1,8 @@
 #encoding: utf-8
 
 module RightHelpers
-  def authorize_activites!(activites, ressource, service_id = ressource.service_id)
+  
+  def current_user
     # Récupèration de la session
 
     # En cherchant d'abord dans les cookies
@@ -13,28 +14,38 @@ module RightHelpers
     # Technique de Daniel ;)
     # TODO se connecter par CAS server
     session = request.env[AuthConfig::HTTP_HEADER] if request.env[AuthConfig::HTTP_HEADER]
-
-    error!("Clé de session introuvable", 401) if  session.nil?
-
-    # Une fois qu'on a la session, on doit récupérer l'utilisateur lié à cette session
     user_id = AuthSession.get(session)
     if !user_id.nil?
+      @current_user = User[:id => user_id]
+    else 
+      @current_user = nil
+    end
+    @current_user  
+  end
+
+  def authenticate!
+    error!('Non authentifié', 401) unless current_user
+  end
+
+
+  def authorize_activites!(activites, ressource, service = nil)
+      if current_user
       # Et on teste ses droits sur la ressource
-      activities = Rights.get_activities(user_id,  ressource.id, ressource.service_id )
+      activities = Rights.get_activities(current_user.id, ressource.id, ressource.service_id, service)
       #puts "rights user_id=#{user_id}, service_id=#{ressource.service_id}, ressource=#{ressource.id}, service_id=#{service_id }=#{rights}"
       authorized = false
       # Si un des droits renvoyé correspond à une des activités passé en paramètre
       # c'est bon
       if activites.respond_to?(:each)
         activites.each do |act|
-          authorized = true if rights.include?(act)
+          authorized = true if activities.include?(act)
         end
       else
-        authorized = true if rights.include?(activites)
+        authorized = true if activities.include?(activites)
       end
-      error!("Pas de droits", 403) if !authorized  
+      error!("Non authorizé", 403) if !authorized  
     else
-      error!("Clé de session=#{session} non valide", 401)
+      error!("Non authentifié: clé de session=#{session} non valide", 401)
     end
   end
 end

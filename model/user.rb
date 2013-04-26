@@ -362,6 +362,9 @@ class User < Sequel::Model(:user)
       {:id => profil.etablissement.id, :nom => profil.etablissement.nom}
     end 
     #Etablissement.filter(:id => RoleUser.filter(:ressource_service_id => SRV_ETAB).select(:ressource_id))
+    RoleUser.filter(:user_id => self.id).map do |role|
+      {:id => role.etablissement_id, :nom => Etablissement[:id => role.etablissement_id].nom}
+    end
   end
 
   def add_to_regroupement(regroupement_id)

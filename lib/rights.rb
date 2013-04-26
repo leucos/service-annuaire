@@ -108,8 +108,8 @@ module Rights
   # ex: on veut savoir si une personne a le droit de créer des utilisateurs dans un établissement
   # on fera get_rights("VAA60001", "ETAB", 0, "USER")
 
-  # get user activities on a  a ressource with ressource_id and type_ressource  
-  def self.get_activities(user_id, ressource_id, type_ressource)
+  # get user activities on a  a ressource with ressource_id and type_ressource or on a service (i.e.  USER)  
+  def self.get_activities(user_id, ressource_id, type_ressource, service = nil)
     # Il est possible que la ressource n'existe pas
     ressource = Ressource[:id => ressource_id, :service_id => type_ressource]
     #puts "ressource=#{ressource.parent}"
@@ -128,8 +128,14 @@ module Rights
         activities.push(activity[:activite]) if ressource.belongs_to(Ressource[:id => activity[:parent_id], :service_id => activity[:parent_service]])
       
       # user has activites on all memebers of a service 
-      elsif activity[:condition] == "all" && activity[:parent_service] == SRV_LACLASSE && ressource.service_id == activity[:target_service] 
-        activities.push(activity[:activite]) 
+      elsif activity[:condition] == "all" 
+        # on ressource 
+        if activity[:parent_service] == SRV_LACLASSE && ressource.service_id == activity[:target_service] 
+          activities.push(activity[:activite])
+        # on service(manage and create)
+        elsif type_ressource == activity[:parent_service] && service == activity[:target_service] && ressource_id == activity[:parent_id]
+          activities.push(activity[:activite])  
+        end 
       
       # for the moment it is not necessary
       elsif activity[:condition] == "parent" && ressource_id == activity[:parent_id] && type_ressource == activity[:parent_class]
@@ -137,11 +143,12 @@ module Rights
       end   
     end
 
-    # MANAGE ACtiv 
+    # MANAGE Activity 
     if activities.include?(ACT_MANAGE)
       return [ACT_MANAGE]
     else   
       return activities.uniq.sort
     end
   end
+
 end 
