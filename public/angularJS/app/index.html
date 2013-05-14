@@ -8,10 +8,30 @@
     <!--<link rel="stylesheet" type="text/css" href="http://angular-ui.github.com/ng-grid/css/ng-grid.css" /> -->
     <link rel="stylesheet" type="text/css" href ="css/ng-grid.css" />
     <style>
-        thead { display:block; overflow:hidden;}
-        tbody { display:block; overflow:hidden; height:500px; }
-        th { width:80px; }
-        td { height:50px; width:80px; }
+        table{
+            border: 1px solid rgb(212,212,212);
+            table-layout: auto;
+            width: 200px;
+           
+        }
+        .tablecontainer{
+          height:400px;
+          width:100%;
+          overflow-y:auto; 
+          overflow-x:hidden; 
+        }
+
+        th, td {
+            border: 1px solid rgb(212,212,212);
+            overflow: hidden;
+            width: 100px;
+            padding:5px;
+        }
+        tbody {
+           height: 200px;     /* Hauteur du reste des données */
+           overflow-y:auto;     /* Scroll du contenu du tableau */
+           overflow-x:hidden; /* Scroll horizontal caché */
+        }
         .gridStyle {
             border: 1px solid rgb(212,212,212);
             /*width: 900px;*/ 

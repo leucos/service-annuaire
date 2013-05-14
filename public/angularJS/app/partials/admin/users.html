@@ -1,6 +1,4 @@
 <div id = "Users" ng-controller = 'UserCtrl' >
-
-	 
 	<div class="span well">
 		<div id = "grid_header_toolbar" class="row"> 
 		    <div class="span4">
@@ -9,34 +7,40 @@
 		        <span class="add-on"><i class="icon-search"></i></span>
 		    </div>
 		    <div class="span4">
-		    	
+		      <label> Nombre total des utilisateur : <span class="label label-info"> {{users.total}}<span></label> 
 		    </div>
 		    <div class = "span4">
 		        <label> Record par page: </label>
 		        <select ng-model="limit" ng-options="v for v in recordParPage"></select>
 		    </div>
 		</div>
-    	<div class="row">
-		    <table cellpadding="0" cellspacing="0" border="0" class="table table-striped table-bordered" id="user_table">
+		<!-- class="row" -->
+    	<div class = "tablecontainer">
+    		<!-- cellpadding="0" cellspacing="0" border="0"  table-striped table-bordered"  -->
+		    <table class="table table-striped" id="user_table">
 			  <thead> 
 			    <tr>
+			    	<th>ID</th>
+			    	<th>ID ENT </th>
 					<th class="nom">Nom&nbsp;<a><i class="icon-sort" ng-click=sort_by('nom')></i></a></th>
 					<th class="prenom">Prenom &nbsp;<a><i class="icon-sort" ng-click=sort_by('prenom')></i></a></th>
 					<th>Login</th>
-					<th>Sexe</th>
-					<th>Adresse</th>
+					<th>Profils</th>
+					<th>telephones</th>
 					<th>Emails</th>
 					<th>Action</th>
 			    </tr>
 			  </thead>
 			  <tbody>
 			    <tr  ng-repeat="user in users.data">
+			    	<td>{{user.id}}</td>
+			    	<td>{{user.id_ent}}</td>
 			        <td>{{user.nom}}</td>
 			        <td>{{user.prenom}}</td>
 			        <td>{{user.login}}</td>
-			        <td>{{user.sexe}}</td>
-			        <td>{{user.adresse}}</td>
-			        <td>{{user.emails}}</td>
+			        <td><div class = "label" ng-repeat="profil in user.profils">{{profil.libelle}}</div></td>
+			        <td><div class = "label label-info" ng-repeat="tel in user.telephones">{{tel.numero}}</div></td>
+			        <td><div class = "label label-info" ng-repeat="email in user.emails">{{email.adresse}}</div></td>
 			        <td>
 			            <a  class="btn" id="edit_user" ng-click="show_modal(user)"><i class="icon-edit"></i>editer</a>
 			            </br> </br><a  class="btn" id="login" ng-click="show_modal(user)"><i class="icon-cog"></i> login </a>
@@ -45,69 +49,69 @@
 			  </tbody>
 			</table>
 		</div>
-		<pagination num-pages="noOfPages" current-page="currentPage" class="pagination-large" max-size="maxSize"></pagination>
+		<pagination num-pages="noOfPages" current-page="currentPage" class="pagination-large" max-size="maxSize" previous-text="&laquo;" 
+			next-text="&raquo;"></pagination>
 		<a href="#" class="btn btn-primary"><i class="icon-plus icon-white"></i>ajouter un utilisateur</a>
 	</div>		
 
 	<div modal="editUser" close="close()">
+		<!-- Modal Header --> 
         <div class="modal-header">
-	    <button type="button" class="close" data-dismiss="modal" ng-click="close()">×</button>
-	    <span><img src="img/glyphicons/glyphicons_003_user.png">Utilisateur</img></span>
-	  </div>
-	  <div class="modal-body">
-	    <form  name="userForm" id="info" class="form-vertical" action="/user/update" method="POST">
-	      <input name="user_id" id="user_id" type="hidden" value="{{}}"></input>
-	      <label class="label label-info" >Nom:</label>
-	      <input name="nom" id="nom" type="text" class="span3" value= "{{selectedUser.nom}}">
-	      
+		    <button type="button" class="close" data-dismiss="modal" ng-click="close()">×</button>
+		    <span><img src="img/glyphicons/glyphicons_003_user.png">Utilisateur</img></span>
+	  	</div>
+	  	<!-- Modal Body --> 
+	  	<div class="modal-body">
+		    <form  name="userForm" id="info" class="form-vertical" action="/user/update" method="POST">
+		      <input name="user_id" id="user_id" type="hidden" value="{{}}"></input>
+		      <label class="label label-info" >Nom:</label>
+		      <input name="nom" id="nom" type="text" class="span3" value= "{{selectedUser.nom}}">
+		      
 
-	      <label  class="label label-info " >Prénom:</label>
-	      <input name="prenom" id ="prenom" type="text" class="span3" ng-model="selectedUser.prenom">
+		      <label  class="label label-info " >Prénom:</label>
+		      <input name="prenom" id ="prenom" type="text" class="span3" ng-model="selectedUser.prenom">
 
-	      <label class="label label-info">Login:</label>
-	      <input name="login" id ="login" type="text" class="span3" ng-model="selectedUser.login">
+		      <label class="label label-info">Login:</label>
+		      <input name="login" id ="login" type="text" class="span3" ng-model="selectedUser.login">
 
-	      <label class="label label-info ">Email Academique:</label>
-	      <input name="email_academique" id ="email_academique" type="text" class="span3" ng-model="selectedUser.emails">
+		      <label class="label label-info ">Email Academique:</label>
+		      <input name="email_academique" id ="email_academique" type="text" class="span3" ng-model="selectedUser.emails">
 
-	      <label class="label label-info"> UserId </label>
-      	  <input name="id" id ="id" type= "text" ng-model="selectedUser.id" disabled required> 
-      	  <span class="error" ng-show="userForm.id.$error.required">ce champ est obligatoire !</span><br>
-	      
-	      <label class="label label-info ">Email Principal:</label>
-	      <input name="email_principal" id ="email_principal" type="text" class="span3">
+		      <label class="label label-info"> UserId </label>
+	      	  <input name="id" id ="id" type= "text" ng-model="selectedUser.id" disabled required> 
+	      	  <span class="error" ng-show="userForm.id.$error.required">ce champ est obligatoire !</span><br>
+		      
+		      <label class="label label-info ">Email Principal:</label>
+		      <input name="email_principal" id ="email_principal" type="text" class="span3">
 
-	      <label class="label label-info ">Profil:</label>
-	      <!--
-	      <select name="profil_id">
-	        
-	        show all profiles id possible to user
-	        <option value="ADF">Personnels administratifs</option>
-	        <option value="ADM"> Administrateur Etablissement</option>
-	        <option value="AED"> Assistant(e) d'éducation</option>
-	        <option value="DIR"> Principal </option>
-	        <option value="DOC">Documentalist</option>
-	        <option value="EDU">Conseiller(ère) d'éducatione</option>
-	        <option value="ELV">Elève</option>
-	        <option value="ENS">Professeur</option>
-	        <option value="MDS"> Personnels médico-sociaux</option>
-	        <option value="ORI">Conseiller(ère) d'orientation</option>
-	        <option value="OUV">Personnels ouvriers et de service</option>
-	        <option value="PAR">Parent</option>
-	        <option value="TECH">Administrateur technique</option> 
-	        
-	      </select>
+		      <label class="label label-info ">Profil:</label>
+		      
+				<select name="profil_id">
+					<option value="ADF">Personnels administratifs</option>
+					<option value="ADM"> Administrateur Etablissement</option>
+					<option value="AED"> Assistant(e) d'éducation</option>
+					<option value="DIR"> Principal </option>
+					<option value="DOC">Documentalist</option>
+					<option value="EDU">Conseiller(ère) d'éducatione</option>
+					<option value="ELV">Elève</option>
+					<option value="ENS">Professeur</option>
+					<option value="MDS"> Personnels médico-sociaux</option>
+					<option value="ORI">Conseiller(ère) d'orientation</option>
+					<option value="OUV">Personnels ouvriers et de service</option>
+					<option value="PAR">Parent</option>
+					<option value="TECH">Administrateur technique</option> 
+				</select>
 
-	      <label class="label label-important">Etablissement</label>
-	      <select name="etablissement_id">
-	        
-	      </select>
-	      -->
+		      <label class="label label-important">Etablissement</label>
+		      <select name="etablissement_id">
+		        
+		      </select>
+		    
 
-	      <!--<input type="submit" value="Save!"></input>-->
-	  </form>
-	  </div>
-	  	<!-- normalement c'est submit ici --> 
+		      <!--<input type="submit" value="Save!"></input>-->
+		  	</form>
+	 	 </div>
+	  	<!-- Modal Footer --> 
 	  	<div class="modal-footer">
 	  		<button class="btn btn-primary" ng-click="save()">Save</button>
             <button class="btn btn-warning cancel" ng-click="close()">Cancel</button>

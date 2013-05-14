@@ -118,7 +118,7 @@ class User < Sequel::Model(:user)
     # et une pour les profils
     # Surement beaucoup plus lent mais plus standard
     dataset = User.
-      select(:user__nom, :user__prenom, :login, :user__id).
+      select(:user__nom, :user__prenom, :login, :user__id, :user__id_ent).
       select_json_array!(:emails, {:email__id => "i_id", :email__adresse => "adresse"}).
       select_json_array!(:telephones, {:telephone__id => "i_id", :telephone__numero => "numero"}).
       select_json_array!(:profils, {:profil_national__description => "libelle", :etablissement__nom => "nom"}).
