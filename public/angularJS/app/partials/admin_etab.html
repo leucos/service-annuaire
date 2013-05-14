@@ -1,1 +1,98 @@
-<p> admin etab</p> 
+
+<div class="container">
+    <div class="page-header">
+    </div>
+</div>
+<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="well span25">
+            <ul class="nav nav-list">
+                <li class="nav-header">
+                    <img src="img/glyphicons/glyphicons_305_temple_buddhist.png">
+                    </img>
+                    Mon Etablissement
+                </li>
+                <li>
+                    <a href="/etablissement_info">Informations</a>
+                    <a href="/page_accueil_etab">Page d'accueil</a>
+                    <a href="/matiere_etab">Matières enseignées</a>
+                    <a href="/reservation_salle">Reservations de salles</a>
+                </li>
+                </li>
+                <li class="nav-header">
+                    <img src="img/glyphicons/glyphicons_003_user.png">
+                    </img>
+                    Utilisateurs
+                </li>
+                <li>
+                    <a href="/user_etab">Tous les utilisateurs</a>
+                </li>
+                <li>
+                    <a href="/alim_auto_etab">Alimentation automatique</a>
+                </li>
+                <li>
+                    <a href="/alim_manu_etab">Alimentation manuelle</a>
+                </li>
+                <li>
+                    <a href="/user_etab/add_user">Ajouter</a>
+                </li>
+                <li>
+                    <a href="/trombi">Trombinoscope</a>
+                </li>
+                <li>
+                    <a href="/publi">Publipostage</a>
+                </li>
+                <li class="nav-header">
+                    <img src="img/glyphicons/glyphicons_043_group.png">
+                    </img>
+                    Groupes
+                </li>
+                <li>
+                    <a href="/regroupements">Tous les groupes</a>
+                </li>
+                <li>
+                    <a href="/regroupements/classes">Classes</a>
+                </li>
+                <li>
+                    <a href="/regroupements/groupe_eleves">Groupes d'élèves</a>
+                </li>
+                <li>
+                    <a href="/regroupements/groupe_libres">Groupes libres</a>
+                </li>
+                <li class="nav-header">
+                    <img src="img/glyphicons/glyphicons_280_settings.png">
+                    </img>
+                    Mes Applications
+                </li>
+                <li>
+                    <a href="/app_etab">Activation et paramétrage</a>
+                </li>
+                <li>
+                    <a href="/droits_user">Gestion des droits</a>
+                </li>
+                <li class="nav-header">
+                    <img src="img/glyphicons/glyphicons_042_pie_chart.png">
+                    </img>
+                    Emploie du temps
+                </li>
+                <li>
+                    <a href="/app">Tous les emplois du temps</a>
+                </li>
+                <li>
+                    <a href="/app">Ajouter</a>
+                </li>
+            </ul>
+        </div>
+        <div class='span95' id="laclassecontent">
+      		<ng-include src="subPage"></ng-include>
+	    </div> 
+	        <div class='span9'>
+            <h2 id="panel-title">
+                #{@title}
+            </h2>
+            <div id="panel-content">
+                #{@content}
+            </div>
+        </div>
+    </div>
+</div>

@@ -13,15 +13,15 @@ module API
            {:id => etab[:id], :nom =>  etab[:nom], :profils => ProfilUser.filter(:user_id => user.id), :rights => user.rights(etab[:id])}
         end
       end
-      expose(:preferences) do |user,options|
-        ParamApplication.filter(:preference => true).map do |preference|
-          if param_user = ParamUser[:user_id => user.id, :param_application_id => preference.id]
-            {:code => preference.code, :valeur => param_user.valeur}
-          else
-            {:code => preference.code, :valeur => preference.valeur_defaut}
-          end 
-        end 
-      end 
+      # expose(:preferences) do |user,options|
+      #   ParamApplication.filter(:preference => true).map do |preference|
+      #     if param_user = ParamUser[:user_id => user.id, :param_application_id => preference.id]
+      #       {:code => preference.code, :valeur => param_user.valeur}
+      #     else
+      #       {:code => preference.code, :valeur => preference.valeur_defaut}
+      #     end 
+      #   end 
+      # end 
       expose(:classes) do |user,options|
         user.classes_eleve.map do |classe|
           {:id => classe.id, :libelle  => classe.libelle, :rights => user.rights(classe.ressource)}
@@ -45,7 +45,27 @@ module API
       expose :id, :id_sconet, :login, :nom, :prenom, :sexe, :id_ent
       expose(:full_name) {|user,options| user.full_name}
       expose :profil_user, :as => :profils 
-    end  
+    end
+
+    class SimpleEtablissement < Grape::Entity 
+      expose :id, :code_uai, :nom, :adresse, :code_postal, :ville, :type_etablissement_id, :telephone, :fax
+      expose :full_name
+    end
+
+    class DetailedEtablissement < Grape::Entity
+      expose :id, :code_uai, :nom, :adresse, :code_postal, :ville, :type_etablissement_id, :telephone, :fax
+      expose :full_name
+      expose :classes 
+      expose :groupes_eleves
+      expose :groupes_libres
+      expose(:personnel) do |etab, options|
+        etab.personnel do |person|
+          {:id => person.id, :full_name => person.full_name}
+        end
+      end  
+      expose :contacts 
+    end
+
   end 
     
 end

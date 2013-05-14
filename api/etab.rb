@@ -1,7 +1,7 @@
 #coding: utf-8
 require 'grape-swagger'
 class EtabApi < Grape::API
-   version 'v1', :using => :param, :parameter => "v"
+  version 'v1', :using => :param, :parameter => "v"
   format :json
   content_type :json, "application/json; charset=utf-8"
   default_error_formatter :json
@@ -78,6 +78,7 @@ class EtabApi < Grape::API
     desc "Get etablissement info"
     params do
       requires :id, type: Integer
+      optional :expand, type:String, desc: "show simple or detailed info, value = true or false"
     end  
     get "/:id" do
       etab = Etablissement[:id => params[:id]]
@@ -85,7 +86,11 @@ class EtabApi < Grape::API
       # construct etablissement entity.
       if !etab.nil?
         authorize_activites!([ACT_READ, ACT_MANAGE], etab.ressource) 
-        etab
+        if params[:expand] == "true"
+          present etab, with: API::Entities::DetailedEtablissement
+        else 
+          present etab, with: API::Entities::SimpleEtablissement
+       end
       else
         error!("ressource non trouve", 404) 
       end 
@@ -138,6 +143,14 @@ class EtabApi < Grape::API
       end 
     end
 
+    desc "get the list of users in an etablissement" 
+    params do 
+      requires :id, type: Integer
+    end 
+    get "/:id/users" do 
+      # return list of users in the etablissmenet
+    end   
+
     # get all etablissements and  add search capability to that
     desc "get la liste des etablissements and search"
     params do
@@ -172,9 +185,8 @@ class EtabApi < Grape::API
     ##########################################
     
     #Note: use authorize
-
     #{role_id : "ADM_ETB"}
-    desc "Assigner un role a quelqu'un"
+    desc "Assigner un role à un utilisateur"
     params do
       requires :id, type: Integer 
       requires :user_id, type: String 
@@ -185,10 +197,10 @@ class EtabApi < Grape::API
       #authorize_activites!(ACT_CREATE, etab.ressource)
       etab = Etablissement[:id => params[:id]]
       authorize_activites!([ACT_UPDATE, ACT_MANAGE], etab.ressource, SRV_USER)
+      authorize_activites!([ACT_CREATE, ACT_MANAGE], etab.ressource, SRV_ROLE)
       error!("ressource non trouvee", 404) if etab.nil?
       user = User[:id => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
-
       # i am not sure
       # error!("pas de droits", 403) if user.belongs_to(etab)
       role = Role[:id => params[:role_id]]
@@ -210,7 +222,6 @@ class EtabApi < Grape::API
     end
 
     #################
-    #{role_id : "PROF"}
     desc "Changer le role de quelqu'un"
     params do 
       requires :id, type: Integer 
@@ -221,6 +232,9 @@ class EtabApi < Grape::API
     put "/:id/user/:user_id/role_user/:old_role_id" do
       etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], etab.ressource, SRV_USER)
+      authorize_activites!([ACT_CREATE, ACT_MANAGE], etab.ressource, SRV_ROLE)
+
       user = User[:id => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
       old_role = Role[:id => params[:old_role_id]]
@@ -228,9 +242,11 @@ class EtabApi < Grape::API
       new_role = Role[:id => params[:role_id]]
       error!("ressource non trouvee", 404) if new_role.nil?
       begin 
-        ressource = etab.ressource  
-        old_role.destroy
-        user.add_role(ressource.id, ressource.service_id, new_role.id)
+        role_user = RoleUser[:etablissement_id => etab.id, :role_id => old_role.id, :user_id => user.id]
+        if role_user 
+          role_user.destroy
+        end 
+        user.add_role(etab.id, new_role.id)
       rescue => e
         #puts e.message
         error!("Validation Failed", 400)
@@ -239,7 +255,7 @@ class EtabApi < Grape::API
     end 
 
     #################
-    desc "Supprimer son role sur l'etablissement"
+    desc "Supprimer un role de l'utilisateur dans l'etablissement"
     params do 
       requires :id, type: Integer
       requires :user_id, type: String
@@ -248,12 +264,15 @@ class EtabApi < Grape::API
     delete "/:id/user/:user_id/role_user/:role_id" do
       etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], etab.ressource, SRV_USER)
+      authorize_activites!([ACT_DELETE, ACT_MANAGE], etab.ressource, SRV_ROLE)
       user = User[:id => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
       role = Role[:id => params[:role_id]]
       error!("ressource non trouvee", 404) if role.nil?
       begin 
-        role.destroy 
+        role_user = RoleUser[:user_id => user.id, :etablissement_id => etab.id, :role_id => role.id]
+        role_user.destroy if role_user
       rescue => e
         error!("Validation Failed", 400)
       end
@@ -263,24 +282,39 @@ class EtabApi < Grape::API
     # Gestion des classes #
     #######################
 
-    #@input: {libelle: "4°C", niveau: "4EME"}
+    desc "list classes in the etablissement"
+    params do 
+      requires :id, type: Integer
+    end
+    get "/:id/classes" do 
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      authorize_activites!([ACT_READ, ACT_MANAGE], etab.ressource, SRV_CLASSE)
+      begin
+          etab.classes
+      rescue => e
+        error!("mouvaise requete", 400) 
+      end 
+    end 
+
+    #@input: {libelle: "4°C", code_mef_aaf: "4EME"}
     #@output: {classe.id }
     desc "creer une classe"
     params do 
       requires :id, type: Integer
       requires :libelle, type: String
-      requires :niveau_id, type: String 
+      requires :code_mef_aaf, type: String 
     end 
-    post "/:id/classe" do 
+    post "/:id/classes" do 
       etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
+      authorize_activites!([ACT_CREATE, ACT_MANAGE], etab.ressource, SRV_CLASSE)
       parameters = exclude_hash(params, ["id", "route_info", "session"])
       begin
           classe = etab.add_classe(parameters)
-          {:classe_id => classe.id}
+          classe
       rescue => e
-        puts e.message
-        error!("mouvaise request", 400) 
+        error!("mouvaise requete", 400) 
       end 
     end 
 
@@ -291,12 +325,15 @@ class EtabApi < Grape::API
       requires :id, type: Integer
       requires :classe_id, type:Integer 
     end 
-    put "/:id/classe/:classe_id" do 
+    put "/:id/classes/:classe_id" do 
       etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], etab.ressource, SRV_CLASSE)
+      
       classe = Regroupement[:id => params[:classe_id]]
       error!("ressource non trouvee", 404) if classe.nil?
-      error!("pas de droit", 403) if classe.etablissement_id != etab.id
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], classe.ressource)
+
       parameters = exclude_hash(params, ["id", "route_info", "session", "classe_id"])
       begin 
         parameters.each do  |k,v| 
@@ -306,7 +343,6 @@ class EtabApi < Grape::API
         end
         classe.save 
       rescue  => e       
-        puts e.message
         error!("mouvaise request", 400) 
       end 
     end 
@@ -317,318 +353,20 @@ class EtabApi < Grape::API
       requires :id, type: Integer
       requires :classe_id, type: Integer
     end 
-    delete "/:id/classe/:classe_id"  do   
+    delete "/:id/classes/:classe_id"  do   
       etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
+      authorize_activites!([ACT_DELETE, ACT_MANAGE], etab.ressource, SRV_CLASSE)
+
       classe = Regroupement[:id => params[:classe_id]]
       error!("ressource non trouvee", 404) if classe.nil?
-      error!("pas de droit", 403) if classe.etablissement_id != etab.id
+      authorize_activites!([ACT_DELETE, ACT_MANAGE], classe.ressource)
       begin
         Regroupement[:id => classe.id].destroy
-      rescue  => e 
-      end 
-    end 
-
-    ################################
-    # Gestion des groupes d'eleves #
-    ################################
-
-    desc "creer un groupe d'eleve"
-    params do 
-      requires :id, type: Integer
-      requires :libelle, type: String
-      optional :niveau_id, type: String 
-      optional :description, type: String 
-    end 
-    post "/:id/groupe" do 
-      etab = Etablissement[:id => params[:id]]
-      error!("ressource non trouvee", 404) if etab.nil?
-      parameters = exclude_hash(params, ["id", "route_info", "session"])
-      begin
-          groupe = etab.add_groupe_eleve(parameters)
-          {:groupe_id => groupe.id}
-      rescue => e
-        puts e.message
-        error!("mouvaise request", 400) 
-      end 
-    end 
-
-    #################
-    #@input{libelle: "4°D"}   
-    desc "Modifier l'info d'un groupe d'eleve" 
-    params do 
-      requires :id, type: Integer
-      requires :groupe_id, type:Integer 
-    end 
-    put "/:id/groupe/:groupe_id" do 
-      etab = Etablissement[:id => params[:id]]
-      error!("ressource non trouvee", 404) if etab.nil?
-      groupe = Regroupement[:id => params[:groupe_id]]
-      error!("ressource non trouvee", 404) if groupe.nil?
-      error!("pas de droit", 403) if groupe.etablissement_id != etab.id
-      parameters = exclude_hash(params, ["id", "route_info", "session", "groupe_id"])
-      begin 
-        parameters.each do  |k,v| 
-          if groupe.respond_to?(k.to_sym)
-            groupe.set(k.to_sym => v) 
-          end    
-        end
-        groupe.save 
-      rescue  => e       
-        puts e.message
-        error!("mouvaise request", 400) 
-      end 
-    end 
-
-    #################
-    desc "Suppression d'un groupe"
-    params do 
-      requires :id, type: Integer
-      requires :groupe_id, type: Integer
-    end 
-    delete "/:id/groupe/:groupe_id"  do   
-      etab = Etablissement[:id => params[:id]]
-      error!("ressource non trouvee", 404) if etab.nil?
-      groupe = Regroupement[:id => params[:groupe_id]]
-      error!("ressource non trouvee", 404) if  groupe.nil? 
-      error!("pas de droit", 403) if groupe.etablissement_id != etab.id
-      begin
-        Regroupement[:id => groupe.id].destroy
       rescue  => e
-        puts e.message
-        error!("mouvaise requete", 400)  
-      end 
-    end
-
-    #################
-    desc " rattacher un role a un utilisateur dans un groupe d'eleve"
-    params do 
-      requires :id, type: Integer
-      requires :groupe_id, type: Integer
-      requires :user_id, type: String
-      requires :role_id, type: String 
-    end
-    post "/:id/groupe/:groupe_id/role_user/:user_id" do
-      # role ou profil
-      etab = Etablissement[:id => params[:id]]
-      error!("ressource non trouvee", 404) if etab.nil?
-      
-      groupe = Regroupement[:id => params[:groupe_id]]
-      error!("ressource non trouvee", 404) if classe.nil?
-      error!("pas de droit", 403) if classe.etablissement_id != etab.id
-
-      role = Role[:id => params[:role_id]]
-      error!("ressource non trouvee", 404) if role.nil?
-
-      user = User[:id => params[:user_id]]
-      error!("ressource non trouvee", 404) if user.nil?
-      begin 
-        ressource = groupe.ressource
-        user.add_role(ressource.id, ressource.service_id, role.id)
-
-      rescue => e 
-        puts e.message
-        error!("mouvaise requete", 400)
-      end    
-    end 
-
-    #################
-
-    desc "modifier le role d'un utilisateur dans un groupe"
-    params do 
-      requires :id,  type: Integer 
-      requires :groupe_id, type: Integer
-      requires :user_id, type: String 
-      requires :old_role_id, type: String
-    end
-    put "/:id/groupe/:groupe_id/role_user/:user_id/:old_role_id" do 
-      etab = Etablissement[:id => params[:id]]
-      error!("ressource non trouvee", 404) if etab.nil?
-      
-      groupe = Regroupement[:id => params[:groupe_id]]
-      error!("ressource non trouvee", 404) if classe.nil?
-      error!("pas de droit", 403) if classe.etablissement_id != etab.id
-
-      old_role = Role[:id => params[:old_role_id]]
-      error!("ressource non trouvee", 404) if old_role.nil?
-
-      user = User[:id => params[:user_id]]
-      error!("ressource non trouvee", 404) if user.nil?
-
-      new_role = Role[:id => params[:role_id]]
-      error!("ressource non trouvee", 404) if new_role.nil?
-      begin
-        ressource = groupe.ressource
-        RoleUser[:user_id => user.id, :role_id => old_role.id, :ressource_id => ressource.id].destroy
-        user.add_role(ressource.id, ressource.service_id, new_role.id) 
-      rescue  => e 
-        puts e.message
-        error!("mouvaise requete", 400)
-      end 
-
-    end 
-    
-    ######################
-
-    desc "supprimer un role dans un groupe d'eleves "
-    params do 
-      requires :id, type: Integer
-      requires :groupe_id, type: Integer
-      requires :user_id, type: String
-      requires :role_id, type:String
-    end
-    delete "/:id/groupe/:groupe_id/role_user/:user_id/:role_id" do
-      etab = Etablissement[:id => params[:id]]
-      error!("ressource non trouvee", 404) if etab.nil?
-      
-      groupe = Regroupement[:id => params[:groupe_id]]
-      error!("ressource non trouvee", 404) if classe.nil?
-      error!("pas de droit", 403) if classe.etablissement_id != etab.id
-
-      role = Role[:id => params[:role_id]]
-      error!("ressource non trouvee", 404) if role.nil?
-
-      user = User[:id => params[:user_id]]
-      error!("ressource non trouvee", 404) if user.nil?
-
-      begin
-        ressource = groupe.ressource 
-        RoleUser[:user_id => user.id, :role_id => role.id, :ressource_id => ressource.id].destroy
-      rescue  => e 
-        puts e.message
-        error!("mouvaise requete", 400)
-      end 
-    end
-
-    ##################### 
-
-
-    ##############################
-    # Gestion des Groupes libres #
-    ##############################
-    #pour l'instant on cree les groupes libres dans un etablissement "to do"
-    desc "creation d'un groupe libre"
-    params do 
-      requires :id, type: Integer
-      requires :libelle, type: String 
-      optional :description, type: String   
-    end
-    post "/:id/groupe_libre"  do
-      etab = Etablissement[:id => params[:id]]
-      error!("ressource non trouvee", 404) if etab.nil?
-      parameters = exclude_hash(params, ["id", "route_info", "session"])
-      begin
-        groupe = etab.add_groupe_libre(parameters)
-        {:groupe_id => groupe.id}
-      rescue => e
-        puts e.message
         error!("mouvaise request", 400) 
-      end  
-    end 
-
-    ###########################
-
-    desc "modification d'un groupe libre"
-    params do 
-      requires :id , type: Integer
-      #requires :groupe_id, type: Integer  
-    end 
-    put "/:id/groupe_libre/:groupe_id" do
-      etab = Etablissement[:id => params[:id]]
-      error!("ressource non trouvee", 404) if etab.nil?
-
-      groupe = Regroupement[:id => params[:groupe_id]]
-      error!("ressource non trouvee", 404) if groupe.nil? 
-      parameters = exclude_hash(params, ["id", "route_info", "session"])
-      begin 
-        parameters.each do  |k,v| 
-          if groupe.respond_to?(k.to_sym)
-            groupe.set(k.to_sym => v) 
-          end    
-        end
-        groupe.save 
-      rescue => e 
-        puts e.message 
-        error!("mouvaise requete", 400)
-      end 
-    end
-
-    ###########################
-    desc "suppression d'un groupe libre"
-    params do 
-      requires :id , type: Integer
-    end 
-    delete"/:id/groupe_libre/:groupe_id" do
-      etab = Etablissement[:id => params[:id]]
-      error!("ressource non trouvee", 404) if etab.nil?
-
-      groupe = Regroupement[:id => params[:groupe_id]]
-      error!("ressource non trouvee", 404) if groupe.nil? 
-      begin
-        Regroupement[:id => groupe.id].destroy
-      rescue  => e
-        puts e.message
-        error!("mouvaise requete", 400)  
-      end 
-    end
-    ###########################
-
-    desc "Gestion des rattachements a un groupe libre"
-    params do
-      requires :id, type: Integer 
-      requires :libre_id , type: Integer
-      requires :user_id, type: String
-    end
-    post "/:id/libre/:libre_id/rattach" do 
-      etab = Etablissement[:id => params[:id]]
-      error!("ressource non trouvee", 404) if etab.nil?
-      
-      groupe = Regroupement[:id => params[:libre_id]]
-      error!("ressource non trouvee", 404) if groupe.nil?
-      
-      role = Role[:id => "MMBR"]
-
-      user = User[:id => params[:user_id]]
-      error!("ressource non trouvee", 404) if user.nil?
-      begin 
-        ressource = groupe.ressource
-        user.add_role(ressource.id, ressource.service_id, role.id)
-
-      rescue => e 
-        puts e.message
-        error!("mouvaise requete", 400)
-      end    
-    end 
-
-    ################
-    desc "supprimer un rattachement"
-    params do
-      requires :id, type: Integer 
-      requires :libre_id , type: Integer
-      requires :user_id, type: String
-    end
-    delete "/:id/libre/:libre_id/rattach/:user_id" do
-      etab = Etablissement[:id => params[:id]]
-      error!("ressource non trouvee", 404) if etab.nil?
-      
-      groupe = Regroupement[:id => params[:libre_id]]
-      error!("ressource non trouvee", 404) if groupe.nil?
-
-
-      user = User[:id => params[:user_id]]
-      error!("ressource non trouvee", 404) if user.nil?
-
-      role = Role[:id => "MMBR"]
-      begin
-        ressource = groupe.ressource
-        RoleUser[:user_id => user.id, :role_id => role.id, :ressource => ressource.id]
-
-      rescue =>  e
-        error!("mouvaise requete", 400)
       end 
     end 
-
-
 
     #############################################################
     # Gestion des rattachement et des roles dans une classe     #
@@ -636,16 +374,16 @@ class EtabApi < Grape::API
 
     # add  a profil
     # what type of profil/role
-    # may be change the 
+    # may change the 
     #{role_id : "PROF"}
-    desc "Gestion des rattachement et des roles"
+    desc "Gestion des rattachements et des roles"
     params do 
       requires :id, type: Integer
       requires :classe_id, type: Integer
       requires :user_id, type: String
       requires :role_id, type: String 
     end
-    post "/:id/classe/:classe_id/role_user/:user_id" do
+    post "/:id/classes/:classe_id/role_user/:user_id" do
       # role ou profil
       etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
@@ -828,6 +566,346 @@ class EtabApi < Grape::API
       end 
 
     end 
+
+    ################################
+    # Gestion des groupes d'eleves #
+    ################################
+    
+    desc "lister les groupes d'éléve dans l'etablissement"
+    params do 
+      requires :id, type:Integer 
+    end 
+    get "/:id/groupes" do 
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      authorize_activites!([ACT_READ, ACT_MANAGE], etab.ressource, SRV_GROUPE)
+      etab.groupes_eleves
+    end 
+
+
+    desc "creer un groupe d'eleve"
+    params do 
+      requires :id, type: Integer
+      requires :libelle, type: String
+      optional :niveau_id, type: String 
+      optional :description, type: String 
+    end 
+    post "/:id/groupes" do 
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      authorize_activites!([ACT_CREATE, ACT_MANAGE], etab.ressource, SRV_GROUPE)
+      parameters = exclude_hash(params, ["id", "route_info", "session"])
+      begin
+          groupe = etab.add_groupe_eleve(parameters)
+          groupe
+      rescue => e
+        error!("mouvaise request", 400) 
+      end 
+    end 
+
+    #################
+    #@input{libelle: "4°D"}   
+    desc "Modifier l'info d'un groupe d'eleve" 
+    params do 
+      requires :id, type: Integer
+      requires :groupe_id, type:Integer 
+    end 
+    put "/:id/groupes/:groupe_id" do 
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], etab.ressource, SRV_GROUPE)
+
+      groupe = Regroupement[:id => params[:groupe_id]]
+      error!("ressource non trouvee", 404) if groupe.nil?
+      authorize_activites!([ACT_CREATE, ACT_MANAGE], groupe.ressource)
+      
+      parameters = exclude_hash(params, ["id", "route_info", "session", "groupe_id"])
+      begin 
+        parameters.each do  |k,v| 
+          if groupe.respond_to?(k.to_sym)
+            groupe.set(k.to_sym => v) 
+          end    
+        end
+        groupe.save 
+      rescue  => e       
+        puts e.message
+        error!("mouvaise request", 400) 
+      end 
+    end 
+
+    #################
+    desc "Suppression d'un groupe"
+    params do 
+      requires :id, type: Integer
+      requires :groupe_id, type: Integer
+    end 
+    delete "/:id/groupes/:groupe_id"  do   
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      authorize_activites!([ACT_DELETE, ACT_MANAGE], etab.ressource, SRV_GROUPE)
+      groupe = Regroupement[:id => params[:groupe_id]]
+      error!("ressource non trouvee", 404) if  groupe.nil?
+      authorize_activites!([ACT_DELETE, ACT_MANAGE], groupe.ressource) 
+      error!("pas de droit", 403) if groupe.etablissement_id != etab.id
+      begin
+        Regroupement[:id => groupe.id].destroy
+      rescue  => e
+        puts e.message
+        error!("mouvaise requete", 400)  
+      end 
+    end
+
+    ##################################################
+    ## gestion d'un role dans un groupe ou une classe #
+    ##################################################
+
+    # i dont know if i need this 
+    desc " rattacher un role a un utilisateur dans un groupe d'eleve"
+    params do 
+      requires :id, type: Integer
+      requires :groupe_id, type: Integer
+      requires :user_id, type: String
+      requires :role_id, type: String 
+    end
+    post "/:id/groupe/:groupe_id/role_user/:user_id" do
+      # role ou profil
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      
+      groupe = Regroupement[:id => params[:groupe_id]]
+      error!("ressource non trouvee", 404) if classe.nil?
+      error!("pas de droit", 403) if classe.etablissement_id != etab.id
+
+      role = Role[:id => params[:role_id]]
+      error!("ressource non trouvee", 404) if role.nil?
+
+      user = User[:id => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      begin 
+        ressource = groupe.ressource
+        user.add_role(ressource.id, ressource.service_id, role.id)
+
+      rescue => e 
+        puts e.message
+        error!("mouvaise requete", 400)
+      end    
+    end 
+
+    #################
+
+    desc "modifier le role d'un utilisateur dans un groupe"
+    params do 
+      requires :id,  type: Integer 
+      requires :groupe_id, type: Integer
+      requires :user_id, type: String 
+      requires :old_role_id, type: String
+    end
+    put "/:id/groupe/:groupe_id/role_user/:user_id/:old_role_id" do 
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      
+      groupe = Regroupement[:id => params[:groupe_id]]
+      error!("ressource non trouvee", 404) if classe.nil?
+      error!("pas de droit", 403) if classe.etablissement_id != etab.id
+
+      old_role = Role[:id => params[:old_role_id]]
+      error!("ressource non trouvee", 404) if old_role.nil?
+
+      user = User[:id => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+
+      new_role = Role[:id => params[:role_id]]
+      error!("ressource non trouvee", 404) if new_role.nil?
+      begin
+        ressource = groupe.ressource
+        RoleUser[:user_id => user.id, :role_id => old_role.id, :ressource_id => ressource.id].destroy
+        user.add_role(ressource.id, ressource.service_id, new_role.id) 
+      rescue  => e 
+        puts e.message
+        error!("mouvaise requete", 400)
+      end 
+
+    end 
+    
+    ######################
+
+    desc "supprimer un role dans un groupe d'eleves "
+    params do 
+      requires :id, type: Integer
+      requires :groupe_id, type: Integer
+      requires :user_id, type: String
+      requires :role_id, type:String
+    end
+    delete "/:id/groupe/:groupe_id/role_user/:user_id/:role_id" do
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      
+      groupe = Regroupement[:id => params[:groupe_id]]
+      error!("ressource non trouvee", 404) if classe.nil?
+      error!("pas de droit", 403) if classe.etablissement_id != etab.id
+
+      role = Role[:id => params[:role_id]]
+      error!("ressource non trouvee", 404) if role.nil?
+
+      user = User[:id => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+
+      begin
+        ressource = groupe.ressource 
+        RoleUser[:user_id => user.id, :role_id => role.id, :ressource_id => ressource.id].destroy
+      rescue  => e 
+        puts e.message
+        error!("mouvaise requete", 400)
+      end 
+    end
+
+    ######################################################################### 
+
+
+    ##############################
+    # Gestion des Groupes libres #
+    ##############################
+    #pour l'instant on cree les groupes libres dans un etablissement "to do"
+    desc "liste les groupes libres dans un etablissement"
+    params do 
+      requires :id, type: Integer
+    end 
+    get "/:id/groupes_libre" do
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil? 
+      authorize_activites!([ACT_READ, ACT_MANAGE], etab.ressource, SRV_LIBRE)
+      etab.groupes_libres
+    end
+
+
+    desc "creation d'un groupe libre"
+    params do 
+      requires :id, type: Integer
+      requires :libelle, type: String 
+      optional :description, type: String   
+    end
+    post "/:id/groupes_libre"  do
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      authorize_activites!([ACT_CREATE, ACT_MANAGE], etab.ressource, SRV_LIBRE)
+      parameters = exclude_hash(params, ["id", "route_info", "session"])
+      begin
+        groupe = etab.add_groupe_libre(parameters)
+        groupe
+      rescue => e
+        puts e.message
+        error!("mouvaise request", 400) 
+      end  
+    end 
+
+    ###########################
+
+    desc "modification d'un groupe libre"
+    params do 
+      requires :id , type: Integer
+      requires :groupe_id, type: Integer  
+    end 
+    put "/:id/groupes_libre/:groupe_id" do
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], etab.ressource, SRV_LIBRE)
+
+      groupe = Regroupement[:id => params[:groupe_id]]
+      error!("ressource non trouvee", 404) if groupe.nil? 
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], groupe.ressource)
+      parameters = exclude_hash(params, ["id", "route_info", "session"])
+      begin 
+        parameters.each do  |k,v| 
+          if groupe.respond_to?(k.to_sym)
+            groupe.set(k.to_sym => v) 
+          end    
+        end
+        groupe.save 
+      rescue => e 
+        error!("mouvaise requete", 400)
+      end 
+    end
+
+    ###########################
+    desc "suppression d'un groupe libre"
+    params do 
+      requires :id , type: Integer
+      requires :groupe_id, type:Integer
+    end 
+    delete "/:id/groupes_libre/:groupe_id" do
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      authorize_activites!([ACT_DELETE, ACT_MANAGE], etab.ressource, SRV_LIBRE)
+
+      groupe = Regroupement[:id => params[:groupe_id]]
+      error!("ressource non trouvee", 404) if groupe.nil? 
+      authorize_activites!([ACT_DELETE, ACT_MANAGE], groupe.ressource)
+      begin
+        Regroupement[:id => groupe.id].destroy
+      rescue  => e
+        error!("mouvaise requete", 400)  
+      end 
+    end
+    ###########################
+
+    desc "Gestion des rattachements a un groupe libre"
+    params do
+      requires :id, type: Integer 
+      requires :libre_id , type: Integer
+      requires :user_id, type: String
+    end
+    post "/:id/libre/:libre_id/rattach" do 
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      
+      groupe = Regroupement[:id => params[:libre_id]]
+      error!("ressource non trouvee", 404) if groupe.nil?
+      
+      role = Role[:id => "MMBR"]
+
+      user = User[:id => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      begin 
+        ressource = groupe.ressource
+        user.add_role(ressource.id, ressource.service_id, role.id)
+
+      rescue => e 
+        puts e.message
+        error!("mouvaise requete", 400)
+      end    
+    end 
+
+    ################
+    desc "supprimer un rattachement"
+    params do
+      requires :id, type: Integer 
+      requires :libre_id , type: Integer
+      requires :user_id, type: String
+    end
+    delete "/:id/libre/:libre_id/rattach/:user_id" do
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      
+      groupe = Regroupement[:id => params[:libre_id]]
+      error!("ressource non trouvee", 404) if groupe.nil?
+
+
+      user = User[:id => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+
+      role = Role[:id => "MMBR"]
+      begin
+        ressource = groupe.ressource
+        RoleUser[:user_id => user.id, :role_id => role.id, :ressource => ressource.id]
+
+      rescue =>  e
+        error!("mouvaise requete", 400)
+      end 
+    end 
+
+
+
+    
    
 
     ####################
@@ -1113,7 +1191,7 @@ class EtabApi < Grape::API
       end 
     end
 
-    ###################
+    ###########################################
     #{actif: true|false}
     desc "Activer ou desactiver une application"
     params do 
@@ -1139,6 +1217,6 @@ class EtabApi < Grape::API
         error!("mouvaise requete", 400)
       end  
     end 
- end
+  end
 
 end

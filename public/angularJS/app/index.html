@@ -4,12 +4,40 @@
   <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
   <title>AngularJS admin Panel</title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
-    <link href="http://netdna.bootstrapcdn.com/font-awesome/2.0/css/font-awesome.css" rel="stylesheet">
+    <!--<link href="http://netdna.bootstrapcdn.com/font-awesome/2.0/css/font-awesome.css" rel="stylesheet"> -->
+    <!--<link rel="stylesheet" type="text/css" href="http://angular-ui.github.com/ng-grid/css/ng-grid.css" /> -->
+    <link rel="stylesheet" type="text/css" href ="css/ng-grid.css" />
     <style>
-        thead { display:block;}
-        tbody { display:block; overflow:auto; height:500px; }
-        th { height:50px; width:80px; }
+        thead { display:block; overflow:hidden;}
+        tbody { display:block; overflow:hidden; height:500px; }
+        th { width:80px; }
         td { height:50px; width:80px; }
+        .gridStyle {
+            border: 1px solid rgb(212,212,212);
+            /*width: 900px;*/ 
+            height: 500px;
+        }
+
+        .ngRow {
+          position: relative;
+          top: 0 !important;
+          border-bottom: none;
+          height: 100px !important;
+        }
+
+        .ngCellText {
+         white-space: normal;
+         word-wrap: normal;
+        }
+
+        .ngCell {
+          height: 100px !important;
+        }
+
+        .editableCell {
+          line-height: 50px;
+          padding-left: 5px;
+        }
         /* Sticky footer styles
         -------------------------------------------------- */
 
@@ -25,13 +53,13 @@
           height: auto !important;
           height: 100%;
           /* Negative indent footer by it's height */
-          margin: 0 auto -60px;
+          margin: 0 auto -20px;
         }
 
         /* Set the fixed height of the footer here */
         #push,
         #footer {
-          height: 60px;
+          height: 20px;
         }
         #footer {
           background-color: #f5f5f5;
@@ -207,7 +235,9 @@
   <script src="js/controllers.js"></script>
   <script src="js/filters.js"></script>
   <script src="js/directives.js"></script>
+  <script type="text/javascript" src="lib/angular/ng-grid.debug.js"></script>
+  <!-- 
   <script type="text/javascript" src="http://angular-ui.github.com/ng-grid/lib/ng-grid.debug.js"></script>
-
+  -->
 </body>
 </html>

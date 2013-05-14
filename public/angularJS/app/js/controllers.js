@@ -1,23 +1,30 @@
 'use strict';
 
+
 /* Controllers */
 
+function MyCtrl($scope, $http) {
+    var self = this;
+    //self.pluginOne = new ngGridFlexibleHeightPlugin(); does not work 
 
-function MyCtrl1($scope, $http) {
-	$scope.filterOptions = {
+    $scope.session_key = "3qauE3IohE3yxdYX4pznOg";
+    $scope.filterOptions = {
         filterText: "",
         useExternalFilter: true
     };
     $scope.pagingOptions = {
-        pageSizes: [10, 20, 30],
-        pageSize: 10,
+        pageSizes: [50, 100, 200],
+        pageSize: 50,
         totalServerItems: 0,
         currentPage: 1
     };  
-    $scope.setPagingData = function(data, page, pageSize){	
-        var pagedData = data.slice((page - 1) * pageSize, page * pageSize);
+    $scope.setPagingData = function(data){  
+        var pagedData = data.data;
         $scope.myData = pagedData;
-        $scope.pagingOptions.totalServerItems = data.length;
+        //$scope.pagingOptions.totalServerItems = data.total;
+        $scope.pagingOptions.totalServerItems = data.data.size;
+        $scope.gridOptions.ngGrid.config.totalServerItems = data.total;
+        console.log('total', data.total); 
         if (!$scope.$$phase) {
             $scope.$apply();
         }
@@ -27,13 +34,100 @@ function MyCtrl1($scope, $http) {
             var data;
             if (searchText) {
                 var ft = searchText.toLowerCase();
-                $http.get('../etablissement?page='+page+'&limit='+pageSize+'&search='+searchText).success(function (largeLoad) {		
+                $http.get('../users?session_key='+$scope.session_key+'&page='+page+'&limit='+pageSize+'&query='+searchText).success(function (largeLoad) {      
                     data = largeLoad;
-                    $scope.setPagingData(data,page,pageSize);
+                    $scope.setPagingData(data);
                 });            
             } else {
-                $http.get('../etablissement?page='+page+'&limit='+pageSize).success(function (largeLoad) {
-                    $scope.setPagingData(largeLoad,page,pageSize);
+                $http.get('../users?session_key='+$scope.session_key+'&page='+page+'&limit='+pageSize).success(function (largeLoad) {
+                    $scope.setPagingData(largeLoad);
+                });
+            }
+        }, 100);
+    };
+    
+    $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage);
+    
+    // $scope.$watch('pagingOptions', function (newVal, oldVal) {
+    //     if (newVal !== oldVal && newVal.currentPage !== oldVal.currentPage) {
+    //       $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
+    //     }
+    // }, true);
+    // $scope.$watch('filterOptions', function (newVal, oldVal) {
+    //     if (newVal !== oldVal) {
+    //       $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
+    //     }
+    // }, true);
+
+    $scope.$watch('pagingOptions', function () {
+        $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
+    }, true);
+    $scope.$watch('filterOptions', function () {
+        $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
+    }, true); 
+    
+    $scope.gridOptions = {
+        data: 'myData',
+        //rowTemplate: '<div ng-repeat="col in columns" style="height:{{rowHeight}}; width: {{col.width}}px" class="ngCell {{columnClass($index)}} {{col.cellClass}}" ng-cell></div>', 
+        enablePaging: true,
+        showFooter: true,
+        showFilter: false,
+        enableSorting: true,
+        i18n: 'fr',  
+        pagingOptions: $scope.pagingOptions,
+        filterOptions: $scope.filterOptions, 
+        columnDefs: [{ field: "nom"},
+                    { field: "prenom"},
+                    { field: "login"},
+                    { field: "id"}, 
+                    { field: "emails", cellTemplate: '<div ng-repeat="val in row.entity[col.field]" class="inline"><span class = "label">{{val.adresse}}</span></div>'},
+                    { field: "telephones", cellTemplate: '<div ng-repeat="val in row.entity[col.field]" class="inline"><span class = "label">{{val.numero}}</span></div>'},
+                    { field: "profils", cellTemplate: '<div ng-repeat="val in row.entity[col.field]" class="inline"><span class = "label label-info">{{val.libelle}}</span></div>'}, 
+                    { field: "action", cellTemplate: '<div><a  class="btn" id="edit_user" ng-click="show_modal(user)"><i class="icon-edit"></i>Editer</a>'+' </br></br><a class="btn" id="login" ng-click="show_modal(user)"><i class="icon-cog"></i>Login</a></div>'}  
+                    ],
+        plugins: []
+    };
+    $scope.searchText=""; 
+    $scope.$watch('searchText', function () {
+        $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.searchText);
+    }, true); 
+}
+
+
+function MyCtrl1($scope, $http) {
+    $scope.session_key = "3qauE3IohE3yxdYX4pznOg"; 
+	$scope.filterOptions = {
+        filterText: "",
+        useExternalFilter: false
+    };
+    $scope.pagingOptions = {
+        pageSizes: [10, 20, 30],
+        pageSize: 10,
+        totalServerItems: 0,
+        currentPage: 1
+    };  
+    $scope.setPagingData = function(data){	
+        var pagedData = data.data;
+        $scope.myData = pagedData;
+        //$scope.pagingOptions.totalServerItems = data.total;
+        $scope.gridOptions.ngGrid.config.totalServerItems = data.total;
+        if (!$scope.$$phase) {
+            $scope.$apply();
+        }
+    };
+    $scope.getPagedDataAsync = function (pageSize, page, searchText) {
+        setTimeout(function () {
+            var data;
+            if (searchText) {
+                var ft = searchText.toLowerCase();
+                $http.get('../etablissements?session_key='+$scope.session_key+'&page='+page+'&limit='+pageSize+'&search='+searchText).success(function (largeLoad) {		
+                    data = largeLoad;
+                    $scope.setPagingData(data);
+                });            
+            } else {
+                $http.get('../etablissements?session_key='+$scope.session_key+'&page='+page+'&limit='+pageSize).success(function (largeLoad) {
+                    data = largeLoad;
+                    $scope.setPagingData(data);
                 });
             }
         }, 100);
@@ -47,22 +141,36 @@ function MyCtrl1($scope, $http) {
     $scope.$watch('filterOptions', function () {
         $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
     }, true);   
-	
+	 
+
     $scope.gridOptions = {
         data: 'myData',
         enablePaging: true,
         pagingOptions: $scope.pagingOptions,
-        filterOptions: $scope.filterOptions
-    };	
+        showColumnMenu: true,
+        showFooter: true,
+        showFilter: false,
+        enableSorting: true,
+        i18n: 'fr',  
+        filterOptions: $scope.filterOptions, 
+        columnDefs: [{ field: "id", width: "auto"},
+                    { field: "code_uai", width: "auto", resizable: true },
+                    { field: "nom", width: 200 },
+                    { field: "adresse", width: 200 }, 
+                    { field: "Alimenté", width: "auto", minWidth: 50, cellTemplate: '<div class= "label label-success">oui</div>'}]
+    };
+    	
     
 }
 //MyCtrl1.$inject = [];
 
 
-function EtabCtrl($scope, $http){
+function EtabCtrl($scope, $http, $cookies){
 
-	$scope.session_key = ""; 
-	$scope.url = '../etablissement'; 
+    console.log('cookies', $cookies);
+    //console.log(currentUser.getSession()); 
+	$scope.session_key = $cookies.appSession; 
+	$scope.url = '../etablissements'; 
 	$scope.limit = 500 ; 
 	$scope.currentPage = 1; 
 	$scope.recordParPage= [250, 500, 1000]; 
@@ -184,15 +292,15 @@ function EtabCtrl($scope, $http){
 
 }
 
-EtabCtrl.$inject=['$scope', '$http'];
+EtabCtrl.$inject=['$scope', '$http', '$cookies'];
 
 
-function UserCtrl($scope, $http){
+function UserCtrl($scope, $http, $cookies){
 
-	// find the cookie value
+	console.log('cookies', $cookies); 
 	//$scope.session_key = ""; 
 	$scope.session_key = "3qauE3IohE3yxdYX4pznOg"; 
-	$scope.url = '../user'; 
+	$scope.url = '../users'; 
 	$scope.limit = 10;
 	$scope.currentPage = 1;
 	$scope.recordParPage = [10, 25, 50, 100];    
@@ -200,7 +308,7 @@ function UserCtrl($scope, $http){
     // query friends method
     $scope.noOfPages = 1;
     $scope.request = $scope.url+"?session_key="+$scope.session_key+"&limit="+$scope.limit+"&page="+$scope.currentPage;
-
+    $scope.maxSize = 10;
     //search Text
     $scope.searchText = ""; 
 
@@ -342,7 +450,7 @@ function UserCtrl($scope, $http){
 
 } 
 
-UserCtrl.$inject=['$scope', '$http']; 
+UserCtrl.$inject=['$scope', '$http', '$cookies']; 
  
 /* 
 function LoginCtrl($scope, $location, User){

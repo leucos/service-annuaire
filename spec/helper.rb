@@ -114,18 +114,22 @@ end
 #------------------------------------------------------------#
 
 ROL_TEST = "TEST"
-def create_test_role(application_id)
-  # example test role for etablissement admin
-  r = Role.find_or_create(:id => ROL_TEST, :application_id => application_id)
-  r.add_activite(SRV_USER, ACT_CREATE, "belongs_to")
-  r.add_activite(SRV_ETAB, ACT_UPDATE, "self")
-  r.add_activite(SRV_ETAB, ACT_READ, "self")
-  r.add_activite(SRV_CLASSE, ACT_DELETE, "belongs_to")
-  return r
-end
+# def create_test_role(application_id)
+#   # example test role for etablissement admin
+#   r = Role.find_or_create(:id => ROL_TEST, :application_id => application_id)
+#   r.add_activite(SRV_USER, ACT_CREATE, "belongs_to")
+#   r.add_activite(SRV_ETAB, ACT_UPDATE, "self")
+#   r.add_activite(SRV_ETAB, ACT_READ, "self")
+#   r.add_activite(SRV_CLASSE, ACT_DELETE, "belongs_to")
+#   return r
+# end
 
 def create_test_role()
   r = Role.find_or_create(:id => ROL_TEST)
+end 
+
+def create_test_role(role_id)
+  r = Role.find_or_create(:id => role_id)
 end 
 #-------------------------------------------------------------#
 def create_admin_etab_test_role(application_id)

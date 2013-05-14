@@ -1,5 +1,4 @@
 #coding: utf-8
-
 class UserApi < Grape::API
   version 'v1', :using => :param, :parameter => "v"
   format :json
@@ -479,7 +478,7 @@ class UserApi < Grape::API
       authorize_activites!([ACT_READ, ACT_MANAGE], Ressource.laclasse, SRV_USER)
       # todo : manque user_id et etablissement
       accepted_fields = {
-        prenom: :prenom, nom: :user__nom, login: :login, etablissement: :etablissement__nom, id: :user__id
+        prenom: :prenom, nom: :user__nom, login: :login, etablissement: :etablissement__nom, id: :user__id, id_ent: :id_ent
       }
 
       dataset = User.search_all_dataset()

@@ -35,8 +35,9 @@ class AuthSession
   # deletes the value and the key
   # raise UnauthorizedDeletion si il s'agit d'une session stockée
   def self.delete(key)
-    raise UnauthorizedDeletion.new if AuthConfig::STORED_SESSION.rassoc(key)
- 	  REDIS.del(key(key))
+    if !AuthConfig::STORED_SESSION.rassoc(key)
+ 	    REDIS.del(key(key))
+    end  
   end
 
   # Génère un id de session unique et l'associe à un id d'utlisateur

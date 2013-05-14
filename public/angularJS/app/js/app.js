@@ -2,14 +2,16 @@
 
 
 // Declare app level module which depends on filters, and services
-angular.module('myApp', ['myApp.filters', 'myApp.services', 'myApp.directives', 'ngGrid', 'ui.bootstrap', 'services.breadcrumbs', 
-  'services.authentication.current-user', 'services.i18nNotifications', 'services.notifications', 'services.httpRequestTracker','services.authentication']).
-  config(['$routeProvider', function($routeProvider, AuthenticationService) {
-    var AuthenticatedUser =  ['AuthenticationService', function(AuthenticationService) {
-      return AuthenticationService.requireAuthenticatedUser();
-    }];
+angular.module('myApp', ['myApp.filters', 'myApp.services', 'myApp.directives', 'ngGrid', 'ngCookies', 
+  'ui.bootstrap', 'services.breadcrumbs', 
+  'services.authentication.current-user', 'services.i18nNotifications', 'services.notifications', 'services.httpRequestTracker', 
+  'services.authentication']).
+  config(['$routeProvider', function($routeProvider, $stateProvider, AuthenticationService) {
+     var AuthenticatedUser =  ['AuthenticationService', function(AuthenticationService) {
+       return AuthenticationService.requireAuthenticatedUser();
+     }];
     $routeProvider.when('/', {templateUrl: 'partials/home.html', controller: HomeCtrl});
-    $routeProvider.when('/admin_laclasse', {templateUrl:'partials/admin_laclasse.html'}); 
+    $routeProvider.when('/admin_laclasse', {templateUrl:'partials/admin_laclasse.html',  resolve: { user: AuthenticatedUser}}); 
     $routeProvider.when('/admin_etab', {templateUrl:'partials/admin_etab.html'}); 
     $routeProvider.when('/admin_laclasse/etablissements', {templateUrl: 'partials/etablissements_grid.html', controller: EtabCtrl, resolve: { user: AuthenticatedUser}});
     $routeProvider.when('/etablissement/add', {templateUrl: 'partials/add_etablissemenet.html', controller: EtabCtrl});

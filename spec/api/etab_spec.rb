@@ -104,7 +104,7 @@ describe EtabApi do
   it "assign a role to user " do
     etab = create_test_etablissement
     user = create_test_user_in_etab(etab.id, "test")
-    role = create_test_role 
+    role = create_test_role("role") 
     
     # user belongs to the the establishement 
     post("/etablissements/#{etab.id}/user/#{user.id}/role_user", :role_id => role.id).status.should == 201
@@ -118,120 +118,127 @@ describe EtabApi do
   it "modify a user's role " do 
     etab = create_test_etablissement
     user = create_test_user_in_etab(etab.id, "test")
-    role1 = create_test_role 
+    role1 = create_test_role("role1")
     # create a user role 
     post("/etablissements/#{etab.id}/user/#{user.id}/role_user", :role_id => role1.id).status.should == 201    
     user.refresh 
-    user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role1.id]).should == true 
+    user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role1.id, :etablissement_id => etab.id]).should == true 
 
     #modify this role
-    role2 = create_test_role_with_id("prof")
-    put("/etablissement/#{etab.id}/user/#{user.id}/role_user/#{role1.id}", :role_id => role2.id).status.should == 200
+    role2 = create_test_role("role2")
+    put("/etablissements/#{etab.id}/user/#{user.id}/role_user/#{role1.id}", :role_id => role2.id).status.should == 200
     user.refresh
     user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role1.id]).should == false
     user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role2.id]).should == true  
-    
-    # can not add roles to a user having the same id
-    post("/etablissement/#{etab.id}/user/#{user.id}/role_user", :role_id => role2.id).status.should == 400
   end 
 
-  it "delete a role of a user", :broken => true do 
+  it "delete a role of a user" do 
     etab = create_test_etablissement
     user = create_test_user_in_etab(etab.id, "test")
-    role = create_test_role
+    role = create_test_role("test_role")
     # create a user's role
-    post("/etablissement/#{etab.id}/user/#{user.id}/role_user", :role_id => role.id).status.should == 201
+    post("/etablissements/#{etab.id}/user/#{user.id}/role_user", :role_id => role.id).status.should == 201
     user.refresh 
-    user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role.id]).should == true 
+    user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role.id, :etablissement_id => etab.id]).should == true 
 
     #delete user's role
-    delete("/etablissement/#{etab.id}/user/#{user.id}/role_user/#{role.id}").status.should == 200
+    delete("/etablissements/#{etab.id}/user/#{user.id}/role_user/#{role.id}").status.should == 200
     user.refresh 
-    user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role.id]).should == false
+    user.role_user.include?(RoleUser[:user_id => user.id, :role_id => role.id, :etablissement_id => etab.id]).should == false
   end
 
 
   ##########################################
   # Establishement classes and groups test #
   ##########################################
-
-  it "add(create) a class in the establishment", :broken => true do 
+  it "returns the list of classes in etablissement" do 
     etab = create_test_etablissement
-    classe = {:libelle =>"6emeC", :niveau_id => 1}
-    post("/etablissement/#{etab.id}/classe", classe).status.should == 201 
-    etab.classes.include?(Regroupement[:libelle => classe[:libelle], :niveau_id => classe[:niveau_id]]).should == true 
-    #puts JSON.parse(last_response.body).inspect
+    get("/etablissements/#{etab.id}/classes").status.should == 200
+  end 
+
+
+  it "add(create) a class in the establishment" do 
+    etab = create_test_etablissement
+    classe = {:libelle =>"6emeC", :code_mef_aaf => "10010012110"}
+    post("/etablissements/#{etab.id}/classes", classe).status.should == 201 
+    etab.classes.include?(Regroupement[:libelle => classe[:libelle], :code_mef_aaf => classe[:code_mef_aaf], :etablissement_id => etab.id]).should == true 
   end
 
 
-  it "modifies information about a class", :broken => true do
-    etab = create_test_etablissement
-    
+  it "modifies information about a class" do
+    etab = create_test_etablissement 
     #create  a new class
-    classe = {:libelle =>"6emeC", :niveau_id => 1}
-    post("/etablissement/#{etab.id}/classe", classe).status.should == 201 
-    etab.classes.include?(Regroupement[:libelle => classe[:libelle], :niveau_id => classe[:niveau_id]]).should == true 
-    response = JSON.parse(last_response.body)
-    classe_id = response["classe_id"]
+    classe = {:libelle =>"6emeC", :code_mef_aaf => "10010012110"}
+    post("/etablissements/#{etab.id}/classes", classe).status.should == 201 
+    etab.classes.include?(Regroupement[:libelle => classe[:libelle], :code_mef_aaf => classe[:code_mef_aaf], :etablissement_id => etab.id]).should == true 
+    classe = JSON.parse(last_response.body)
+    classe_id = classe.id
     
     # modify class information
-    classe = {:libelle =>"6emeA", :niveau_id => 1}
-    put("/etablissement/#{etab.id}/classe/#{classe_id}", classe).status.should == 200
-    etab.classes.include?(Regroupement[:id => classe_id, :libelle => classe[:libelle], :niveau_id => classe[:niveau_id]]).should == true 
+    classe = {:libelle =>"6emeA"}
+    put("/etablissements/#{etab.id}/classes/#{classe_id}", classe).status.should == 200
+    etab.classes.include?(Regroupement[:id => classe_id, :libelle => classe[:libelle]]).should == true 
 
   end
 
-  it "deletes a class in the establishemenet", :broken => true do
+  it "deletes a class in the establishemenet" do
     etab = create_test_etablissement 
-
     #create a new class
-    classe = {:libelle =>"6emeC", :niveau_id => 1}
-    post("/etablissement/#{etab.id}/classe", classe).status.should == 201 
-    etab.classes.include?(Regroupement[:libelle => classe[:libelle], :niveau_id => classe[:niveau_id]]).should == true 
-    response = JSON.parse(last_response.body)
-    classe_id = response["classe_id"]
+    classe = {:libelle =>"6emeC", :code_mef_aaf => "10010012110"}
+    post("/etablissements/#{etab.id}/classes", classe).status.should == 201 
+    etab.classes.include?(Regroupement[:libelle => classe[:libelle], :code_mef_aaf => classe[:code_mef_aaf]]).should == true 
+    classe = JSON.parse(last_response.body)
+    classe_id = classe.id
     
     # delete the classe 
-    delete("/etablissement/#{etab.id}/classe/#{classe_id}").status.should == 200
+    delete("/etablissements/#{etab.id}/classes/#{classe_id}").status.should == 200
     etab.classes.include?(Regroupement[:id => classe_id]).should == false 
-  end 
+  end
 
+  #####################################################
+  ###   groupes d'eleve
+  #####################################################
+  it "returns the list of classes in etablissement" do 
+    etab = create_test_etablissement
+    get("/etablissements/#{etab.id}/groupes").status.should == 200
+    # puts last_response.body 
+  end  
 
-  it "add/create a group in the establishement", :broken => true do 
+  it "add/create a group in the establishement" do 
     etab = create_test_etablissement
     groupe = {:libelle =>"groupe1"}
-    post("/etablissement/#{etab.id}/groupe", groupe).status.should == 201 
+    post("/etablissements/#{etab.id}/groupes", groupe).status.should == 201 
     etab.groupes_eleves.include?(Regroupement[:libelle => groupe[:libelle]]).should == true 
   end
 
-  it "modifies information about (group d'eleve)", :broken => true do 
+  it "modifies  a (group d'eleve)" do 
     etab = create_test_etablissement
     
     #create  a new class
     groupe = {:libelle =>"groupe1"}
-    post("/etablissement/#{etab.id}/groupe", groupe).status.should == 201 
+    post("/etablissements/#{etab.id}/groupes", groupe).status.should == 201 
     etab.groupes_eleves.include?(Regroupement[:libelle => groupe[:libelle]]).should == true 
-    response = JSON.parse(last_response.body)
-    groupe_id = response["groupe_id"]
+    groupe = JSON.parse(last_response.body)
+    groupe_id = groupe.id
     
     # modify class information
-    groupe = {:libelle =>"groupemodifie", :niveau_id => 1}
-    put("/etablissement/#{etab.id}/groupe/#{groupe_id}", groupe).status.should == 200
-    etab.groupes_eleves.include?(Regroupement[:id => groupe_id, :libelle => groupe[:libelle], :niveau_id => groupe[:niveau_id]]).should == true 
+    groupe = {:libelle =>"groupemodifie"}
+    put("/etablissements/#{etab.id}/groupes/#{groupe_id}", groupe).status.should == 200
+    etab.groupes_eleves.include?(Regroupement[:id => groupe_id, :libelle => groupe[:libelle]]).should == true 
   end 
 
-  it "deletes a group (d'eleve)", :broken => true do 
+  it "deletes a group (d'eleve)" do 
     etab = create_test_etablissement 
 
     #create a new class
     groupe = {:libelle =>"groupe1"}
-    post("/etablissement/#{etab.id}/groupe", groupe).status.should == 201 
+    post("/etablissements/#{etab.id}/groupes", groupe).status.should == 201 
     etab.groupes_eleves.include?(Regroupement[:libelle => groupe[:libelle]]).should == true 
-    response = JSON.parse(last_response.body)
-    groupe_id = response["groupe_id"]
+    groupe = JSON.parse(last_response.body)
+    groupe_id = groupe.id
     
     # delete the classe 
-    delete("/etablissement/#{etab.id}/groupe/#{groupe_id}").status.should == 200
+    delete("/etablissements/#{etab.id}/groupes/#{groupe_id}").status.should == 200
     etab.groupes_eleves.include?(Regroupement[:id => groupe_id]).should == false 
   end
 
@@ -326,7 +333,7 @@ describe EtabApi do
 
   end 
 
-  it "deletes a prof from a class and consequently deletes all his  subjects (matieres)", :broken => true do 
+  it "deletes a prof from a class and consequently deletes all his subjects (matieres)", :broken => true do 
     etab = create_test_etablissement 
     user = create_test_user_in_etab(etab.id, "test")
 
@@ -554,39 +561,49 @@ describe EtabApi do
     application_actifs = JSON.parse(last_response.body)
     application_actifs.count.should == 1
   end
-
-  it "creates a new (groupe libre)", :broken => true  do 
+  #################################################################
+  ####  gestion groupes libre 
+  ################################################################
+  it "lists the (groupes_libre) dans un etablissement" do 
     etab = create_test_etablissement
-    hash = {:libelle => "groupe_libre"}
-    post("/etablissement/#{etab.id}/groupe_libre/", hash).status.should == 201
-    response = JSON.parse(last_response.body)
-    Regroupement[:id => response["groupe_id"]].type_regroupement_id == TYP_REG_LBR 
+    get("/etablissements/#{etab.id}/groupes_libre/").status.should == 200
   end
 
-  it " modifies a (groupe libre)", :broken => true do
+  it "creates a new (groupe libre)"  do 
+    etab = create_test_etablissement
+    hash = {:libelle => "groupe_libre"}
+    post("/etablissements/#{etab.id}/groupes_libre/", hash).status.should == 201
+    groupe = JSON.parse(last_response.body)
+    Regroupement[:id => groupe.id].type_regroupement_id.should == TYP_REG_LBR
+    get("/etablissements/#{etab.id}/groupes_libre/").status.should == 200
+    groupes = JSON.parse(last_response.body)
+    groupes.count.should == 1
+  end
+
+  it "modifies a (groupe libre)" do
     etab = create_test_etablissement
     hash = {:libelle => "groupe_libre"}
     
     # create a group
-    post("/etablissement/#{etab.id}/groupe_libre", hash).status.should == 201
-    groupe_id = JSON.parse(last_response.body)["groupe_id"]
+    post("/etablissements/#{etab.id}/groupes_libre", hash).status.should == 201
+    groupe_id = JSON.parse(last_response.body).id
     #puts groupe_id 
 
-    put("/etablissement/#{etab.id}/groupe_libre/#{groupe_id}", :libelle => "modified groupe").status.should == 200
+    put("/etablissements/#{etab.id}/groupes_libre/#{groupe_id}", :libelle => "modified groupe").status.should == 200
     #puts last_response.body
 
   end 
 
-  it "deletes a (groupe _libre)", :broken => true do 
+  it "deletes a (groupe _libre)"  do 
     etab = create_test_etablissement
     hash = {:libelle => "groupe_libre"}
     # create a group
-    post("/etablissement/#{etab.id}/groupe_libre", hash).status.should == 201
-    groupe_id = JSON.parse(last_response.body)["groupe_id"]
+    post("/etablissements/#{etab.id}/groupes_libre", hash).status.should == 201
+    groupe_id = JSON.parse(last_response.body).id
     #puts groupe_id 
 
-    delete("/etablissement/#{etab.id}/groupe_libre/#{groupe_id}").status.should == 200
+    delete("/etablissements/#{etab.id}/groupes_libre/#{groupe_id}").status.should == 200
     Regroupement[:id => groupe_id].should == nil 
   end  
-
+  ################################################################
 end

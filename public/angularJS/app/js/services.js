@@ -147,7 +147,7 @@ angular.module('services.authentication').factory('AuthenticationService', ['$ht
       $http.post('../auth/logout', {"session_key": currentUser.getSession()}).then(function() {
         console.log('Logout .. '); 
         currentUser.clear();
-        $cookies.appSession = null; 
+        $cookies.appSession = ""; 
         redirect(redirectTo);
       });
     },
