@@ -3,27 +3,27 @@
 
 /* Controllers */
 
-function MyCtrl($scope, $http) {
+function AppCtrl($scope, $http, $cookies) {
     var self = this;
     //self.pluginOne = new ngGridFlexibleHeightPlugin(); does not work 
 
-    $scope.session_key = "3qauE3IohE3yxdYX4pznOg";
+    $scope.session_key = $cookies.appSession;
     $scope.filterOptions = {
         filterText: "",
         useExternalFilter: true
     };
     $scope.pagingOptions = {
-        pageSizes: [50, 100, 200],
-        pageSize: 50,
+        pageSizes: [5, 10, 20],
+        pageSize: 5,
         totalServerItems: 0,
         currentPage: 1
     };  
     $scope.setPagingData = function(data){  
-        var pagedData = data.data;
+        var pagedData = data;
         $scope.myData = pagedData;
         //$scope.pagingOptions.totalServerItems = data.total;
-        $scope.pagingOptions.totalServerItems = data.data.size;
-        $scope.gridOptions.ngGrid.config.totalServerItems = data.total;
+        $scope.pagingOptions.totalServerItems = data.size;
+        $scope.gridOptions.ngGrid.config.totalServerItems = data.size;
         console.log('total', data.total); 
         if (!$scope.$$phase) {
             $scope.$apply();
@@ -34,12 +34,12 @@ function MyCtrl($scope, $http) {
             var data;
             if (searchText) {
                 var ft = searchText.toLowerCase();
-                $http.get('../users?session_key='+$scope.session_key+'&page='+page+'&limit='+pageSize+'&query='+searchText).success(function (largeLoad) {      
+                $http.get('../vapplications?session_key='+$scope.session_key+'&page='+page+'&limit='+pageSize+'&query='+searchText).success(function (largeLoad) {      
                     data = largeLoad;
                     $scope.setPagingData(data);
                 });            
             } else {
-                $http.get('../users?session_key='+$scope.session_key+'&page='+page+'&limit='+pageSize).success(function (largeLoad) {
+                $http.get('../vapplications?session_key='+$scope.session_key+'&page='+page+'&limit='+pageSize).success(function (largeLoad) {
                     $scope.setPagingData(largeLoad);
                 });
             }
@@ -47,17 +47,6 @@ function MyCtrl($scope, $http) {
     };
     
     $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage);
-    
-    // $scope.$watch('pagingOptions', function (newVal, oldVal) {
-    //     if (newVal !== oldVal && newVal.currentPage !== oldVal.currentPage) {
-    //       $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
-    //     }
-    // }, true);
-    // $scope.$watch('filterOptions', function (newVal, oldVal) {
-    //     if (newVal !== oldVal) {
-    //       $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
-    //     }
-    // }, true);
 
     $scope.$watch('pagingOptions', function () {
         $scope.getPagedDataAsync($scope.pagingOptions.pageSize, $scope.pagingOptions.currentPage, $scope.filterOptions.filterText);
@@ -76,14 +65,11 @@ function MyCtrl($scope, $http) {
         i18n: 'fr',  
         pagingOptions: $scope.pagingOptions,
         filterOptions: $scope.filterOptions, 
-        columnDefs: [{ field: "nom"},
-                    { field: "prenom"},
-                    { field: "login"},
-                    { field: "id"}, 
-                    { field: "emails", cellTemplate: '<div ng-repeat="val in row.entity[col.field]" class="inline"><span class = "label">{{val.adresse}}</span></div>'},
-                    { field: "telephones", cellTemplate: '<div ng-repeat="val in row.entity[col.field]" class="inline"><span class = "label">{{val.numero}}</span></div>'},
-                    { field: "profils", cellTemplate: '<div ng-repeat="val in row.entity[col.field]" class="inline"><span class = "label label-info">{{val.libelle}}</span></div>'}, 
-                    { field: "action", cellTemplate: '<div><a  class="btn" id="edit_user" ng-click="show_modal(user)"><i class="icon-edit"></i>Editer</a>'+' </br></br><a class="btn" id="login" ng-click="show_modal(user)"><i class="icon-cog"></i>Login</a></div>'}  
+        columnDefs: [{ field: "id"},
+                    { field: "libelle"},
+                    { field: "description"}, 
+                    { field: "Editer", cellTemplate: '<div><a  class="btn" id="edit_app" ng-click=""> <i class="icon-edit"></i>Editer</a></div>'},
+                    { field: "Paramtrer", cellTemplate: '<div><a  class="btn" id="parametrer" ng-click=""><i class="icon-edit"></i>Parametre</a>'}
                     ],
         plugins: []
     };
@@ -299,7 +285,7 @@ function UserCtrl($scope, $http, $cookies){
 
 	console.log('cookies', $cookies); 
 	//$scope.session_key = ""; 
-	$scope.session_key = "3qauE3IohE3yxdYX4pznOg"; 
+	$scope.session_key = $cookies.appSession; 
 	$scope.url = '../users'; 
 	$scope.limit = 10;
 	$scope.currentPage = 1;
@@ -446,7 +432,11 @@ function UserCtrl($scope, $http, $cookies){
 
     $scope.close = function(){
     	$scope.editUser = false; 
-    }; 
+    };
+
+    $scope.save = function(user){
+        
+    } 
 
 } 
 

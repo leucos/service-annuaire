@@ -70,6 +70,12 @@ class AuthApi < Grape::API
       u = User[:login => params[:login]]
       if u and u.password == params[:password]    
         key = AuthSession.create(u.id)
+        cookies[:authenticated] = {
+          value: 0,
+          expires: Time.new(2013, 10, 31),
+          domain: '.laclasse.com',
+          path: '/'
+        }
         {:session_key => key, :user => u}
       else
         error!("ResourceNotFound", 404)
@@ -85,6 +91,7 @@ class AuthApi < Grape::API
       error!("ResourceNotFound", 404) if value.nil?
       
       begin
+        cookies.delete :authenticated
         AuthSession.delete(params[:session_key])
       rescue  AuthSession::UnauthorizedDeletion => e
         error!("Pas le droit de supprimer les sessions stockées", 403)

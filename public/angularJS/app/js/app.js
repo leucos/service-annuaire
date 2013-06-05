@@ -68,7 +68,7 @@ angular.module('myApp', ['myApp.filters', 'myApp.services', 'myApp.directives', 
    * On 'event:loginConfirmed', resend all the 401 requests.
    */
   scope.$on('event:loginConfirmed', function() {
-  	console.log('inside loginConfirmed event'); 
+  	console.log('loginConfirmed event'); 
     var i, requests = scope.requests401;
     for (i = 0; i < requests.length; i++) {
       retry(requests[i]);
@@ -87,7 +87,7 @@ angular.module('myApp', ['myApp.filters', 'myApp.services', 'myApp.directives', 
    */
   scope.$on('event:loginRequest', function(event, username, password) {
   	// show login
-  	console.log('inside loginRequest event');  
+  	console.log('loginRequest event');  
     var payload = $.param({j_username: username, j_password: password});
     var config = {
       headers: {'Content-Type':'application/x-www-form-urlencoded; charset=UTF-8'}

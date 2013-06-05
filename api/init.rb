@@ -5,6 +5,9 @@ require __DIR__('user')
 require __DIR__('sso')
 require __DIR__('auth')
 require __DIR__('etab')
+require __DIR__('app')
 require __DIR__('alimentation')
+require __DIR__('classes')
 require __DIR__('root')
+
 

@@ -13,7 +13,7 @@ module RightHelpers
     # comme ça si on veut se faire passer pour quelqu'un, on change juste le header et pas les requètes
     # Technique de Daniel ;)
     # TODO se connecter par CAS server
-    session = request.env[AuthConfig::HTTP_HEADER] if request.env[AuthConfig::HTTP_HEADER]
+    session = request.env[AuthConfig::HTTP_HEADER] if request.env[AuthConfig::HTTP_HEADER] 
     user_id = AuthSession.get(session)
     if !user_id.nil?
       @current_user = User[:id => user_id]
@@ -26,6 +26,15 @@ module RightHelpers
   def authenticate!
     error!('Non authentifié', 401) unless current_user
   end
+
+  def authenticate_app!
+    session = cookies[:session_key] if cookies[:session_key]
+    session = request.env["HTTP_SESSION_KEY"] if request.env["HTTP_SESSION_KEY"]
+    id = nil 
+    id = AuthSession.get(session)
+    puts session
+    error!('Non authentifié', 401) unless id
+  end 
 
 
   def authorize_activites!(activites, ressource, service = nil)
