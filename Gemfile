@@ -1,12 +1,13 @@
 source :rubygems
 #source 'http://gems.erasme.org'
+#grape entities works only with version 0.2.6 and swagger 0.3.0
 
 gem 'sequel'
 gem 'mysql2'
 gem 'ruby-oci8'
 gem 'thin'
 gem 'bcrypt-ruby'
-gem 'grape'
+gem 'grape' 
 gem 'i18n'
 gem 'rake'
 gem 'archive-tar-minitar'

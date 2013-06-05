@@ -473,8 +473,8 @@ class AlimentationApi < Grape::API
           end               
         end #Loop 
       #output
-      logger.info("Bilan etablissement")
-      logger.info(JSON.pretty_generate(infostack))
+      Laclasse::Log.info("Bilan etablissement")
+      Laclasse::Log.info(JSON.pretty_generate(infostack))
       JSON.pretty_generate(infostack)
     end
     #---------------------------------------------------------#
