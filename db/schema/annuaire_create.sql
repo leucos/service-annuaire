@@ -2,6 +2,9 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL';
 
+DROP SCHEMA IF EXISTS `annuairev2` ;
+CREATE SCHEMA IF NOT EXISTS `annuairev2` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ;
+USE `annuairev2` ;
 
 -- -----------------------------------------------------
 -- Table `annuairev2`.`user`
@@ -28,17 +31,13 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`user` (
   `bloque` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Si oui ou non le compte est bloqué (plus d\'accès à l\'établissement et autre).' ,
   `change_password` TINYINT(1) NULL DEFAULT 0 COMMENT 'doit changer son password' ,
   `id_ent` CHAR(16) NOT NULL ,
-  PRIMARY KEY (`id`) )
+  PRIMARY KEY (`id`) ,
+  INDEX `id_jointure_aaf_UNIQUE` USING BTREE (`id_jointure_aaf` ASC) ,
+  UNIQUE INDEX `id_sconet_UNIQUE` (`id_sconet` ASC) ,
+  UNIQUE INDEX `login_UNIQUE` (`login` ASC) ,
+  UNIQUE INDEX `id_ent_UNIQUE` (`id_ent` ASC) )
 ENGINE = InnoDB
 COMMENT = 'change id to integer and \nmodify id_ent';
-
-CREATE INDEX `id_jointure_aaf_UNIQUE` USING BTREE ON `annuairev2`.`user` (`id_jointure_aaf` ASC) ;
-
-CREATE UNIQUE INDEX `id_sconet_UNIQUE` ON `annuairev2`.`user` (`id_sconet` ASC) ;
-
-CREATE UNIQUE INDEX `login_UNIQUE` ON `annuairev2`.`user` (`login` ASC) ;
-
-CREATE UNIQUE INDEX `id_ent_UNIQUE` ON `annuairev2`.`user` (`id_ent` ASC) ;
 
 
 -- -----------------------------------------------------
@@ -107,6 +106,7 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`etablissement` (
   `ip_pub_passerelle` VARCHAR(45) NULL ,
   `type_etablissement_id` INT NOT NULL ,
   PRIMARY KEY (`id`) ,
+  INDEX `fk_etablissement_type_etablissement1` (`type_etablissement_id` ASC) ,
   CONSTRAINT `fk_etablissement_type_etablissement1`
     FOREIGN KEY (`type_etablissement_id` )
     REFERENCES `annuairev2`.`type_etablissement` (`id` )
@@ -114,8 +114,6 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`etablissement` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 COMMENT = 'notes : \nid = structure_jointure \nchange type data_last_maj_' /* comment truncated */;
-
-CREATE INDEX `fk_etablissement_type_etablissement1` ON `annuairev2`.`etablissement` (`type_etablissement_id` ASC) ;
 
 
 -- -----------------------------------------------------
@@ -133,6 +131,9 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`regroupement` (
   `code_mef_aaf` VARCHAR(20) NULL ,
   `etablissement_id` INT NOT NULL ,
   PRIMARY KEY (`id`) ,
+  INDEX `fk_regroupement_type_regroupement1` (`type_regroupement_id` ASC) ,
+  INDEX `fk_regroupement_niveau1` (`code_mef_aaf` ASC) ,
+  INDEX `fk_regroupement_etablissement1` (`etablissement_id` ASC) ,
   CONSTRAINT `fk_regroupement_type_regroupement1`
     FOREIGN KEY (`type_regroupement_id` )
     REFERENCES `annuairev2`.`type_regroupement` (`id` )
@@ -150,12 +151,6 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`regroupement` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 COMMENT = 'change code_mef to code_mef_aaf ';
-
-CREATE INDEX `fk_regroupement_type_regroupement1` ON `annuairev2`.`regroupement` (`type_regroupement_id` ASC) ;
-
-CREATE INDEX `fk_regroupement_niveau1` ON `annuairev2`.`regroupement` (`code_mef_aaf` ASC) ;
-
-CREATE INDEX `fk_regroupement_etablissement1` ON `annuairev2`.`regroupement` (`etablissement_id` ASC) ;
 
 
 -- -----------------------------------------------------
@@ -181,6 +176,9 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`enseigne_dans_regroupement` (
   `regroupement_id` INT NOT NULL ,
   `matiere_enseignee_id` VARCHAR(10) NOT NULL ,
   `prof_principal` VARCHAR(45) NULL ,
+  INDEX `fk_user_has_regroupement_regroupement1` (`regroupement_id` ASC) ,
+  INDEX `fk_user_has_regroupement_user1` (`user_id` ASC) ,
+  INDEX `fk_enseigne_regroupement_matiere_enseignee1` (`matiere_enseignee_id` ASC) ,
   PRIMARY KEY (`regroupement_id`, `user_id`) ,
   CONSTRAINT `fk_user_has_regroupement_user1`
     FOREIGN KEY (`user_id` )
@@ -199,12 +197,6 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`enseigne_dans_regroupement` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 COMMENT = 'Table spécifique aux Professeur';
-
-CREATE INDEX `fk_user_has_regroupement_regroupement1` ON `annuairev2`.`enseigne_dans_regroupement` (`regroupement_id` ASC) ;
-
-CREATE INDEX `fk_user_has_regroupement_user1` ON `annuairev2`.`enseigne_dans_regroupement` (`user_id` ASC) ;
-
-CREATE INDEX `fk_enseigne_regroupement_matiere_enseignee1` ON `annuairev2`.`enseigne_dans_regroupement` (`matiere_enseignee_id` ASC) ;
 
 
 -- -----------------------------------------------------
@@ -235,6 +227,9 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`relation_eleve` (
   `contact` TINYINT(1) NULL DEFAULT 0 ,
   `paiement` TINYINT(1) NULL DEFAULT 0 ,
   PRIMARY KEY (`user_id`, `eleve_id`, `type_relation_eleve_id`) ,
+  INDEX `fk_user_has_user_user2` (`user_id` ASC) ,
+  INDEX `fk_user_has_user_user1` (`eleve_id` ASC) ,
+  INDEX `fk_relation_eleve_type_relation_eleve1` (`type_relation_eleve_id` ASC) ,
   CONSTRAINT `fk_user_has_user_user1`
     FOREIGN KEY (`eleve_id` )
     REFERENCES `annuairev2`.`user` (`id` )
@@ -251,12 +246,6 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`relation_eleve` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
-
-CREATE INDEX `fk_user_has_user_user2` ON `annuairev2`.`relation_eleve` (`user_id` ASC) ;
-
-CREATE INDEX `fk_user_has_user_user1` ON `annuairev2`.`relation_eleve` (`eleve_id` ASC) ;
-
-CREATE INDEX `fk_relation_eleve_type_relation_eleve1` ON `annuairev2`.`relation_eleve` (`type_relation_eleve_id` ASC) ;
 
 
 -- -----------------------------------------------------
@@ -283,6 +272,8 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`telephone` (
   `user_id` INT NOT NULL ,
   `type_telephone_id` CHAR(8) NOT NULL ,
   PRIMARY KEY (`id`) ,
+  INDEX `fk_telephone_user1` (`user_id` ASC) ,
+  INDEX `fk_telephone_type_telephone1` (`type_telephone_id` ASC) ,
   CONSTRAINT `fk_telephone_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuairev2`.`user` (`id` )
@@ -294,10 +285,6 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`telephone` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
-
-CREATE INDEX `fk_telephone_user1` ON `annuairev2`.`telephone` (`user_id` ASC) ;
-
-CREATE INDEX `fk_telephone_type_telephone1` ON `annuairev2`.`telephone` (`type_telephone_id` ASC) ;
 
 
 -- -----------------------------------------------------
@@ -325,6 +312,7 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`profil_national` (
   `code_national` VARCHAR(45) NULL COMMENT 'Code du profil type National_1.' ,
   `role_id` VARCHAR(20) NULL ,
   PRIMARY KEY (`id`) ,
+  INDEX `fk_profil_role1` (`role_id` ASC) ,
   CONSTRAINT `fk_profil_role1`
     FOREIGN KEY (`role_id` )
     REFERENCES `annuairev2`.`role` (`id` )
@@ -332,8 +320,6 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`profil_national` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 COMMENT = 'profil table is  a reference table that make use of the docu' /* comment truncated */;
-
-CREATE INDEX `fk_profil_role1` ON `annuairev2`.`profil_national` (`role_id` ASC) ;
 
 
 -- -----------------------------------------------------
@@ -393,6 +379,8 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`param_application` (
   `application_id` CHAR(8) NOT NULL ,
   `type_param_id` CHAR(8) NOT NULL ,
   PRIMARY KEY (`id`) ,
+  INDEX `fk_param_application_application1` (`application_id` ASC) ,
+  INDEX `fk_param_application_type_param1` (`type_param_id` ASC) ,
   CONSTRAINT `fk_param_application_application1`
     FOREIGN KEY (`application_id` )
     REFERENCES `annuairev2`.`application` (`id` )
@@ -405,10 +393,6 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`param_application` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 COMMENT = 'Paramètres de l\'application avec leurs valeurs par défaut. ';
-
-CREATE INDEX `fk_param_application_application1` ON `annuairev2`.`param_application` (`application_id` ASC) ;
-
-CREATE INDEX `fk_param_application_type_param1` ON `annuairev2`.`param_application` (`type_param_id` ASC) ;
 
 
 -- -----------------------------------------------------
@@ -450,14 +434,13 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`email` (
   `academique` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Si c\'est un mail académique (pour le PEN)' ,
   `user_id` INT NOT NULL ,
   PRIMARY KEY (`id`) ,
+  INDEX `fk_email_user1` (`user_id` ASC) ,
   CONSTRAINT `fk_email_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuairev2`.`user` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
-
-CREATE INDEX `fk_email_user1` ON `annuairev2`.`email` (`user_id` ASC) ;
 
 
 -- -----------------------------------------------------
@@ -483,6 +466,7 @@ DROP TABLE IF EXISTS `annuairev2`.`ressource` ;
 CREATE  TABLE IF NOT EXISTS `annuairev2`.`ressource` (
   `id` VARCHAR(255) NOT NULL ,
   `service_id` CHAR(8) NOT NULL ,
+  INDEX `fk_ressource_service1` (`service_id` ASC) ,
   PRIMARY KEY (`service_id`, `id`) ,
   CONSTRAINT `fk_ressource_service1`
     FOREIGN KEY (`service_id` )
@@ -491,8 +475,6 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`ressource` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 COMMENT = 'Une ressource est n\'importe quel élément sur lequel on peut ' /* comment truncated */;
-
-CREATE INDEX `fk_ressource_service1` ON `annuairev2`.`ressource` (`service_id` ASC) ;
 
 
 -- -----------------------------------------------------
@@ -505,6 +487,8 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`param_etablissement` (
   `param_application_id` INT NOT NULL ,
   `valeur` VARCHAR(2000) NULL ,
   PRIMARY KEY (`etablissement_id`, `param_application_id`) ,
+  INDEX `fk_param_application_has_etablissement_etablissement1` (`etablissement_id` ASC) ,
+  INDEX `fk_param_etablissement_param_application1` (`param_application_id` ASC) ,
   CONSTRAINT `fk_param_application_has_etablissement_etablissement1`
     FOREIGN KEY (`etablissement_id` )
     REFERENCES `annuairev2`.`etablissement` (`id` )
@@ -517,10 +501,6 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`param_etablissement` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
-CREATE INDEX `fk_param_application_has_etablissement_etablissement1` ON `annuairev2`.`param_etablissement` (`etablissement_id` ASC) ;
-
-CREATE INDEX `fk_param_etablissement_param_application1` ON `annuairev2`.`param_etablissement` (`param_application_id` ASC) ;
-
 
 -- -----------------------------------------------------
 -- Table `annuairev2`.`param_user`
@@ -532,6 +512,8 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`param_user` (
   `param_application_id` INT NOT NULL ,
   `valeur` VARCHAR(2000) NULL ,
   PRIMARY KEY (`user_id`, `param_application_id`) ,
+  INDEX `fk_param_application_has_user_user1` (`user_id` ASC) ,
+  INDEX `fk_param_user_param_application1` (`param_application_id` ASC) ,
   CONSTRAINT `fk_param_application_has_user_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuairev2`.`user` (`id` )
@@ -543,10 +525,6 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`param_user` (
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
-
-CREATE INDEX `fk_param_application_has_user_user1` ON `annuairev2`.`param_user` (`user_id` ASC) ;
-
-CREATE INDEX `fk_param_user_param_application1` ON `annuairev2`.`param_user` (`param_application_id` ASC) ;
 
 
 -- -----------------------------------------------------
@@ -560,6 +538,9 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`role_user` (
   `bloque` TINYINT(1) NOT NULL DEFAULT 0 ,
   `etablissement_id` INT NOT NULL ,
   PRIMARY KEY (`user_id`, `role_id`, `etablissement_id`) ,
+  INDEX `fk_role_user_user1` (`user_id` ASC) ,
+  INDEX `fk_role_user_role1` (`role_id` ASC) ,
+  INDEX `fk_role_user_etablissement1` (`etablissement_id` ASC) ,
   CONSTRAINT `fk_role_has_user_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuairev2`.`user` (`id` )
@@ -577,12 +558,6 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`role_user` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
-CREATE INDEX `fk_role_user_user1` ON `annuairev2`.`role_user` (`user_id` ASC) ;
-
-CREATE INDEX `fk_role_user_role1` ON `annuairev2`.`role_user` (`role_id` ASC) ;
-
-CREATE INDEX `fk_role_user_etablissement1` ON `annuairev2`.`role_user` (`etablissement_id` ASC) ;
-
 
 -- -----------------------------------------------------
 -- Table `annuairev2`.`profil_user`
@@ -594,6 +569,9 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`profil_user` (
   `user_id` INT NOT NULL ,
   `etablissement_id` INT NOT NULL ,
   PRIMARY KEY (`profil_id`, `user_id`, `etablissement_id`) ,
+  INDEX `fk_profil_has_user_user1` (`user_id` ASC) ,
+  INDEX `fk_profil_user_etablissement1` (`etablissement_id` ASC) ,
+  INDEX `fk_profil_user_profil1` (`profil_id` ASC) ,
   CONSTRAINT `fk_profil_has_user_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuairev2`.`user` (`id` )
@@ -612,12 +590,6 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`profil_user` (
 ENGINE = InnoDB
 COMMENT = 'profil_user is the table that link  the user to an etablisse' /* comment truncated */;
 
-CREATE INDEX `fk_profil_has_user_user1` ON `annuairev2`.`profil_user` (`user_id` ASC) ;
-
-CREATE INDEX `fk_profil_user_etablissement1` ON `annuairev2`.`profil_user` (`etablissement_id` ASC) ;
-
-CREATE INDEX `fk_profil_user_profil1` ON `annuairev2`.`profil_user` (`profil_id` ASC) ;
-
 
 -- -----------------------------------------------------
 -- Table `annuairev2`.`application_etablissement`
@@ -628,6 +600,8 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`application_etablissement` (
   `application_id` CHAR(8) NOT NULL ,
   `etablissement_id` INT NOT NULL ,
   PRIMARY KEY (`application_id`, `etablissement_id`) ,
+  INDEX `fk_application_has_etablissement_etablissement1` (`etablissement_id` ASC) ,
+  INDEX `fk_application_has_etablissement_application1` (`application_id` ASC) ,
   CONSTRAINT `fk_application_has_etablissement_application1`
     FOREIGN KEY (`application_id` )
     REFERENCES `annuairev2`.`application` (`id` )
@@ -640,10 +614,6 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`application_etablissement` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
-CREATE INDEX `fk_application_has_etablissement_etablissement1` ON `annuairev2`.`application_etablissement` (`etablissement_id` ASC) ;
-
-CREATE INDEX `fk_application_has_etablissement_application1` ON `annuairev2`.`application_etablissement` (`application_id` ASC) ;
-
 
 -- -----------------------------------------------------
 -- Table `annuairev2`.`eleve_dans_regroupement`
@@ -654,6 +624,8 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`eleve_dans_regroupement` (
   `user_id` INT NOT NULL ,
   `regroupement_id` INT NOT NULL ,
   PRIMARY KEY (`user_id`, `regroupement_id`) ,
+  INDEX `fk_user_has_regroupement_regroupement2` (`regroupement_id` ASC) ,
+  INDEX `fk_user_has_regroupement_user2` (`user_id` ASC) ,
   CONSTRAINT `fk_user_has_regroupement_user2`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuairev2`.`user` (`id` )
@@ -665,10 +637,6 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`eleve_dans_regroupement` (
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB;
-
-CREATE INDEX `fk_user_has_regroupement_regroupement2` ON `annuairev2`.`eleve_dans_regroupement` (`regroupement_id` ASC) ;
-
-CREATE INDEX `fk_user_has_regroupement_user2` ON `annuairev2`.`eleve_dans_regroupement` (`user_id` ASC) ;
 
 
 -- -----------------------------------------------------
@@ -682,6 +650,8 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`profil_user_fonction` (
   `etablissement_id` INT NOT NULL ,
   `fonction_id` INT NOT NULL ,
   PRIMARY KEY (`user_id`, `etablissement_id`, `profil_id`, `fonction_id`) ,
+  INDEX `fk_profil_user_has_fonction_profil_user1` (`profil_id` ASC, `user_id` ASC, `etablissement_id` ASC) ,
+  INDEX `fk_profil_user_fonction_fonction1` (`fonction_id` ASC) ,
   CONSTRAINT `fk_profil_user_has_fonction_profil_user1`
     FOREIGN KEY (`profil_id` , `user_id` , `etablissement_id` )
     REFERENCES `annuairev2`.`profil_user` (`profil_id` , `user_id` , `etablissement_id` )
@@ -694,10 +664,6 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`profil_user_fonction` (
     ON UPDATE NO ACTION)
 ENGINE = InnoDB
 COMMENT = 'this table generated from many to many between profil_user a' /* comment truncated */;
-
-CREATE INDEX `fk_profil_user_has_fonction_profil_user1` ON `annuairev2`.`profil_user_fonction` (`profil_id` ASC, `user_id` ASC, `etablissement_id` ASC) ;
-
-CREATE INDEX `fk_profil_user_fonction_fonction1` ON `annuairev2`.`profil_user_fonction` (`fonction_id` ASC) ;
 
 
 -- -----------------------------------------------------
@@ -712,6 +678,10 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`activite_role` (
   `condition` VARCHAR(45) NOT NULL ,
   `parent_service_id` CHAR(8) NOT NULL ,
   PRIMARY KEY (`activite_id`, `role_id`, `service_id`, `parent_service_id`) ,
+  INDEX `fk_role_has_service_has_activite_activite1` (`activite_id` ASC) ,
+  INDEX `fk_activite_role_role1` (`role_id` ASC) ,
+  INDEX `fk_activite_role_service1` (`service_id` ASC) ,
+  INDEX `fk_activite_role_service2` (`parent_service_id` ASC) ,
   CONSTRAINT `fk_role_has_service_has_activite_activite1`
     FOREIGN KEY (`activite_id` )
     REFERENCES `annuairev2`.`activite` (`id` )
@@ -735,30 +705,11 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`activite_role` (
 ENGINE = InnoDB
 COMMENT = 'condition in activite_role \nare: :all, :self, belongs_to';
 
-CREATE INDEX `fk_role_has_service_has_activite_activite1` ON `annuairev2`.`activite_role` (`activite_id` ASC) ;
-
-CREATE INDEX `fk_activite_role_role1` ON `annuairev2`.`activite_role` (`role_id` ASC) ;
-
-CREATE INDEX `fk_activite_role_service1` ON `annuairev2`.`activite_role` (`service_id` ASC) ;
-
-CREATE INDEX `fk_activite_role_service2` ON `annuairev2`.`activite_role` (`parent_service_id` ASC) ;
-
 
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
-
--- -----------------------------------------------------
--- Data for table `annuairev2`.`type_regroupement`
--- -----------------------------------------------------
-START TRANSACTION;
-USE `annuairev2`;
-INSERT INTO `annuairev2`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('1', 'CLS', 'Classe');
-INSERT INTO `annuairev2`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('2', 'GRP', 'Groupe d\'élèves');
-INSERT INTO `annuairev2`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('3', 'ENV', 'Groupe de travail');
-
-COMMIT;
 
 -- -----------------------------------------------------
 -- Data for table `annuairev2`.`type_regroupement`
@@ -817,22 +768,4 @@ INSERT INTO `annuairev2`.`type_telephone` (`id`, `libelle`, `description`) VALUE
 INSERT INTO `annuairev2`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('FAX', 'Fax', 'Numéro du fax ou téléphone/fax');
 INSERT INTO `annuairev2`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('AUTRE', 'Autre', 'Autre numéro de téléphone');
 
-COMMIT;
-
--- -----------------------------------------------------
--- Data for table `annuairev2`.`profil`
--- -----------------------------------------------------
--- START TRANSACTION;
--- USE `annuairev2`;
--- INSERT INTO `annuairev2`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('ELV', 'élève', 'National_ELV', NULL);
--- INSERT INTO `annuairev2`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('TUT', 'Responsable d\'un élève(parent, tuteur légal)', 'National_TUT', NULL);
--- INSERT INTO `annuairev2`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('ENS', 'Enseignant', 'National_ENS', NULL);
--- INSERT INTO `annuairev2`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('DIR', 'Personnel de direction de l\'établissement', 'National_DIR', NULL);
--- INSERT INTO `annuairev2`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('EVS', 'Personnel de vie scolaire travaillant dans l\'établissement', 'National_EVS', NULL);
--- INSERT INTO `annuairev2`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('ETA', 'Personnel administratif, technique ou d\'encadrement ', 'National_ETA', NULL);
--- INSERT INTO `annuairev2`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('ACA', 'Personnel de rectorat, de DRAF, d\'inspection académique', 'National_ACA', NULL);
--- INSERT INTO `annuairev2`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('DOC', 'Documentaliste', 'National_DOC', NULL);
--- INSERT INTO `annuairev2`.`profil_national` (`id`, `description`, `code_national`, `role_id`) VALUES ('COL', 'Personnel de collectivité teritoriale ', 'National_COL', NULL);
-
--- COMMIT;
 COMMIT;
