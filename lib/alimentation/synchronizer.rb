@@ -378,7 +378,7 @@ module Alimentation
               end 
                
               # add email
-              if !person["mail"].nil?
+              if !person["mail"].nil? && !record.email.include?(Email[:adresse => person["mail"]])
                 # add email
                 if person["mail_academique"] == "Y"
                   record.add_email(person["mail"], true)
@@ -469,18 +469,18 @@ module Alimentation
               etablissement_id = Etablissement[:code_uai => @uai].id
               record.add_profil(etablissement_id, profil_id)
               
-              # add email 
-              if !parent["mail"].nil? && parent["mail"] != ""
+              # update email 
+              if !parent["mail"].nil? && parent["mail"] != "" && !record.email.include?(Email[:adresse => parent["mail"]])
                 record.add_email(parent["mail"])
               end
-
-              # add home telephone
-              if !parent["tel_home"].nil? && parent["tel_home"] != ""
+                
+              # update telephone
+              if !parent["tel_home"].nil? && parent["tel_home"] != "" && !record.telephone.include?(Telephone[:numero => parent["tel_home"].delete(" "), :user_id => record.id])
                 record.add_telephone(parent["tel_home"])
               end
 
-              # add work telephone
-              if !parent["tel_work"].nil? && parent["tel_work"] != ""
+              # update work telephone
+              if !parent["tel_work"].nil? && parent["tel_work"] != "" && !record.telephone.include?(Telephone[:numero => parent["tel_work"].delete(" "), :user_id => record.id])
                 record.add_telephone(parent["tel_work"],TYP_TEL_TRAV)
               end 
             end
