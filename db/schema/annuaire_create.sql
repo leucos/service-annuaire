@@ -109,6 +109,7 @@ CREATE  TABLE IF NOT EXISTS `annuairev2`.`etablissement` (
   `alimentation_date` DATE NULL ,
   `data_received` TINYINT(1) NOT NULL DEFAULT 0 ,
   INDEX `fk_etablissement_type_etablissement1` (`type_etablissement_id` ASC) ,
+  PRIMARY KEY (`id`) ,
   CONSTRAINT `fk_etablissement_type_etablissement1`
     FOREIGN KEY (`type_etablissement_id` )
     REFERENCES `annuairev2`.`type_etablissement` (`id` )
@@ -712,7 +713,6 @@ COMMENT = 'condition in activite_role \nare: :all, :self, belongs_to';
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
-
 
 -- -----------------------------------------------------
 -- Data for table `annuairev2`.`type_regroupement`
