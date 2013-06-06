@@ -478,6 +478,60 @@ class AlimentationApi < Grape::API
       JSON.pretty_generate(infostack)
     end
     #---------------------------------------------------------#
+
+     #------------------------------------------------------#
+    desc "aliment only the basic information of all etablissements"
+    params do 
+    end
+    get "/aliment_basic/etablissements" do
+        
+        output = ""
+        infostack = {}
+        infostack["errors"] = []
+        logger = nil 
+        service = "etablissement" 
+        res = Net::HTTP.get_response(URI('http://www.dev.laclasse.com/annuaire/index.php?action=api&service=etablissements'))
+        #print res.inspect
+        etablissements = JSON.parse(res.body) 
+        if etablissements.count == 0 
+          raise "no data is available"
+        end 
+        etablissements.each do |etab|
+          begin
+          # get etablissements Lists 
+          
+          synchronizer = Alimentation::Synchronizer.new("Complet", params[:uai],"","","")
+
+          #res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{service}&rne=#{params[:uai]}"))
+          #raise "can not pull data #{service} from the server" if res.code != 200       # => '200 
+          #result = JSON.parse(res.body)
+          
+          logger = synchronizer.logger
+         
+             #synchronizer.type_data = "STRUCTURES"
+            start = Time.now 
+            synchronizer.modify_or_create_etablissement([etab])
+            fin = Time.now 
+            output += "Synchronize etablissement: #{etab["code_uai"]} \n"
+            output += "Synchronization took #{fin-start} seconds \n"
+            infostack["etablissement#{etab["code_uai"]}"] = {:uai => etab["code_uai"], :sync_time => fin-start, 
+              :errors => synchronizer.errorstack} 
+            #infostack["errors"] + synchronizer.errorstack 
+             
+          rescue => e 
+           output+="Error: #{e.message} \n"
+           infostack["errors"].push(e.message)
+            #error!("Bad Request: #{e.message}", 400)
+          end 
+        end #loop                 
+      #output
+      Laclasse::Log.info("Bilan etablissement")
+      Laclasse::Log.info(JSON.pretty_generate(infostack))
+      JSON.pretty_generate(infostack)
+    end
+
+    #-----------------------------------------------------------# 
+
     desc "delete (detache) users from the etablissement"
     params do 
       requires :uai, :type => String, :desc => "code_uai"
