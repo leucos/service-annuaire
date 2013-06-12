@@ -406,7 +406,18 @@ class User < Sequel::Model(:user)
     .join(:regroupement, :id => :regroupement_id)
     .join(:etablissement, :id => :etablissement_id)
     .where(:type_regroupement_id => 'CLS').naked
-    .select(:code_uai___etablissement_code, :libelle_aaf___classe_libelle, :nom___etablissement_nom)
+    .select(:code_uai___etablissement_code, :regroupement_id___classe_id, :libelle_aaf___classe_libelle, :nom___etablissement_nom, :etablissement_id)
+    .all
+  end  
+
+  def groupes_eleve_display
+    # case of an (eleve)
+    # need to rename the dataset select
+    self.eleve_dans_regroupement_dataset
+    .join(:regroupement, :id => :regroupement_id)
+    .join(:etablissement, :id => :etablissement_id)
+    .where(:type_regroupement_id => 'GRP').naked
+    .select(:code_uai___etablissement_code, :regroupement_id___groupe_id, :libelle_aaf___groupe_libelle, :nom___etablissement_nom, :etablissement_id)
     .all
   end  
 
@@ -453,7 +464,18 @@ class User < Sequel::Model(:user)
     .join(:etablissement, :id => :etablissement_id)
     .join(:matiere_enseignee, :id => :enseigne_dans_regroupement__matiere_enseignee_id)
     .where(:type_regroupement_id => 'CLS').naked
-    .select(:code_uai___etablissement_code, :libelle_aaf___classe_libelle, :nom___etablissement_nom, :matiere_enseignee_id, :libelle_long___matiere_libelle)
+    .select(:code_uai___etablissement_code, :libelle_aaf___classe_libelle, :nom___etablissement_nom, :matiere_enseignee_id, :libelle_long___matiere_libelle, :regroupement_id___classe_id, :etablissement_id)
+    .all
+  end 
+
+
+  def enseigne_groupes_display
+    self.enseigne_dans_regroupement_dataset
+    .join(:regroupement, :id => :regroupement_id)
+    .join(:etablissement, :id => :etablissement_id)
+    .join(:matiere_enseignee, :id => :enseigne_dans_regroupement__matiere_enseignee_id)
+    .where(:type_regroupement_id => 'GRB').naked
+    .select(:code_uai___etablissement_code, :libelle_aaf___groupe_libelle, :nom___etablissement_nom, :matiere_enseignee_id, :libelle_long___matiere_libelle, :regroupement_id___groupe_id, :etablissement_id)
     .all
   end 
 
@@ -467,11 +489,25 @@ class User < Sequel::Model(:user)
       parent_classes = parent_classes.concat(enfant.classes_eleve_display)
     end
     parent_classes   
+  end
+
+  def parent_groupes_display
+    parent_groupes = []
+    self.enfants.each do |enfant|
+      parent_groupes = parent_groupes.concat(enfant.groupes_eleve_display)
+    end
+    parent_groupes  
   end 
+
+  ######################## 
 
   # a function that returns classes for all profils
   def classes_display
     enseigne_classes_display.concat(classes_eleve_display).concat(parent_classes_display)
+  end 
+
+  def groupes_display
+    enseigne_groupes_display.concat(groupes_eleve_display).concat(parent_groupes_display)
   end 
 
   # Groupes auxquel l'utilisateur enseinge

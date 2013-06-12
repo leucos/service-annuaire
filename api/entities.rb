@@ -27,6 +27,7 @@ module API
           {:id => classe.id, :libelle  => classe.libelle, :rights => user.rights(classe.ressource)}
         end 
       end 
+
       expose :telephone, :as => :telephones
       expose(:groupes_eleves) do |user,options|
         user.groupes_eleve do |groupe|
@@ -44,16 +45,16 @@ module API
     class SimpleUser < Grape::Entity
       #format_with :iso_timestamp{ |dt| dt.iso8601 }
       #root 'users', 'user'
-      expose :id, :id_sconet, :login, :nom, :prenom, :sexe, :id_ent, :date_naissance, :adresse, :code_postal
+      expose :id, :id_sconet, :login, :nom, :prenom, :sexe, :id_ent, :date_naissance, :adresse, :code_postal, :ville
       expose(:full_name) {|user,options| user.full_name}
       expose(:profils) {|user,options| user.profil_user_display}
       expose :telephone, :as => :telephones
       expose(:classes) do |user,options|
         user.classes_display
       end
-      # with_options { :format_with => :iso_timestamp } do
-      #   expose :date_naissance
-      # end
+      expose(:groupes_eleve) do |user, options|
+        user.groupes_display
+      end 
     end
 
     class SimpleEtablissement < Grape::Entity 
