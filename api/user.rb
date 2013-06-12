@@ -2,7 +2,7 @@
 class UserApi < Grape::API
   version 'v1', :using => :param, :parameter => "v"
   format :json
-  content_type :json, "application/json; charset=utf-8"
+  #content_type :json, "application/json; charset=utf-8"
   default_error_formatter :json
   default_error_status 400
 

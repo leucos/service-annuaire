@@ -5,7 +5,7 @@ describe UserApi do
   include Rack::Test::Methods
 
   def app
-    Rack::Builder.parse_file("../../config.ru").first
+    Rack::Builder.parse_file("config.ru").first
   end
 
   before :all do
@@ -70,6 +70,11 @@ describe UserApi do
     u = User.filter(:login => 'test').first
     u.prenom.should == 'titi'
   end
+
+  it "modifies user when sending json request" do 
+    u = u = create_test_user()
+    put("/users/#{u.id_ent}?v=#{@version}", {prenom:'titi', nom:"tata"}, {:Content-Type=>"application/json"}).status.should == 406
+  end 
 
   it "not accept bad parameters" do
     u = create_test_user()

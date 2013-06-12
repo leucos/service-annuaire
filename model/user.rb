@@ -265,10 +265,13 @@ class User < Sequel::Model(:user)
 
   # Renvois seulement le libelle de profil et le nom de l'établissement de chaque profil
   def profil_user_display
-    self.profil_user_dataset.
-      join(:etablissement, :id => :etablissement_id).
-      join(:profil, :id => :profil_user__profil_id).
-      select(:profil__libelle, :etablissement__nom)
+    self.profil_user_dataset
+      .join(:etablissement, :id => :etablissement_id)
+      .join(:profil_national, :id => :profil_user__profil_id)
+      .naked
+      .select(:profil_id, :nom___etablissement_nom, :code_uai___etablissement_code_uai, 
+        :description___profil_nom, :code_national___profil_code_national)
+      .all
   end
 
   #Change le profil de l'utilisateur
@@ -376,6 +379,11 @@ class User < Sequel::Model(:user)
     add_role(classe_id, TYP_REG_CLS, role_id)
   end
 
+
+  ########################## 
+  #    classes eleve       #
+  ##########################
+
   #toutes les classes dans lesquelles l'eleve est inscrit
   def classes_eleve(etablissement_id = nil)
     regroupement_eleve =  self.eleve_dans_regroupement.map do |eleve_regroupement|
@@ -389,6 +397,18 @@ class User < Sequel::Model(:user)
       return regroupement_eleve.select{|r| r[:type_regroupement] == TYP_REG_CLS && r[:etablissement_id] == etablissement_id} 
     end 
   end
+
+  # user readable format of student classes
+  def classes_eleve_display
+    # case of an (eleve)
+    # need to rename the dataset select
+    self.eleve_dans_regroupement_dataset
+    .join(:regroupement, :id => :regroupement_id)
+    .join(:etablissement, :id => :etablissement_id)
+    .where(:type_regroupement_id => 'CLS').naked
+    .select(:code_uai___etablissement_code, :libelle_aaf___classe_libelle, :nom___etablissement_nom)
+    .all
+  end  
 
   #Groupes auxquel l'élève est inscrit
   def groupes_eleve(etablissement_id = nil)
@@ -408,6 +428,10 @@ class User < Sequel::Model(:user)
     #regroupements(etablissement_id, TYP_REG_LBR)
   end
 
+
+  ########################## 
+  #    classes prof        #
+  ##########################
   #toutes les classes dans lesquelles l'utilisateur enseigne
   def enseigne_classes(etablissement_id = nil)
     regroupement_enseingant = self.enseigne_dans_regroupement.map do |enseigne_regroupement|
@@ -421,6 +445,34 @@ class User < Sequel::Model(:user)
       return regroupement_enseingant.select{|r| r[:type_regroupement] == TYP_REG_CLS && r[:etablissement_id] == etablissement_id} 
     end 
   end
+
+  # user readable format of enseigne classes
+  def enseigne_classes_display
+    self.enseigne_dans_regroupement_dataset
+    .join(:regroupement, :id => :regroupement_id)
+    .join(:etablissement, :id => :etablissement_id)
+    .join(:matiere_enseignee, :id => :enseigne_dans_regroupement__matiere_enseignee_id)
+    .where(:type_regroupement_id => 'CLS').naked
+    .select(:code_uai___etablissement_code, :libelle_aaf___classe_libelle, :nom___etablissement_nom, :matiere_enseignee_id, :libelle_long___matiere_libelle)
+    .all
+  end 
+
+  ########################## 
+  #    classes parent      #
+  ##########################
+  # user readable format of parent classes( note that parent classes are his childerens classes)
+  def parent_classes_display
+    parent_classes = []
+    self.enfants.each do |enfant|
+      parent_classes = parent_classes.concat(enfant.classes_eleve_display)
+    end
+    parent_classes   
+  end 
+
+  # a function that returns classes for all profils
+  def classes_display
+    enseigne_classes_display.concat(classes_eleve_display).concat(parent_classes_display)
+  end 
 
   # Groupes auxquel l'utilisateur enseinge
   def enseigne_groupes(etablissement_id = nil)

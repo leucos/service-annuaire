@@ -23,11 +23,20 @@ module RightHelpers
     @current_user  
   end
 
+  # Because we have tow types of usage to our services 
+  # 1) usage with users like ( admin laclasse, admin etablissemenet, ...)
+  # 2) usage with applications that need to consume some of our api's 
+  # =>  CAS server:  needs to access to sso Api 
+  # =>  Gestion document : needs to consume some user api's
+  # =>  Other application...( cahier de text, Blog)
+  # =>  We have to soluations:  use separate apis groups ( public(application), private(users)) 
+  # this is a function to authenticate users 
   def authenticate!
     error!('Non authentifié', 401) unless current_user
   end
 
   def authenticate_app!
+    # fo
     session = cookies[:session_key] if cookies[:session_key]
     session = request.env["HTTP_SESSION_KEY"] if request.env["HTTP_SESSION_KEY"]
     id = nil 
