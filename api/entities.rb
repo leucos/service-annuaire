@@ -23,6 +23,8 @@ module API
       # #     end 
       # #   end 
       # # end 
+
+      # Note: There is a problem here ( This code displays only eleve classes and groupes)
       expose(:classes) do |user,options|
         user.classes_eleve.map do |classe|
           {:id => classe[:id], :libelle  => classe[:libelle], :rights => user.rights(classe[:id])}
@@ -52,10 +54,11 @@ module API
       expose(:full_name) {|user,options| user.full_name}
       expose(:profils) {|user,options| user.profil_user_display}
       expose :telephone, :as => :telephones
+      expose :email, :as => :emails
       expose(:classes) do |user,options|
         user.classes_display
       end
-      
+
       expose(:groupes_eleve) do |user, options|
         user.groupes_display
       end 
