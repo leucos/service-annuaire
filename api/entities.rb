@@ -5,35 +5,38 @@ module API
       # TODO expose resource url instead of ids
       expose :id, :id_sconet, :login, :nom, :prenom, :sexe, :id_ent
       expose(:full_name) {|user,options| user.full_name}
-      expose :profil_user, :as => :profils
-      expose :email, :as => :adresse_emails
+      #expose :profil_user, :as => :profils
+      expose(:profils) {|user,options| user.profil_user_display}
+      expose :email, :as => :emails
       # etablissement + rights + profils
       expose(:etablissements) do |user,options|
         user.etablissements.map do |etab| 
            {:id => etab[:id], :nom =>  etab[:nom], :profils => ProfilUser.filter(:user_id => user.id), :rights => user.rights(etab[:id])}
         end
       end
-      # expose(:preferences) do |user,options|
-      #   ParamApplication.filter(:preference => true).map do |preference|
-      #     if param_user = ParamUser[:user_id => user.id, :param_application_id => preference.id]
-      #       {:code => preference.code, :valeur => param_user.valeur}
-      #     else
-      #       {:code => preference.code, :valeur => preference.valeur_defaut}
-      #     end 
-      #   end 
-      # end 
+      # # expose(:preferences) do |user,options|
+      # #   ParamApplication.filter(:preference => true).map do |preference|
+      # #     if param_user = ParamUser[:user_id => user.id, :param_application_id => preference.id]
+      # #       {:code => preference.code, :valeur => param_user.valeur}
+      # #     else
+      # #       {:code => preference.code, :valeur => preference.valeur_defaut}
+      # #     end 
+      # #   end 
+      # # end 
       expose(:classes) do |user,options|
         user.classes_eleve.map do |classe|
-          {:id => classe.id, :libelle  => classe.libelle, :rights => user.rights(classe.ressource)}
+          {:id => classe[:id], :libelle  => classe[:libelle], :rights => user.rights(classe[:id])}
         end 
       end 
 
       expose :telephone, :as => :telephones
+      
       expose(:groupes_eleves) do |user,options|
         user.groupes_eleve do |groupe|
           {:id => groupe.id, :libelle  => groupe.libelle, :rights => user.rights(groupe.ressource)}
         end 
       end 
+
       expose(:groupes_libres) do |user,options|
         user.groupes_libres do |groupe|
           {:id => groupe.id, :libelle  => groupe.libelle, :rights => user.rights(groupe.ressource)}
@@ -52,6 +55,7 @@ module API
       expose(:classes) do |user,options|
         user.classes_display
       end
+      
       expose(:groupes_eleve) do |user, options|
         user.groupes_display
       end 
