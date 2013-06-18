@@ -1,3 +1,4 @@
+# todo  modify to use Search in CAS server Redis
 class AuthSession
   class UnauthorizedDeletion < StandardError
   end

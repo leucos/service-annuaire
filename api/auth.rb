@@ -3,7 +3,7 @@
 require 'grape'
 class AuthApi < Grape::API                                                                                                                                                                                     
   format :json
-  
+  prefix 'api'
   resource :auth do 
     # POST /auth
     # { id: "vaa60001" }

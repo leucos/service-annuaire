@@ -4,7 +4,8 @@ require 'grape'
 require 'net/http'
 require 'pp'
 
-class AlimentationApi < Grape::API                                                                                                                                                                                     
+class AlimentationApi < Grape::API
+  prefix 'api'                                                                                                                                                                                     
   format :json
   #  This api contains 2 types of methods
   #  push methods : Post /alimentation/recieve that receives data from alimentation server(annuaire-Ent)

@@ -1,5 +1,6 @@
 #coding: utf-8
 class UserApi < Grape::API
+  prefix 'api'
   version 'v1', :using => :param, :parameter => "v"
   format :json
   #content_type :json, "application/json; charset=utf-8"
