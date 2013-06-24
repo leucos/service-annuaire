@@ -5,7 +5,7 @@ module RightHelpers
   # the authentication works only using a cas server
   # the Cas server sends a cookie(CASTGC) and stores its value in redis server
   # in order to this method to work, api server must have access to redis server
-  # to check the cookie
+  # to check the cookie value in redis
   def current_user
     # Récupèration de la session
 

@@ -111,7 +111,7 @@ class AlimentationApi < Grape::API
     #-----------------------------------------#
     desc "get Alimentation etablissements's lists"
     get "/etablissements" do 
-      res = Net::HTTP.get_response(URI('http://www.dev.laclasse.com/annuaire/index.php?action=api&service=etablissements'))
+      res = Net::HTTP.get_response(URI("#{Configuration::ALIMENTATION_SERVER}index.php?action=api&service=etablissements"))
       #print res.inspect
       data =  res.body
       puts "----------status---------\n"
@@ -150,7 +150,7 @@ class AlimentationApi < Grape::API
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=dettachements&rne=0690078K
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=fonctions_pen&rne=0690078K
 
-      res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{params[:service]}&rne=#{params[:uai]}"))
+      res = Net::HTTP.get_response(URI("#{Configuration::ALIMENTATION_SERVER}index.php?action=api&service=#{params[:service]}&rne=#{params[:uai]}"))
       begin
         puts "service = #{params[:service]}"
         puts "uai = #{ params[:uai] == "000000" ? "all" : params[:uai] }"  
@@ -174,7 +174,7 @@ class AlimentationApi < Grape::API
       tables = {}
       begin 
         @@services.each do |service| 
-          res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{service}&rne=#{params[:uai]}"))
+          res = Net::HTTP.get_response(URI("#{Configuration::ALIMENTATION_SERVER}index.php?action=api&service=#{service}&rne=#{params[:uai]}"))
           #puts res.code       # => '200'
           #puts res.message 
           result = JSON.parse(res.body)
@@ -196,7 +196,7 @@ class AlimentationApi < Grape::API
     get "bilan/:type/:uai" do
       # types: bilan_regroupemenets, bilan_comptes
       begin 
-        res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{params[:type]}&rne=#{params[:uai]}")) 
+        res = Net::HTTP.get_response(URI("#{Configuration::ALIMENTATION_SERVER}index.php?action=api&service=#{params[:type]}&rne=#{params[:uai]}")) 
         results = JSON.parse(res.body)
         puts results.inspect
         if params[:type] == "bilan_comptes"
@@ -234,7 +234,7 @@ class AlimentationApi < Grape::API
       service = "mef"
       uai = "000000" # par defaut
       begin
-        res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{service}"))
+        res = Net::HTTP.get_response(URI("#{Configuration::ALIMENTATION_SERVER}index.php?action=api&service=#{service}"))
         result = JSON.parse(res.body)
         if result.count > 0 
           Alimentation::Synchronizer.sync_mef(result)
@@ -254,7 +254,7 @@ class AlimentationApi < Grape::API
       service = "matieres"
       uai = "000000" # par defaut
       begin
-        res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{service}"))
+        res = Net::HTTP.get_response(URI("#{Configuration::ALIMENTATION_SERVER}index.php?action=api&service=#{service}"))
         result = JSON.parse(res.body)
         if result.count > 0 
           Alimentation::Synchronizer.sync_matieres(result)
@@ -273,7 +273,7 @@ class AlimentationApi < Grape::API
       service = "fonctions"
       uai = "000000" # par defaut
       begin
-        res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{service}&rne=#{uai}"))
+        res = Net::HTTP.get_response(URI("#{Configuration::ALIMENTATION_SERVER}index.php?action=api&service=#{service}&rne=#{uai}"))
         result = JSON.parse(res.body)
         if result.count > 0 
           Alimentation::Synchronizer.sync_fonction(result)
@@ -329,7 +329,7 @@ class AlimentationApi < Grape::API
         logger = nil 
         @@services.each do |service| 
           begin
-          res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=#{service}&rne=#{params[:uai]}"))
+          res = Net::HTTP.get_response(URI("#{Configuration::ALIMENTATION_SERVER}index.php?action=api&service=#{service}&rne=#{params[:uai]}"))
           #raise "can not pull data #{service} from the server" if res.code != 200       # => '200 
           result = JSON.parse(res.body)
           #["etablissement", "classes", "groupes", "eleves", "pers_educ_nat", "parents", 
@@ -491,7 +491,7 @@ class AlimentationApi < Grape::API
         infostack["errors"] = []
         logger = nil 
         service = "etablissement" 
-        res = Net::HTTP.get_response(URI('http://www.dev.laclasse.com/annuaire/index.php?action=api&service=etablissements'))
+        res = Net::HTTP.get_response(URI("#{Configuration::ALIMENTATION_SERVER}index.php?action=api&service=etablissements"))
         #print res.inspect
         etablissements = JSON.parse(res.body) 
         if etablissements.count == 0 
@@ -548,7 +548,7 @@ class AlimentationApi < Grape::API
         #lien pour recuperer les detachements
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=detachements&rne=0690078K 
         # get list of user to delete ( detache)
-        res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/index.php?action=api&service=detachements&rne=#{params[:uai]}"))
+        res = Net::HTTP.get_response(URI("#{Configuration::ALIMENTATION_SERVER}index.php?action=api&service=detachements&rne=#{params[:uai]}"))
         detachements = JSON.parse(res.body)
         
         synchronizer = Alimentation::Synchronizer.new("Complet", params[:uai],"","","")
@@ -565,7 +565,7 @@ class AlimentationApi < Grape::API
       response = "" 
       etablissements_list.each do |etablissement_uai|
         begin 
-          res = Net::HTTP.get_response(URI("http://www.dev.laclasse.com/annuaire/?viewlog=NO&action=chargement-v3&rne=#{etablissement_uai}"))
+          res = Net::HTTP.get_response(URI("#{Configuration::ALIMENTATION_SERVER}?viewlog=NO&action=chargement-v3&rne=#{etablissement_uai}"))
           response += res.body
         rescue => e 
           puts e.message 
