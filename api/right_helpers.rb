@@ -6,14 +6,22 @@ module RightHelpers
     # Récupèration de la session
 
     # En cherchant d'abord dans les cookies
-    session = cookies[:session_key] if cookies[:session_key]
-    # Puis dans les paramètres GET/POST
-    session = params[:session_key] if params[:session_key]
-    # Puis enfin dans l'en-tête 
-    # comme ça si on veut se faire passer pour quelqu'un, on change juste le header et pas les requètes
-    # Technique de Daniel ;)
-    # TODO se connecter par CAS server
-    session = request.env[AuthConfig::HTTP_HEADER] if request.env[AuthConfig::HTTP_HEADER] 
+    if cookies[:CASTGC]
+      session = cookies[:CASTGC]
+    elsif params[:session_key] 
+      #session = params[:session_key]
+    elsif request.env[AuthConfig::HTTP_HEADER] 
+      #session = request.env[AuthConfig::HTTP_HEADER]
+    end
+    
+    #session = cookies[:CASTGC] if cookies[:CASTGC]
+    ## Puis dans les paramètres GET/POST
+    #session = params[:session_key] if params[:session_key]
+    ## Puis enfin dans l'en-tête 
+    ## comme ça si on veut se faire passer pour quelqu'un, on change juste le header et pas les requètes
+    ## Technique de Daniel ;)
+    ## TODO se connecter par CAS server
+    #session = request.env[AuthConfig::HTTP_HEADER] if request.env[AuthConfig::HTTP_HEADER] 
     user_id = AuthSession.get(session)
     if !user_id.nil?
       @current_user = User[:id => user_id]
