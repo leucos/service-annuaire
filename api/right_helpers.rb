@@ -2,10 +2,14 @@
 
 module RightHelpers
   
+  # the authentication works only using a cas server
+  # the Cas server sends a cookie(CASTGC) and stores its value in redis server
+  # in order to this method to work, api server must have access to redis server
+  # to check the cookie
   def current_user
     # Récupèration de la session
 
-    # En cherchant d'abord dans les cookies
+    # Search for CASTGC cookie 
     if cookies[:CASTGC]
       session = cookies[:CASTGC]
     elsif params[:session_key] 
@@ -14,17 +18,10 @@ module RightHelpers
       #session = request.env[AuthConfig::HTTP_HEADER]
     end
     
-    #session = cookies[:CASTGC] if cookies[:CASTGC]
-    ## Puis dans les paramètres GET/POST
-    #session = params[:session_key] if params[:session_key]
-    ## Puis enfin dans l'en-tête 
-    ## comme ça si on veut se faire passer pour quelqu'un, on change juste le header et pas les requètes
-    ## Technique de Daniel ;)
-    ## TODO se connecter par CAS server
-    #session = request.env[AuthConfig::HTTP_HEADER] if request.env[AuthConfig::HTTP_HEADER] 
-    user_id = AuthSession.get(session)
-    if !user_id.nil?
-      @current_user = User[:id => user_id]
+    # 
+    user_login = AuthSession.get(session)
+    if !user_login.nil?
+      @current_user = User[:login => user_login]
     else 
       @current_user = nil
     end
@@ -44,7 +41,8 @@ module RightHelpers
   end
 
   def authenticate_app!
-    # fo
+    # first we must separate services(apis) and
+    # rewrite authenticate application method
     session = cookies[:session_key] if cookies[:session_key]
     session = request.env["HTTP_SESSION_KEY"] if request.env["HTTP_SESSION_KEY"]
     id = nil 

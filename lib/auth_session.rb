@@ -1,4 +1,5 @@
 # todo  modify to use Search in CAS server Redis
+# note: tickets in the CAS server is related to login => search user by login and not id
 class AuthSession
   class UnauthorizedDeletion < StandardError
   end
@@ -7,7 +8,7 @@ class AuthSession
   
   # Ajoute simplement le path REDIS à la clé
   def self.key(key)
-    "#{REDIS_PATH}.#{AuthConfig::SESSION_PATH}.#{key}"
+    "#{REDIS_PATH}.#{AuthConfig::SESSION_PATH}-#{key}"
   end
 
   # Créer les clés pour les sessions enregistrées
