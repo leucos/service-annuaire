@@ -16,10 +16,13 @@ module RightHelpers
       #session = params[:session_key]
     elsif request.env[AuthConfig::HTTP_HEADER] 
       #session = request.env[AuthConfig::HTTP_HEADER]
+    else
+      session = nil
     end
-    
+    puts session 
     # 
     user_login = AuthSession.get(session)
+    puts user_login 
     if !user_login.nil?
       @current_user = User[:login => user_login]
     else 
@@ -43,17 +46,20 @@ module RightHelpers
   def authenticate_app!
     # first we must separate services(apis) and
     # rewrite authenticate application method
-    session = cookies[:session_key] if cookies[:session_key]
-    session = request.env["HTTP_SESSION_KEY"] if request.env["HTTP_SESSION_KEY"]
-    id = nil 
-    id = AuthSession.get(session)
+    # application is authenticated by an api_key and api_id in the simplist scenario
+    # for more security we may sign the request like in amazon authentication
+    # api_key is sent as a request parameter or as a header
+    session = params[:api_key] if params[:api_key]
+    session = request.env["HTTP_API_KEY"] if request.env["HTTP_API_KEY"]
     puts session
-    error!('Non authentifié', 401) unless id
+    session.nil? ? app_id = nil : app_id = AuthSession.get(session)
+    puts app_id 
+    error!('Non authentifié', 401) unless app_id
   end 
 
 
   def authorize_activites!(activites, ressource, service = nil)
-      if current_user
+    if current_user
       # Et on teste ses droits sur la ressource
       activities = Rights.get_activities(current_user.id, ressource.id, ressource.service_id, service)
       #puts "rights user_id=#{user_id}, service_id=#{ressource.service_id}, ressource=#{ressource.id}, service_id=#{service_id }=#{rights}"

@@ -7,6 +7,12 @@ require 'pp'
 class AlimentationApi < Grape::API
   prefix 'api'                                                                                                                                                                                     
   format :json
+  
+  helpers RightHelpers
+  before do
+    #puts request.inspect
+    authenticate_app!
+  end 
   #  This api contains 2 types of methods
   #  push methods : Post /alimentation/recieve that receives data from alimentation server(annuaire-Ent)
   #  pull methods : Get /alimentation/*  where data is pulled from the server(annuaire-Ent)
