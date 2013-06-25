@@ -49,6 +49,7 @@ module RightHelpers
     # application is authenticated by an api_key and api_id in the simplist scenario
     # for more security we may sign the request like in amazon authentication
     # api_key is sent as a request parameter or as a header
+    # i think we must send api_id in the request
     session = params[:api_key] if params[:api_key]
     session = request.env["HTTP_API_KEY"] if request.env["HTTP_API_KEY"]
     puts session

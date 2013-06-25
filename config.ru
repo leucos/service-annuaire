@@ -23,14 +23,11 @@ run AuthApi
 run EtabApi
 run ApplicationApi
 run ClassApi
-run AlimentationApi 
+run AlimentationApi
 
-
-
-
-map "/sso" do
+map "/api/sso" do
   run SsoApi
-end
+end 
 
 # Root maps to the documentation of the other apis
 map "/" do
