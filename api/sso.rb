@@ -71,7 +71,7 @@ class SsoApi < Grape::API
     get "/sso_attributes/:login" do
       u = User[:login => params[:login]]
       error!("Utilisateur non trouvé", 404) if u.nil?
-      profil_user = u.profil_user.first # to be changed
+      profil_user = u.profil_user_display # to be changed
       #error!("Utilisateur sans profil", 404) if profil_user.nil?
   
       attributes = {
@@ -85,9 +85,9 @@ class SsoApi < Grape::API
         "LaclasseSexe" => u.sexe,
         "LaclasseAdresse" => u.adresse,
         "LaclasseCivilite" => u.civilite,
-        "ENTPersonStructRattach" => (profil_user.nil? ? nil : profil_user.etablissement.code_uai),
-        "ENTPersonStructRattachRNE" => (profil_user.nil? ? nil : profil_user.etablissement.code_uai),
-        "ENTPersonProfils" =>  profil_user.nil? ? nil : Profil[:id=>profil_user.profil_id],
+        "ENTPersonStructRattach" => (profil_user.empty? ? nil : profil_user.first[:etablissement_code_uai]),
+        "ENTPersonStructRattachRNE" => (profil_user.empty? ? nil : profil_user.first[:etablissement_code_uai]),
+        "ENTPersonProfils" =>  profil_user,
         "LaclasseEmail" => u.email_principal,
         "LaclasseEmailAca" => u.email_academique
       }

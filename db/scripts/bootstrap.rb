@@ -266,7 +266,7 @@ def bootstrap_annuaire()
   # http://eduscol.education.fr/cid57076/l-annuaire-ent-second-degre-et-son-alimentation-automatique.html
 
   Profil.create(:id => 'ELV', :description => 'Elève', :code_national => 'National_ELV', :role_id => ROL_ELV_ETB)
-  Profil.create(:id => 'ETA', :description => 'Personnel adminstartif, technique ou d\'encadrement', :code_national => 'National_ETA', :role_id => ROL_ADM_ETB)
+  Profil.create(:id => 'ETA', :description => 'Personnel adminstartif, technique ou d\'encadrement', :code_national => 'National_ETA', :role_id => ROL_PROF_ETB)
   Profil.create(:id => 'TUT', :description => "Responsable d'un élève", :code_national => 'National_TUT', :role_id => ROL_PAR_ETB) #role à revoir
   Profil.create(:id => 'DIR', :description => "Personel de direction de l'etablissement", :code_national => 'National_DIR', :role_id => ROL_DIR_ETB)
   Profil.create(:id => 'ENS', :description => 'Enseignant', :code_national => 'ENS', :code_national => 'National_ENS', :role_id => ROL_PROF_ETB)
@@ -281,6 +281,7 @@ def bootstrap_annuaire()
   # create super admin user 
   u = User.create(:nom => "Saleh", :prenom => "Bashar", :sexe => "M", :login => "bsaleh", :password => "toortoor")
   RoleUser.create(:user_id => u.id, :etablissement_id => e.id, :role_id => ROL_TECH)
+  ProfilUser.create(:user_id => u.id, profil_id => 'COL', :etablissement_id => e.id)
 
 
   #Tout d'abord on créer des applications

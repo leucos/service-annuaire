@@ -12,14 +12,15 @@ module RightHelpers
     # Search for CASTGC cookie 
     if cookies[:CASTGC]
       session = cookies[:CASTGC]
+      # session_key is only for test 
     elsif params[:session_key] 
-      #session = params[:session_key]
+      session = params[:session_key]
     elsif request.env[AuthConfig::HTTP_HEADER] 
       #session = request.env[AuthConfig::HTTP_HEADER]
     else
       session = nil
     end
-    puts session 
+    #puts session 
     # 
     user_login = AuthSession.get(session)
     puts user_login 
@@ -52,9 +53,9 @@ module RightHelpers
     # i think we must send api_id in the request
     session = params[:api_key] if params[:api_key]
     session = request.env["HTTP_API_KEY"] if request.env["HTTP_API_KEY"]
-    puts session
+    #puts session
     session.nil? ? app_id = nil : app_id = AuthSession.get(session)
-    puts app_id 
+    #puts app_id 
     error!('Non authentifié', 401) unless app_id
   end 
 
