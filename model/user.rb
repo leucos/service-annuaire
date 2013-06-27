@@ -273,6 +273,15 @@ class User < Sequel::Model(:user)
         :description___profil_nom, :code_national___profil_code_national)
       .all
   end
+  
+  def role_user_display
+    self.role_user_dataset
+    .join(:etablissement, :id => :etablissement_id)
+    .join(:role, :role__id => :role_user__role_id)
+    .naked
+    .select(:role_id, :nom___etablissement_nom, :code_uai___etablissement_code_uai, :etablissement_id)
+    .all
+  end
 
   #Change le profil de l'utilisateur
   def set_profil(new_profil, to_change = profil_actif)

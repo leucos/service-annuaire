@@ -35,7 +35,7 @@ class SsoApi < Grape::API
       u = User[:login => params[:login]]
       error!("Utilisateur non trouvé", 404) if u.nil?
       profil_user = u.profil_user.first
-      puts profil_user.inspect 
+      #puts profil_user.inspect 
       #error!("Utilisateur sans profil", 404) if profil_user.nil?
   
       attributes = {
@@ -72,8 +72,9 @@ class SsoApi < Grape::API
       u = User[:login => params[:login]]
       error!("Utilisateur non trouvé", 404) if u.nil?
       profil_user = u.profil_user_display # to be changed
-      #error!("Utilisateur sans profil", 404) if profil_user.nil?
-  
+      profils =   u.profil_user_display.collect{|x| "#{x[:profil_id]}:#{x[:etablissement_code_uai]}"}.join(",")
+      roles   =   u.role_user_display.collect{|x| "#{x[:role_id]}:#{x[:etablissement_code_uai]}:#{x[:etablissement_id]}"}.join(",")
+      #u.role_user_display.collect{|x| "#{x[:role_id]}:#{x[:etablissement_code_uai]}:#{x[:etablissement_id}"}.join(",")
       attributes = {
         "login" => u.login,
         "pass" => u.password,
@@ -87,7 +88,8 @@ class SsoApi < Grape::API
         "LaclasseCivilite" => u.civilite,
         "ENTPersonStructRattach" => (profil_user.empty? ? nil : profil_user.first[:etablissement_code_uai]),
         "ENTPersonStructRattachRNE" => (profil_user.empty? ? nil : profil_user.first[:etablissement_code_uai]),
-        "ENTPersonProfils" =>  profil_user,
+        "ENTPersonProfils" =>  profils,
+        "ENTPersonRoles" => roles, 
         "LaclasseEmail" => u.email_principal,
         "LaclasseEmailAca" => u.email_academique
       }
@@ -107,7 +109,7 @@ class SsoApi < Grape::API
       optional :prenom, type: String
     end
     # returns empty array if parent(s) is(are) not found
-    get "/parent/eleve/:id_sconet"  do
+    get "/parent/eleve/:id_sconet" do
       eleve = User[:id_sconet => params[:id_sconet]]
       dataset = eleve.parents_dataset
       dataset = dataset.filter(:nom => params[:nom]) if params[:nom]

@@ -281,8 +281,7 @@ def bootstrap_annuaire()
   # create super admin user 
   u = User.create(:nom => "Saleh", :prenom => "Bashar", :sexe => "M", :login => "bsaleh", :password => "toortoor")
   RoleUser.create(:user_id => u.id, :etablissement_id => e.id, :role_id => ROL_TECH)
-  ProfilUser.create(:user_id => u.id, profil_id => 'COL', :etablissement_id => e.id)
-
+  ProfilUser.create(:user_id => u.id, :profil_id => 'COL', :etablissement_id => e.id)
 
   #Tout d'abord on créer des applications
   #Application blog
