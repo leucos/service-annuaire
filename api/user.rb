@@ -101,6 +101,14 @@ class UserApi < Grape::API
       present user, with: API::Entities::SimpleUser
     end
 
+    # Supprime un utilisateur 
+    desc "Supprission d'un compte utilisateur"
+    delete "/:user_id", :requirements => { :user_id => /.{8}/ } do
+      user = check_user!() 
+      authorize_activites!([ACT_DELETE, ACT_MANAGE], user.ressource)
+      user.destroy()
+    end
+
     # Récupération des relations 
     # returns the relations of a user 
     # actually not complet 
