@@ -8,5 +8,6 @@ class Root < Grape::API
   mount AlimentationApi
   mount ApplicationApi
   mount ClassApi
+  mount ProfilApi
   add_swagger_documentation
 end

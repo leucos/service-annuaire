@@ -24,6 +24,7 @@ run EtabApi
 run ApplicationApi
 run ClassApi
 run AlimentationApi
+run ProfilApi
 
 map "/api/sso" do
   run SsoApi
