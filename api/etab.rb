@@ -160,6 +160,7 @@ class EtabApi < Grape::API
       optional :page, type: Integer, desc: "Dans le cas d'une requete paginee"
       optional :sort_col, type: String, desc: "Nom de la colonne sur laquelle faire le tri"
       optional :sort_dir, type: String, regexp: /^(asc|desc)$/i, desc: "Direction de tri : ASC ou DESC"
+      optional :all, type: Boolean, desc:"if all is set to true, return all etablissmenets"
       group :advanced do
         optional :type_etablissement, type: Integer
         optional :code_uai, type: String
@@ -176,9 +177,12 @@ class EtabApi < Grape::API
       ds = DB[:etablissement]
       #dataset = ds.all
       dataset = Etablissement.dataset
-      results = super_search!(dataset, accepted_fields)
-      
-      results
+      if params[:all] == true
+        dataset.select(:id, :code_uai, :nom).naked
+      else 
+        results = super_search!(dataset, accepted_fields)
+        results
+      end 
     end   
 
     ##########################################
@@ -943,7 +947,7 @@ class EtabApi < Grape::API
     #######################
 
     #{profil_id: "ELV"}
-    desc "Ajout de profils utilisateur"
+    desc "Ajout d'un profils utilisateur"
     params do 
       requires :id, type: Integer
       requires :user_id , type: String
