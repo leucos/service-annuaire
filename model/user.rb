@@ -270,7 +270,7 @@ class User < Sequel::Model(:user)
       .join(:profil_national, :id => :profil_user__profil_id)
       .naked
       .select(:profil_id, :nom___etablissement_nom, :code_uai___etablissement_code_uai, 
-        :description___profil_nom, :code_national___profil_code_national)
+        :description___profil_nom, :code_national___profil_code_national, :etablissement_id)
       .all
   end
   

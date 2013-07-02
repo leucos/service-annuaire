@@ -4,7 +4,7 @@ class EtabApi < Grape::API
   prefix 'api'
   version 'v1', :using => :param, :parameter => "v"
   format :json
-  content_type :json, "application/json; charset=utf-8"
+  #content_type :json, "application/json; charset=utf-8"
   default_error_formatter :json
   default_error_status 400
 
@@ -951,13 +951,13 @@ class EtabApi < Grape::API
     end  
     post "/:id/profil_user/:user_id" do
       etab = Etablissement[:id => params[:id]]
-      error!("ressource non trouvee", 404) if etab.nil?
+      error!("etablissement non trouve", 404) if etab.nil?
 
-      user = User[:id => params[:user_id]]
-      error!("ressource non trouvee", 404) if user.nil?
+      user = User[:id_ent => params[:user_id]]
+      error!("user non trouvee", 404) if user.nil?
 
       profil = Profil[:id => params[:profil_id]]
-      error!("ressource non trouvee", 404) if profil.nil?
+      error!("profil non trouvee", 404) if profil.nil?
       begin
         user.add_profil(etab.id, profil.id)
         ProfilUser[:user_id => user.id, :etablissement_id => etab.id, :profil_id => profil.id] 
@@ -1016,7 +1016,7 @@ class EtabApi < Grape::API
       etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
 
-      user = User[:id => params[:user_id]]
+      user = User[:id_ent => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
 
       profil = Profil[:id => params[:profil_id]]
