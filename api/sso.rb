@@ -87,6 +87,7 @@ class SsoApi < Grape::API
         "LaclasseCivilite" => u.civilite,
         "ENTPersonStructRattach" => (profil_user.empty? ? nil : profil_user.first[:etablissement_code_uai]),
         "ENTPersonStructRattachRNE" => (profil_user.empty? ? nil : profil_user.first[:etablissement_code_uai]),
+        "ENTStructureNomCourant" => (profil_user.empty?) ? nil: profil_user.first[:etablissement_nom], 
         "ENTPersonProfils" =>  profils,
         "ENTPersonRoles" => roles, 
         "LaclasseEmail" => u.email_principal,
