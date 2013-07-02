@@ -77,8 +77,8 @@ class SsoApi < Grape::API
       attributes = {
         "login" => u.login,
         "pass" => u.password,
-        "ENT_id" => u.id_ent,
-        "uid" => u.id,
+        "ENT_id" => u.id, 
+        "uid" => u.id_ent,
         "LaclasseNom" => u.nom,
         "LaclassePrenom" => u.prenom,
         "LaclasseDateNais" => u.date_naissance,
