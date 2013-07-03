@@ -6,7 +6,6 @@ class SsoApi < Grape::API
   
   helpers RightHelpers
   before do
-    puts request.inspect
     authenticate_app!
   end 
 

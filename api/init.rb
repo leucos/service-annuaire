@@ -9,6 +9,7 @@ require __DIR__('app')
 require __DIR__('alimentation')
 require __DIR__('classes')
 require __DIR__('profil')
+require __DIR__('docs')
 require __DIR__('root')
 
 

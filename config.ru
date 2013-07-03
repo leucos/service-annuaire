@@ -25,6 +25,9 @@ run ApplicationApi
 run ClassApi
 run AlimentationApi
 run ProfilApi
+map "/api/app" do
+	run DocsApi
+end 
 
 map "/api/sso" do
   run SsoApi
