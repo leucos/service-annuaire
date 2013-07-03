@@ -555,8 +555,11 @@ class User < Sequel::Model(:user)
   def add_email(adresse, academique = false)
     # Si l'utilisateur n'a pas d'email c'est son mail principal 
     principal = (Email.filter(:user_id => self.id).count == 0)
-    mail = Email.find_or_create(:adresse => adresse, :user_id => self.id, 
-      :academique => academique, :principal => principal)    
+
+    mail = Email.find_or_create(:adresse => adresse, :user_id => self.id)
+    mail.principal = principal
+    mail.academique = academique
+    mail.save   
   end
 
   def delete_email(adresse)
