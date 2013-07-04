@@ -66,7 +66,7 @@ module API
 
     class SimpleEtablissement < Grape::Entity 
       expose :id, :code_uai, :nom, :adresse, :code_postal, :ville, :type_etablissement_id, :telephone, :fax
-      expose :full_name
+      expose :full_name, :alimentation_state, :alimentation_date, :data_received
     end
 
     class DetailedEtablissement < Grape::Entity
