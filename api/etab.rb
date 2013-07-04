@@ -1221,7 +1221,16 @@ class EtabApi < Grape::API
         puts e.message 
         error!("mouvaise requete", 400)
       end  
+    end
+
+    ####################################
+    desc "return the list of etablissements type"
+    params do 
     end 
+    get "/types/types_etablissements" do 
+      TypeEtablissement.naked.all
+    end   
+
   end
 
 end
