@@ -53,8 +53,9 @@ SRV_CLASSE   = "CLASSE"
 SRV_GROUPE   = "GROUPE"
 SRV_LIBRE    = "LIBRE"
 SRV_USER     = "USER"
-SRV_APP 	 = "APP"
+SRV_APP      = "APP"
 SRV_ROLE     = "ROLE"
+SRV_DOC = "DOCUMENT"
 
 #
 # Profil

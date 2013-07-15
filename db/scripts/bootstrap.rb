@@ -140,7 +140,9 @@ def bootstrap_annuaire()
   # service /application
   Service.create(:id => SRV_APP, :libelle => "Service de gestion des applications", :url => "/app")
   # service /role 
-  Service.create(:id => SRV_ROLE, :libelle => "Service de gestion des role", :url => "/role")
+  Service.create(:id => SRV_ROLE, :libelle => "Service de gestion des roles", :url => "/role")
+  
+  Service.create(:id => SRV_DOC, :libelle => "Service de gestion des documents",:url =>"/docs")
   # TODO 
   # service /alimentation
   # service /preference 
@@ -168,6 +170,9 @@ def bootstrap_annuaire()
   role_tech.add_activite(SRV_LIBRE, ACT_MANAGE, "all", SRV_LACLASSE)
   role_tech.add_activite(SRV_APP, ACT_MANAGE, "all", SRV_LACLASSE)
   role_tech.add_activite(SRV_ROLE, ACT_MANAGE, "all", SRV_LACLASSE)
+  
+  #Service Document 
+  role_tech.add_activite(SRV_DOC, ACT_MANAGE, "all", SRV_LACLASSE)
 
   #---------------------------------------------------------------------------#
   # Role => admin Etab 
@@ -178,6 +183,9 @@ def bootstrap_annuaire()
   role_admin.add_activite(SRV_ETAB, ACT_READ, "belongs_to", SRV_ETAB)
   role_admin.add_activite(SRV_CLASSE, ACT_MANAGE, "belongs_to", SRV_ETAB)
   role_admin.add_activite(SRV_GROUPE, ACT_MANAGE, "belongs_to", SRV_ETAB)
+  
+  # service Document 
+  role_admin.add_activite(SRV_DOC, ACT_MANAGE, "belongs_to", SRV_ETAB)
   # role_admin.add_activite(SRV_LIBRE, ACT_MANAGE, "belongs_to", SRV_ETAB)
   # role_admin.add_activite(SRV_APP, ACT_MANAGE, "belongs_to", SRV_ETAB)
   # role_admin.add_activite(SRV_ROLE, ACT_MANAGE, "belongs_to", SRV_ETAB)
@@ -201,7 +209,10 @@ def bootstrap_annuaire()
   prof_role.add_activite(SRV_CLASSE, ACT_UPDATE, "belongs_to", SRV_CLASSE)
   prof_role.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", SRV_GROUPE)
   prof_role.add_activite(SRV_GROUPE, ACT_UPDATE, "belongs_to", SRV_GROUPE)
-  #TODO: add role et app activities 
+  #TODO: add role et app activities
+  
+  # Activities => Documents activites 
+  prof_role.add_activite(SRV_DOC, ACT_MANAGE, "self", SRV_ETAB)
   
   #---------------------------------------------------------------------------#
   # Role => eleve
@@ -210,13 +221,19 @@ def bootstrap_annuaire()
   role_eleve.add_activite(SRV_ETAB, ACT_READ,   "belongs_to", SRV_ETAB)
   role_eleve.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", SRV_ETAB)
   role_eleve.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", SRV_ETAB)
+  role_eleve.add_activite(SRV_DOC, ACT_READ, "belongs_to", SRV_ETAB)
+  
   # add activities on classe level 
   role_eleve.add_activite(SRV_CLASSE, ACT_READ, "belongs_to", SRV_CLASSE)
   role_eleve.add_activite(SRV_GROUPE, ACT_READ, "belongs_to", SRV_GROUPE)
   role_eleve.add_activite(SRV_USER, ACT_READ, "belongs_to", SRV_CLASSE)
+  role_eleve.add_activite(SRV_DOC, ACT_MANAGE, "self", SRV_CLASSE)
+  role_eleve.add_activite(SRV_DOC, ACT_MANAGE, "self", SRV_GROUPE)
+  
   # add activities on user level
   role_eleve.add_activite(SRV_USER, ACT_UPDATE, "self", SRV_USER)
   role_eleve.add_activite(SRV_USER, ACT_READ, "self", SRV_USER)
+  
   #----------------------------------------------------------------------------#
   # Role => parent
   role_parent = Role.create(:id => ROL_PAR_ETB, :libelle => "Parent")
