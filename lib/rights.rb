@@ -69,9 +69,35 @@ module Rights
             
             #TODO: ADD Groupe, Applications, Roles, Params  #modifier 
             when SRV_GROUPE
-              rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
-                :condition => act[:condition], :parent_service => act[:parent_service_id], 
-                :etablissement_id => role_user[:etablissement_id]}) 
+              #prof
+              groupes = user.enseigne_groupes(etablissement_id)
+              groupes.each do |groupe| 
+                rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
+                :condition => act[:condition], :parent_service => act[:parent_service_id], :parent_id => groupe[:id].to_s, 
+                :etablissement_id => role_user[:etablissement_id]})
+              end
+              #rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
+              #  :condition => act[:condition], :parent_service => act[:parent_service_id], 
+              #  :etablissement_id => role_user[:etablissement_id]})
+              # eleve
+              groupes = user.groupes_eleve(etablissement_id)
+              groupes.each do |groupe| 
+                rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
+                :condition => act[:condition], :parent_service => act[:parent_service_id], :parent_id => groupe[:id].to_s, 
+                :etablissement_id => role_user[:etablissement_id]})
+              end
+              
+              #parent
+              user.enfants.each do |enfant|
+                groupes = enfant.groupes_eleve(etablissement_id)
+                groupes.each do |groupe| 
+                  rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
+                  :condition => act[:condition], :parent_service => act[:parent_service_id], :parent_id => groupe[:id].to_s, 
+                  :etablissement_id => role_user[:etablissement_id]})
+                end 
+              end
+            
+            #todo add groupees_libre   
             
             # to be modified
             when SRV_USER 
