@@ -294,7 +294,7 @@ def bootstrap_annuaire()
   #--------------------------------------------------------#
   
   # create root etablissement 
-  e = Etablissement.create(:nom => "ERASME", :type_etablissement_id => 1)
+  e = Etablissement.create(:nom => "ERASME", :type_etablissement_id => 1, :code_uai => "0699999Z")
   # create super admin user 
   u = User.create(:nom => "Saleh", :prenom => "Bashar", :sexe => "M", :login => "bsaleh", :password => "toortoor")
   RoleUser.create(:user_id => u.id, :etablissement_id => e.id, :role_id => ROL_TECH)
