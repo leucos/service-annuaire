@@ -100,7 +100,7 @@ class EtabApi < Grape::API
     #################
     desc "Modifier l'info d'un etablissement"
     params do
-      requires :id , type: Integer
+      requires :id , type: String
       optional :code_uai, type: String
       optional :nom, type: String
       optional :type_etablissement, type: Integer
@@ -118,7 +118,7 @@ class EtabApi < Grape::API
       optional :ip_pub_passerelle, type: String
     end 
     put "/:id" do
-      etab = Etablissement[:id => params[:id]]
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource nont trouvee", 404) if etab.nil?
       
       authorize_activites!([ACT_UPDATE, ACT_MANAGE], etab.ressource)

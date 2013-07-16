@@ -21,15 +21,31 @@ class ApplicationApi < Grape::API
     end 
     get "/:id" do 
       Application[:id => params[:id]]
+    end
+    
+    desc "create an application"
+    params do
+      requires :code, type:String
+      optional :libelle, type:String
+      optional :description, type:String
+      optional :url, type:String
+    end 
+    post do
+      app = Application.find_or_create(:id => params[:code])
+      app.libelle = params[:libelle]
+      app.description = params[:description]
+      app.url = params[:url]
+      app.save
+      #Application.create(:id=> params[:code], :libelle => params[:libelle], :description => params[:descrioption], :url=> params[:url])
     end 
 
 
-    desc "delete a class"
+    desc "delete an application"
     params do 
       requires :id, type: String
     end
-    delete "/:id" do 
-      puts delete application
+    delete "/:id" do
+      Application[:id => params[:id]].destroy
     end 
     
   end
