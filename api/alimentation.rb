@@ -200,7 +200,7 @@ class AlimentationApi < Grape::API
     #-------------------------------------------------#
     desc "Get bilan etablissement info"
     get "bilan/:type/:uai" do
-      # types: bilan_regroupemenets, bilan_comptes
+      # types: bilan_regroupements, bilan_comptes
       begin 
         res = Net::HTTP.get_response(URI("#{Configuration::ALIMENTATION_SERVER}index.php?action=api&service=#{params[:type]}&rne=#{params[:uai]}")) 
         results = JSON.parse(res.body)

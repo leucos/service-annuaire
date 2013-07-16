@@ -2,9 +2,13 @@
 
 require 'grape'
 class ApplicationApi < Grape::API                                                                                                                                                                                     
+  prefix 'api'
+  version 'v1', :using => :param, :parameter => "v"
   format :json
-
-  resource :vapplications do 
+  #content_type :json, "application/json; charset=utf-8"
+  default_error_formatter :json
+  default_error_status 400
+  resource :applications do 
     
     desc "get all applications"
     get do
