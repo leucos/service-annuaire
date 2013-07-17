@@ -46,7 +46,20 @@ class ApplicationApi < Grape::API
     end
     delete "/:id" do
       Application[:id => params[:id]].destroy
-    end 
+    end
     
+    desc "return all application parameters"
+    params do
+      requires :id, type:String
+    end
+    get "/:id/params" do 
+      app = Application[:id => params[:id]]
+      if app 
+        app.param_application_dataset.naked.all
+      else
+        error!("application n\'exist pas", 404)
+      end 
+      
+    end 
   end
 end    

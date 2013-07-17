@@ -32,7 +32,7 @@ class ParamApplication < Sequel::Model(:param_application)
   # Not nullable cols and unicity validation
   def validate
     super
-    validates_presence [:code, :preference, :type_param_id, :application_id]
+    validates_presence [:code, :preference, :type_param_id, :application_id ]
   end
 
   def before_destroy

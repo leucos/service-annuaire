@@ -27,6 +27,16 @@ class Application < Sequel::Model(:application)
   def validate
     super
   end
+  
+  def add_parameter(code, type_param_id, preference = 0, description = "", valeur_defaut = nil, autres_valeurs= nil)
+    param = ParamApplication[:code => code, :application_id => self.id]
+    if param 
+      param.destroy
+    end
+  
+    param = ParamApplication.create(:code => code, :application_id => self.id, :type_param_id => type_param_id, :preference => preference,
+              :description => description, :valeur_defaut => valeur_defaut, :autres_valeurs => autres_valeurs)
+  end
 
   def before_destroy
     param_application_dataset.destroy()
