@@ -367,6 +367,9 @@ def bootstrap_annuaire()
   TypeParam.create(:id => TYP_PARAM_TEXT)
   TypeParam.create(:id => TYP_PARAM_BOOL)
   TypeParam.create(:id => TYP_PARAM_NUMBER)
+  TypeParam.create(:id => TYP_PARAM_MSEL)
+  typeParam.create(:id => TYPE_PARAM_USEL)
+  
   #---------------------------------------------------------------------------#
 
   # deuxiement on ajoute les parametre  de test
