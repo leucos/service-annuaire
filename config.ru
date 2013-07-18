@@ -25,6 +25,8 @@ run ApplicationApi
 run ClassApi
 run AlimentationApi
 run ProfilApi
+run RoleApi
+
 map "/api/app" do
   run DocsApi
 end 

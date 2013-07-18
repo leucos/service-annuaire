@@ -1,12 +1,17 @@
 #encoding: utf-8
 
 require 'grape'
-class RoleApi < Grape::API                                                                                                                                                                                     
+class RoleApi < Grape::API
+  prefix 'api'
   format :json
+  
+  default_error_formatter :json
+  default_error_status 400
   
   resource :roles do
     desc "list all roles"
-    get "/" do 
+    get  do
+      Role.naked.all
     end
 
     desc "create new role"

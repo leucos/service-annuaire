@@ -9,5 +9,6 @@ class Root < Grape::API
   mount ApplicationApi
   mount ClassApi
   mount ProfilApi
+  mount RoleApi
   add_swagger_documentation
 end
