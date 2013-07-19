@@ -487,7 +487,7 @@ class UserApi < Grape::API
       authorize_activites!([ACT_READ, ACT_MANAGE], Ressource.laclasse, SRV_USER)
       # todo : manque user_id et etablissement
       accepted_fields = {
-        prenom: :prenom, nom: :user__nom, login: :login, etablissement: :etablissement__nom, id: :user__id, id_ent: :id_ent
+        prenom: :prenom, nom: :user__nom, login: :login, etablissement: :etablissement__nom, id: :user__id, id_ent: :id_ent, profil_id: :profil_user__profil_id, profil: :profil_national__description
       }
 
       dataset = User.search_all_dataset()
