@@ -15,7 +15,18 @@ class RoleApi < Grape::API
     end
 
     desc "create new role"
-    post "/" do 
+    params do
+      requires :role_id, type: String
+      optional :libelle, type: String
+      optional :description, type: String
+      
+    end
+    post "/" do
+      puts "Role will be Created"
+      role = Role.find_or_create(:id => params[:role_id])
+      role.libelle = params[:libelle] if params[:libelle]
+      role.description = params[:description] if params[:description]
+      role.save
     end 
 
     desc "modify un role"
@@ -24,6 +35,7 @@ class RoleApi < Grape::API
 
     desc "delete un role"
     delete "/:role_id" do 
+      Role[:id => params[:role_id]].destroy
     end 
 
     desc "list activities of a role"
@@ -40,6 +52,12 @@ class RoleApi < Grape::API
 
     desc "delete activities of a role"
     delete "/:role_id/activities/:activitiy_id" do 
-    end   
+    end
+
+    desc "list types of resources"
+    get"/resources" do 
+      Service.naked.all
+    end 
+
   end
 end   
