@@ -143,6 +143,9 @@ def bootstrap_annuaire()
   Service.create(:id => SRV_ROLE, :libelle => "Service de gestion des roles", :url => "/role")
   
   Service.create(:id => SRV_DOC, :libelle => "Service de gestion des documents",:url =>"/docs")
+
+  # service params
+  Service.create(:id => SRV_PARAM, :libelle => "PARAM", :url=> "/params")
   # TODO 
   # service /alimentation
   # service /preference 
@@ -213,7 +216,10 @@ def bootstrap_annuaire()
   
   # Activities => Documents activites 
   prof_role.add_activite(SRV_DOC, ACT_MANAGE, "self", SRV_ETAB)
-  
+
+  # activities on himself 
+  prof_role.add_activite(SRV_USER, ACT_UPDATE, "self", SRV_USER)
+  prof_role.add_activite(SRV_USER, ACT_READ, "self", SRV_USER)
   #---------------------------------------------------------------------------#
   # Role => eleve
   role_eleve = Role.create(:id => ROL_ELV_ETB, :libelle => "Elève")
@@ -230,7 +236,7 @@ def bootstrap_annuaire()
   role_eleve.add_activite(SRV_DOC, ACT_MANAGE, "self", SRV_CLASSE)
   role_eleve.add_activite(SRV_DOC, ACT_MANAGE, "self", SRV_GROUPE)
   
-  # add activities on user level
+  # add activities on user level(himself)
   role_eleve.add_activite(SRV_USER, ACT_UPDATE, "self", SRV_USER)
   role_eleve.add_activite(SRV_USER, ACT_READ, "self", SRV_USER)
   
@@ -295,12 +301,13 @@ def bootstrap_annuaire()
   
   # create root etablissement 
   e = Etablissement.create(:nom => "ERASME", :type_etablissement_id => 1, :code_uai => "0699999Z")
-  # create super admin user 
+  # create super admin user  : role = TECH 
   u = User.create(:nom => "Saleh", :prenom => "Bashar", :sexe => "M", :login => "bsaleh", :password => "toortoor")
   RoleUser.create(:user_id => u.id, :etablissement_id => e.id, :role_id => ROL_TECH)
   ProfilUser.create(:user_id => u.id, :profil_id => 'COL', :etablissement_id => e.id)
 
-  #Tout d'abord on créer des applications
+  #
+  #Tout d'abord on  a creé des applications
   #Application blog
   # panel_id = 'adm_pnl'
   # Service.create(:id => 'adm_pnl', :libelle => "Panel d'administration", :description => "Outil des gestion des utilisateurs de laclasse.com", :url => "/admin")
@@ -368,7 +375,7 @@ def bootstrap_annuaire()
   TypeParam.create(:id => TYP_PARAM_BOOL)
   TypeParam.create(:id => TYP_PARAM_NUMBER)
   TypeParam.create(:id => TYP_PARAM_MSEL)
-  typeParam.create(:id => TYPE_PARAM_USEL)
+  TypeParam.create(:id => TYPE_PARAM_USEL)
   
   #---------------------------------------------------------------------------#
 

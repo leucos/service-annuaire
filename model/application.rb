@@ -17,6 +17,9 @@ class Application < Sequel::Model(:application)
   plugin :validation_helpers
   plugin :json_serializer
 
+  # link to resource
+  plugin :ressource_link, :service_id => SRV_APP
+
   unrestrict_primary_key()
 
   # Referential integrity

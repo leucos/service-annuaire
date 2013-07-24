@@ -5,7 +5,7 @@ module Rights
   
   # find all rights for a specific user
   # example output 
-  #[{:user_id=>1324, :activite=>"DELETE", :target_class=>"CLASSE", :condition=>"belongs_to", :parent_class=>"ETAB", :parent_id => "123", :etablissement_id => "22"}]
+  #[{:user_id=>1324, :activite=>"DELETE", :target_class=>"CLASSE", :condition=>"belongs_to", :parent_class=>"ETAB", :parent_id => "123", :etablissement_id => "22"}, {}]
   def self.resolve_rights(user_id, etablissement_id = nil)
     rights = []
 
@@ -100,6 +100,7 @@ module Rights
             #todo add groupees_libre   
             
             # to be modified
+            # id ont think its important
             when SRV_USER 
               rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
                 :condition => act[:condition], :parent_service => act[:parent_service_id], :parent_id => role_user[:user_id].to_s,
@@ -147,23 +148,35 @@ module Rights
     rights.each do |activity|
 
       # user has activities on himself
-      if activity[:condition] == "self" && activity[:target_service] == type_ressource  && ressource_id == activity[:user_id].to_s
-        activities.push(activity[:activite])
-      # user has activites on a service that belongs to an etablissement  
+      if activity[:condition] == "self" 
+        # himself 
+        if activity[:target_service] == type_ressource  && ressource_id == activity[:user_id].to_s
+          activities.push(activity[:activite])
+
+        # his resources  
+        else 
+          
+        end
+      
+      # user has activites on a service that belongs to a parent service(etablissement, classe, groupe) 
       elsif  activity[:condition] == "belongs_to" && type_ressource == activity[:target_service] 
         activities.push(activity[:activite]) if ressource.belongs_to(Ressource[:id => activity[:parent_id], :service_id => activity[:parent_service]])
       
+
       # user has activites on all memebers of a service 
       elsif activity[:condition] == "all" 
-        # on ressource 
+        # if parent service == laclasse and type_resource == target service => push activitie in the array 
         if activity[:parent_service] == SRV_LACLASSE && ressource.service_id == activity[:target_service] 
           activities.push(activity[:activite])
-        # on service(manage and create)
+        
+        # important this resoulves to  manage and create 
+        # create A service
+        # i.e get_activities(user_id, 0, Laclasse, CLASSE) => ['Create', 'Manage']
         elsif type_ressource == activity[:parent_service] && service == activity[:target_service] && ressource_id == activity[:parent_id]
           activities.push(activity[:activite])  
         end 
       
-      # for the moment it is not necessary
+      # for the moment it is not necessary( i don't use this role)
       elsif activity[:condition] == "parent" && ressource_id == activity[:parent_id] && type_ressource == activity[:parent_class]
         activities.push(activity[:activite])
       end   

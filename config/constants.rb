@@ -56,6 +56,8 @@ SRV_USER     = "USER"
 SRV_APP      = "APP"
 SRV_ROLE     = "ROLE"
 SRV_DOC = "DOCUMENT"
+SRV_PARAM = "PARAM"
+
 
 #
 # Profil

@@ -90,7 +90,6 @@ class Ressource < Sequel::Model(:ressource)
         when "ETAB"
           belongs_to = (ProfilUser.filter(:user_id => self.id.to_i, :etablissement_id => ressource.id.to_i).count > 0)
         when "CLASSE"
-          
           # enseingant 
           belongs_to = (EnseigneDansRegroupement.filter(:user_id => self.id.to_i, :regroupement_id => ressource.id.to_i).count > 0)
           # eleve  
@@ -111,7 +110,10 @@ class Ressource < Sequel::Model(:ressource)
           user = User[:id => self.id.to_i]
             user.enfants.each do |enfant|
               belongs_to ||= (EleveDansRegroupement.filter(:user_id => enfant.id, :regroupement_id => ressource.id.to_i).count > 0) 
-            end    
+            end
+         # user belongs to a groupe libre   
+         when "LIBRE"  
+          # do nothing for the moment      
         else 
           belongs_to = false  
       end

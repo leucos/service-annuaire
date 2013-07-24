@@ -17,6 +17,8 @@ class Role < Sequel::Model(:role)
   # Plugins
   plugin :validation_helpers
   plugin :json_serializer
+  # plugin to create corresponding resource
+  plugin :ressource_link, :service_id => SRV_ROLE
 
   unrestrict_primary_key()
 
@@ -34,7 +36,9 @@ class Role < Sequel::Model(:role)
 
   def before_destroy
     #activite_role_dataset.destroy()
+    Ressource[:id => self.id.to_s].destroy if Ressource[:id => self.id.to_s]
     role_user_dataset.destroy()
+
     super
   end
 
