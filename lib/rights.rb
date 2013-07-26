@@ -135,7 +135,8 @@ module Rights
   # ex: on veut savoir si une personne a le droit de créer des utilisateurs dans un établissement
   # on fera get_rights("VAA60001", "ETAB", 0, "USER")
 
-  # get user activities on a  a ressource with ressource_id and type_ressource or on a service (i.e.  USER)  
+  # get user activities on a  a ressource with ressource_id and type_ressource 
+  # or on a service in the case of create (i.e.  USER)  
   def self.get_activities(user_id, ressource_id, type_ressource, service = nil)
     # Il est possible que la ressource n'existe pas
     ressource = Ressource[:id => ressource_id, :service_id => type_ressource]
@@ -154,8 +155,8 @@ module Rights
           activities.push(activity[:activite])
 
         # his resources  
-        else 
-          
+        elsif activity[:target_service] == type_resource  
+
         end
       
       # user has activites on a service that belongs to a parent service(etablissement, classe, groupe) 

@@ -164,7 +164,7 @@ def bootstrap_annuaire()
 
   # Création des Roles et definitions des activités 
   # Role => admin Laclasse
-  role_tech = Role.create(:id => ROL_TECH, :libelle => "Administrateur technique")
+  role_tech = Role.create(:id => ROL_TECH, :libelle => "Administrateur technique", :priority =>3)
   # Activities => 
   role_tech.add_activite(SRV_USER, ACT_MANAGE, "all", SRV_LACLASSE)
   role_tech.add_activite(SRV_ETAB, ACT_MANAGE, "all", SRV_LACLASSE)
@@ -177,20 +177,35 @@ def bootstrap_annuaire()
   #Service Document 
   role_tech.add_activite(SRV_DOC, ACT_MANAGE, "all", SRV_LACLASSE)
 
+  #Service Role 
+
   #---------------------------------------------------------------------------#
   # Role => admin Etab 
-  role_admin = Role.create(:id => ROL_ADM_ETB, :libelle => "Administrateur d'établissement")
+  role_admin = Role.create(:id => ROL_ADM_ETB, :libelle => "Administrateur d'établissement", :priority =>2)
+
+
+  # activities 
+    # can manage User belongs to his etablissement 
+    # can upadate Etab belongs to his etab 
+    # can read all etablissements 
+    # can manage classes belong to his etab 
+    # can manage groupes belogns to his etab 
+    #
   # Activities => etablissement level 
   role_admin.add_activite(SRV_USER, ACT_MANAGE, "belongs_to", SRV_ETAB)
   role_admin.add_activite(SRV_ETAB, ACT_UPDATE, "belongs_to", SRV_ETAB)
-  role_admin.add_activite(SRV_ETAB, ACT_READ, "belongs_to", SRV_ETAB)
+  
+  #role_admin.add_activite(SRV_ETAB, ACT_READ, "belongs_to", SRV_ETAB)
   role_admin.add_activite(SRV_CLASSE, ACT_MANAGE, "belongs_to", SRV_ETAB)
   role_admin.add_activite(SRV_GROUPE, ACT_MANAGE, "belongs_to", SRV_ETAB)
   
   # service Document 
   role_admin.add_activite(SRV_DOC, ACT_MANAGE, "belongs_to", SRV_ETAB)
-  # role_admin.add_activite(SRV_LIBRE, ACT_MANAGE, "belongs_to", SRV_ETAB)
-  # role_admin.add_activite(SRV_APP, ACT_MANAGE, "belongs_to", SRV_ETAB)
+  role_admin.add_activite(SRV_LIBRE, ACT_MANAGE, "belongs_to", SRV_ETAB)
+  role_admin.add_activite(SRV_APP, ACT_MANAGE, "belongs_to", SRV_ETAB)
+
+  # it is not neccessary because admin etablissement can only accord roles to 
+  # other users 
   # role_admin.add_activite(SRV_ROLE, ACT_MANAGE, "belongs_to", SRV_ETAB)
   
   # Activities => laclasse(root) level
@@ -198,7 +213,7 @@ def bootstrap_annuaire()
   
   #---------------------------------------------------------------------------#
   # Role => Prof  
-  prof_role = Role.create(:id => ROL_PROF_ETB, :libelle => "Professeur")
+  prof_role = Role.create(:id => ROL_PROF_ETB, :libelle => "Professeur", :priority => 1)
   
   # Activities => etablissement level 
   prof_role.add_activite(SRV_USER, ACT_READ, "belongs_to", SRV_ETAB)
@@ -375,7 +390,7 @@ def bootstrap_annuaire()
   TypeParam.create(:id => TYP_PARAM_BOOL)
   TypeParam.create(:id => TYP_PARAM_NUMBER)
   TypeParam.create(:id => TYP_PARAM_MSEL)
-  TypeParam.create(:id => TYPE_PARAM_USEL)
+  TypeParam.create(:id => TYP_PARAM_USEL)
   
   #---------------------------------------------------------------------------#
 

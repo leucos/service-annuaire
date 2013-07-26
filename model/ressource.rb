@@ -125,7 +125,7 @@ class Ressource < Sequel::Model(:ressource)
       end
     
     # ressource application belongs to an etablissement
-    elsif self[:service_id] == "APPLICATION"
+    elsif self[:service_id] == "APP"
       if ressource.service_id == "ETAB" && !ApplicationEtablissement[:application_id => self.id, :etablissement_id => ressource.id.to_i].nil?
         belongs_to = true 
       end
@@ -137,14 +137,16 @@ class Ressource < Sequel::Model(:ressource)
       elsif ressource.service_id == "USER" && !ParamUser[:param_application_id => self.id.to_i, :user_id => ressource.id.to_i].nil?
         belongs_to = true 
 
-      elsif ressource.service_id == "APPLICATION" && !ParamApplication[:id => self.id.to_i, :application_id => ressource.id].nil?
+      elsif ressource.service_id == "APP" && !ParamApplication[:id => self.id.to_i, :application_id => ressource.id].nil?
         belongs_to = true  
       end
     # TODO: ressource Role
+    elsif self[:service_id] == "ROLE"
+
     else 
       belongs_to = false 
     end
-    #puts belongs_to
+    
     belongs_to   
   end 
 end
