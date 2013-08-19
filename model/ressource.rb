@@ -140,7 +140,8 @@ class Ressource < Sequel::Model(:ressource)
       elsif ressource.service_id == "APP" && !ParamApplication[:id => self.id.to_i, :application_id => ressource.id].nil?
         belongs_to = true  
       end
-    # TODO: ressource Role
+    
+    # resource Role belongs to a 
     elsif self[:service_id] == "ROLE"
 
     else 
