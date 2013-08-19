@@ -155,7 +155,7 @@ module Rights
           activities.push(activity[:activite])
 
         # his resources  
-        elsif activity[:target_service] == type_resource  
+        elsif activity[:target_service] == type_ressource  
 
         end
       
