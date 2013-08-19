@@ -468,7 +468,7 @@ class UserApi < Grape::API
       result
     end
 
-    desc "Service de recherche d'utilisateurs"
+    desc "Service de recherche d'utilisateurs au niveau de LACLASSE"
     params do
       optional :query, type: String, desc: "pattern de recherche. Possibilité de spécifier la colonne sur laquelle faire la recherche ex: 'nom:Chackpack prenom:Georges'"
       optional :limit, type: Integer, desc: "Nombre maximum de résultat renvoyés"

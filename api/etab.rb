@@ -144,12 +144,43 @@ class EtabApi < Grape::API
       end 
     end
 
-    desc "get the list of users in an etablissement" 
+    desc "get the list of users in an etablissement and search users in the etablissement" 
     params do 
-      requires :id, type: Integer
+      requires :id, type: String
+      optional :query, type: String, desc: "pattern de recherche. Possibilité de spécifier la colonne sur laquelle faire la recherche ex: 'nom:Chackpack prenom:Georges'"
+      optional :limit, type: Integer, desc: "Nombre maximum de résultat renvoyés"
+      optional :page, type: Integer, desc: "Dans le cas d'une requète paginée"
+      optional :sort_col, type: String, desc: "Nom de la colonne sur laquelle faire le tri"
+      optional :sort_dir, type: String, regexp: /^(asc|desc)$/i, desc: "Direction de tri : ASC ou DESC"
+      group :advanced do
+        optional :prenom, type: String
+        optional :nom, type: String
+        optional :login, type: String
+        optional :etablissement, type: String, desc: "Nom de l'établissement dans lequel est l'utilisateur"
+        optional :user_id, type: String
+      end 
     end 
-    get "/:id/users" do 
-      # return list of users in the etablissmenet
+    get "/:id/users" do
+      etab = Etablissement[:code_uai => params[:id]]
+      authorize_activites!([ACT_READ, ACT_MANAGE], etab.ressource, SRV_USER)
+      accepted_fields = {
+        prenom: :prenom, nom: :user__nom, login: :login, etablissement: :etablissement__nom, id: :user__id, id_ent: :id_ent, profil_id: :profil_user__profil_id, profil: :profil_national__description
+      }
+
+      dataset = User.search_all_dataset()
+      dataset = dataset.where(:etablissement__code_uai => params[:id])
+      results = super_search!(dataset, accepted_fields)
+
+      # Code à décommenter si search_all_dataset n'utilise plus select_json_array!
+      # results[:results].each do |u|
+      #   user = User[u[:id]]
+      #   u[:emails] = user.email_dataset.naked.all
+      #   u[:telephones] = user.telephone_dataset.naked.all
+      #   u[:profils] = user.profil_user_display.naked.all
+      # end
+
+      #puts results.count
+      results
     end   
 
     # get all etablissements and  add search capability to that
