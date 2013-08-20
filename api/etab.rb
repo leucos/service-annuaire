@@ -78,11 +78,11 @@ class EtabApi < Grape::API
     #################
     desc "Get etablissement info"
     params do
-      requires :id, type: Integer
+      requires :id, type: String
       optional :expand, type:String, desc: "show simple or detailed info, value = true or false"
     end  
     get "/:id" do
-      etab = Etablissement[:id => params[:id]]
+      etab = Etablissement[:code_uai => params[:id]]
       #authorize_activites!(ACT_READ,etab.ressource)
       # construct etablissement entity.
       if !etab.nil?
