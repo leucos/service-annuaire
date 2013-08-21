@@ -143,6 +143,40 @@ class EtabApi < Grape::API
         error!("Validation failed", 400)
       end 
     end
+    ##################################
+    desc "Upload an image(logo)"
+    params do 
+      requires :id, type:String
+    end 
+    post "/:id/upload/logo" do
+      puts params.inspect
+      #puts params[:image].inspect
+
+      #puts params[:upfile][:tempfile].inspect
+      etab = Etablissement[:code_uai => params[:id]]
+      if etab 
+        tempfile = params[:image][:tempfile]
+        imagetype = params[:image][:type].split("/")[1]
+
+        #puts tempfile.inspect
+        #puts type.inspect
+
+        # read received file and write it to public folder
+        File.open(tempfile.path, 'rb') do |input| 
+          File.open("public/api/logos/banniere_etab_#{params[:id]}.#{imagetype}", 'wb') {|out| out.write(input.read) }
+        end
+
+        {
+          etablissemnt: params[:id],
+          filename: "banniere_etab_#{params[:id]}.#{imagetype}",
+          size: params[:image][:tempfile].size,
+          type: imagetype
+        }
+      else 
+        error!("etablissement non trouve", 404)
+      end   
+  
+    end
 
     desc "get the list of users in an etablissement and search users in the etablissement" 
     params do 

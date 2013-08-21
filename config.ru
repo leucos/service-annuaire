@@ -14,7 +14,7 @@ require ::File.expand_path('../app', __FILE__)
 
 
 # for the moment angular js is accesed statically
-#use Rack::Static, :urls => ["/app"], :root => File.expand_path('../public/angularJS', __FILE__)
+use Rack::Static, :urls => ["/api/logos"], :root => File.expand_path('../public', __FILE__)
 
 
 # run apis, these apis are routed using the :resource element that englobe the apis
