@@ -62,7 +62,7 @@ module API
 
     class SimpleEtablissement < Grape::Entity 
       expose :id, :code_uai, :nom, :adresse, :code_postal, :ville, :type_etablissement_id, :telephone, :fax
-      expose :full_name, :alimentation_state, :alimentation_date, :data_received, :longitude, :latitude 
+      expose :full_name, :alimentation_state, :alimentation_date, :data_received, :longitude, :latitude, :site_url , :logo
     end
 
     class DetailedEtablissement < Grape::Entity
@@ -72,7 +72,7 @@ module API
       expose :groupes_eleves
       expose :groupes_libres
       expose(:personnel) do |etab, options|
-        etab.personnel do |person|
+        etab.personnel do |person| 
           {:id => person.id, :full_name => person.full_name}
         end
       end  
