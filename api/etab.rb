@@ -350,14 +350,14 @@ class EtabApi < Grape::API
 
     desc "list classes in the etablissement"
     params do 
-      requires :id, type: Integer
+      requires :id, type: String
     end
     get "/:id/classes" do 
-      etab = Etablissement[:id => params[:id]]
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       authorize_activites!([ACT_READ, ACT_MANAGE], etab.ressource, SRV_CLASSE)
       begin
-          etab.classes
+        JSON.pretty_generate(etab.classes)
       rescue => e
         error!("mouvaise requete", 400) 
       end 
