@@ -111,6 +111,12 @@ class Etablissement < Sequel::Model(:etablissement)
     User.filter(:profil_user => ProfilUser.filter(:etablissement => self, :profil_id => Profil.exclude(:id => ["ELV", "TUT"]).select(:id))).all
   end
 
+  def matieres
+    regroupement_dataset.select(:matiere_enseignee__id, :matiere_enseignee__libelle_long)
+    .join(:enseigne_dans_regroupement, :regroupement_id => :id)
+    .join(:matiere_enseignee, :matiere_enseignee__id => :matiere_enseignee_id).distinct.naked.all
+  end
+
   def contacts
     User.filter(:profil_user => ProfilUser.filter(:etablissement => self, :profil_id => ["ADM", "DIR"])).all
   end 
@@ -147,4 +153,9 @@ class Etablissement < Sequel::Model(:etablissement)
     preferences.select(:id, :valeur_defaut, :valeur, :libelle, :description, :autres_valeurs, :type_param_id).
       all   
   end
+
+  # matieres enseignées dans l'etablissement  
+  def matieres_enseignees
+
+  end 
 end

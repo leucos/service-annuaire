@@ -158,13 +158,15 @@ class EtabApi < Grape::API
         tempfile = params[:image][:tempfile]
         imagetype = params[:image][:type].split("/")[1]
 
-        #puts tempfile.inspect
-        #puts type.inspect
 
         # read received file and write it to public folder
         File.open(tempfile.path, 'rb') do |input| 
           File.open("public/api/logos/banniere_etab_#{params[:id]}.#{imagetype}", 'wb') {|out| out.write(input.read) }
         end
+
+        etab.logo = "banniere_etab_#{params[:id]}.#{imagetype}"
+        etab.save 
+        puts "logo saved"
 
         {
           etablissemnt: params[:id],
@@ -178,6 +180,9 @@ class EtabApi < Grape::API
   
     end
 
+    #################################################
+    #  Gestion des utilisateurs                     #
+    #################################################
     desc "get the list of users in an etablissement and search users in the etablissement" 
     params do 
       requires :id, type: String
@@ -205,15 +210,6 @@ class EtabApi < Grape::API
       dataset = dataset.where(:etablissement__code_uai => params[:id])
       results = super_search!(dataset, accepted_fields)
 
-      # Code à décommenter si search_all_dataset n'utilise plus select_json_array!
-      # results[:results].each do |u|
-      #   user = User[u[:id]]
-      #   u[:emails] = user.email_dataset.naked.all
-      #   u[:telephones] = user.telephone_dataset.naked.all
-      #   u[:profils] = user.profil_user_display.naked.all
-      # end
-
-      #puts results.count
       results
     end   
 
@@ -633,9 +629,19 @@ class EtabApi < Grape::API
       rescue => e 
         puts e.message 
         error!("mouvaise requete", 400)
-      end 
+      end
+    end  
 
-    end 
+    ############################
+      desc "lister les matieres enseignees dans letablissement"
+      params do 
+        requires :id, type: String
+      end
+      get "/:id/matieres" do
+        etab = Etablissement[:code_uai => params[:id]]
+        JSON.pretty_generate(etab.matieres)
+      end   
+ 
 
     ################################
     # Gestion des groupes d'eleves #
