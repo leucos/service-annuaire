@@ -90,7 +90,8 @@ class EtabApi < Grape::API
         if params[:expand] == "true"
           present etab, with: API::Entities::DetailedEtablissement
         else 
-          present etab, with: API::Entities::SimpleEtablissement
+          response = present etab, with: API::Entities::SimpleEtablissement
+          JSON.pretty_generate(response)
        end
       else
         error!("ressource non trouve", 404) 
