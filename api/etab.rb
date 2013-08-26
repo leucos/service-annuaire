@@ -348,7 +348,6 @@ class EtabApi < Grape::API
     #######################
     # Gestion des classes #
     #######################
-
     desc "list classes in the etablissement"
     params do 
       requires :id, type: String
@@ -651,13 +650,13 @@ class EtabApi < Grape::API
     
     desc "lister les groupes d'éléve dans l'etablissement"
     params do 
-      requires :id, type:Integer 
+      requires :id, type:String
     end 
     get "/:id/groupes" do 
-      etab = Etablissement[:id => params[:id]]
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       authorize_activites!([ACT_READ, ACT_MANAGE], etab.ressource, SRV_GROUPE)
-      etab.groupes_eleves
+      JSON.pretty_generate(etab.groupes_eleves)
     end 
 
 
