@@ -100,14 +100,14 @@ class Etablissement < Sequel::Model(:etablissement)
   def groupes_eleves
     ds1 = DB.fetch("SELECT `regroupement_id`, count(user_id) AS `profs` FROM `enseigne_dans_regroupement` GROUP BY `regroupement_id`")
     ds2 = DB.fetch("SELECT `regroupement_id`, count(user_id) AS `eleves` FROM `eleve_dans_regroupement` GROUP BY `regroupement_id`") 
-    regroupement_dataset.where(:type_regroupement_id => "GRP").join(ds1, :regroupement_id => :id).join(ds2, :regroupement_id => :regroupement__id).naked.all
+    regroupement_dataset.where(:type_regroupement_id => "GRP").left_join(ds1, :regroupement_id => :id).left_join(ds2, :regroupement_id => :regroupement__id).naked.all
   end
 
   # les groupes libre dans l'etablissement 
   def groupes_libres
     ds1 = DB.fetch("SELECT `regroupement_id`, count(user_id) AS `profs` FROM `enseigne_dans_regroupement` GROUP BY `regroupement_id`")
     ds2 = DB.fetch("SELECT `regroupement_id`, count(user_id) AS `eleves` FROM `eleve_dans_regroupement` GROUP BY `regroupement_id`") 
-    regroupement_dataset.where(:type_regroupement_id => "LBR").join(ds1, :regroupement_id => :id).join(ds2, :regroupement_id => :regroupement__id).naked.all
+    regroupement_dataset.where(:type_regroupement_id => "LBR").left_join(ds1, :regroupement_id => :id).left_join(ds2, :regroupement_id => :regroupement__id).naked.all
   end 
 
   # Liste de tous les membres d'un établissement qui font parti de l'éducation nationale
