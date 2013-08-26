@@ -845,10 +845,10 @@ class EtabApi < Grape::API
     #pour l'instant on cree les groupes libres dans un etablissement "to do"
     desc "liste les groupes libres dans un etablissement"
     params do 
-      requires :id, type: Integer
+      requires :id, type: String
     end 
-    get "/:id/groupes_libre" do
-      etab = Etablissement[:id => params[:id]]
+    get "/:id/groupes_libres" do
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil? 
       authorize_activites!([ACT_READ, ACT_MANAGE], etab.ressource, SRV_LIBRE)
       etab.groupes_libres
@@ -861,7 +861,7 @@ class EtabApi < Grape::API
       requires :libelle, type: String 
       optional :description, type: String   
     end
-    post "/:id/groupes_libre"  do
+    post "/:id/groupes_libres"  do
       etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       authorize_activites!([ACT_CREATE, ACT_MANAGE], etab.ressource, SRV_LIBRE)
@@ -882,7 +882,7 @@ class EtabApi < Grape::API
       requires :id , type: Integer
       requires :groupe_id, type: Integer  
     end 
-    put "/:id/groupes_libre/:groupe_id" do
+    put "/:id/groupes_libres/:groupe_id" do
       etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       authorize_activites!([ACT_UPDATE, ACT_MANAGE], etab.ressource, SRV_LIBRE)
@@ -909,7 +909,7 @@ class EtabApi < Grape::API
       requires :id , type: Integer
       requires :groupe_id, type:Integer
     end 
-    delete "/:id/groupes_libre/:groupe_id" do
+    delete "/:id/groupes_libres/:groupe_id" do
       etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       authorize_activites!([ACT_DELETE, ACT_MANAGE], etab.ressource, SRV_LIBRE)
