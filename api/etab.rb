@@ -364,6 +364,7 @@ class EtabApi < Grape::API
       end 
     end 
 
+    ##################
     #@input: {libelle: "4°C", code_mef_aaf: "4EME"}
     #@output: {classe.id }
     desc "creer une classe"
