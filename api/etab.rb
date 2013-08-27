@@ -413,7 +413,27 @@ class EtabApi < Grape::API
         error!("mouvaise request", 400) 
       end 
     end 
+    ################
+    desc "get l'info d'une classe"
+    params do 
+      requires :id, type: String
+      requires :classe_id, type:Integer
+      optional :expand, type:String, desc: "show simple or detailed info, value = true or false"
+    end 
+    get "/:id/classes/:classe_id" do 
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
 
+      classe = Regroupement[:id => params[:classe_id]]
+      error!("ressource non trouvee", 404) if classe.nil?
+      authorize_activites!([ACT_READ, ACT_MANAGE], classe.ressource)
+      if params[:expand] == "true"
+        present classe, with: API::Entities::DetailedRegroupement
+      else
+        present classe, with: API::Entities::SimpleRegroupement   
+      end  
+    end 
+    
     #################
     desc "Suppression d'une classe"
     params do 

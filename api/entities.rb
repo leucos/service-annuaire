@@ -79,6 +79,15 @@ module API
       expose :contacts 
     end
 
+    class SimpleRegroupement < Grape::Entity
+      expose :id, :etablissement_id, :libelle, :libelle_aaf, :type_regroupement_id 
+    end   
+
+    class DetailedRegroupement < Grape::Entity
+      expose :id, :etablissement_id, :libelle, :libelle_aaf, :type_regroupement_id
+      expose(:profs) {|regroupement,options| regroupement.profs}
+      expose(:eleves) {|regroupement,options| regroupement.eleves}
+    end 
   end 
     
 end

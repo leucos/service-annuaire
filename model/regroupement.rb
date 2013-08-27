@@ -83,30 +83,25 @@ class Regroupement < Sequel::Model(:regroupement)
 
   def is_groupe
     type_regroupement_id == TYP_REG_GRP 
-  end
+  end  
 
-=begin
-  # returns the number of groups in the class 
-  def nb_groups
-    if type_regroupement_id == TYP_REG_CLS
-      #MembreRegroupement.filter(:user_id => MembreRegroupement.select(:user_id).filter(:regroupement => self)).select(:regroupement_id).distinct.count
-    else
-      raise 'Erreur, le groupe n\' est pas une classe'
-    end
+  # Liste des membres du regroupement dont le profil est Prof
+  def profs
+    User.filter(:enseigne_dans_regroupement => EnseigneDansRegroupement.filter(:regroupement => self),
+      :profil_user => ProfilUser.filter(:etablissement_id => etablissement_id, :profil_id => 'ENS'))
+      .select(:id, :id_ent, :id_jointure_aaf, :nom, :prenom)
+      .naked.all  
   end
 
   # Liste des membres du regroupement dont le profil est élève
   def eleves
-    User.filter(:membre_regroupement => MembreRegroupement.filter(:regroupement => self),
-      :profil_user => ProfilUser.filter(:etablissement_id => etablissement_id, :profil_id => 'ELV')).all
+    User.filter(:eleve_dans_regroupement => EleveDansRegroupement.filter(:regroupement => self),
+      :profil_user => ProfilUser.filter(:etablissement_id => etablissement_id, :profil_id => 'ELV'))
+      .select(:id, :id_sconet, :id_ent, :id_jointure_aaf, :nom, :prenom)
+      .naked.all
   end
 
-  # Liste des membres du regroupement dont le profil est Prof
-  def profs
-    User.filter(:enseigne_regroupement => EnseigneRegroupement.filter(:regroupement => self),
-      :profil_user => ProfilUser.filter(:etablissement_id => etablissement_id, :profil_id => 'ENS')).all  
-  end
-
+=begin
   def membres
     User.filter(:membre_regroupement => MembreRegroupement.filter(:regroupement => self),
       :profil_user => ProfilUser.filter(:etablissement_id => etablissement_id)).all 
@@ -122,8 +117,7 @@ class Regroupement < Sequel::Model(:regroupement)
   def delete_membre(user_id)
     MembreRegroupement.where(:user_id => user_id, :regroupement => self).delete
   end
-
-=end
+=end 
 
   # matieres = [ ]
   def add_prof(user, matiere, principal = "N" )
