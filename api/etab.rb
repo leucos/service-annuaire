@@ -345,10 +345,10 @@ class EtabApi < Grape::API
       end
     end  
 
-    #######################
-    # Gestion des classes #
-    #######################
-    desc "list classes in the etablissement"
+    ############################################################
+    #             Gestion des classes                          #
+    ############################################################
+    desc "list all classes in the etablissement"
     params do 
       requires :id, type: String
     end
@@ -363,17 +363,17 @@ class EtabApi < Grape::API
       end 
     end 
 
-    ##################
+    ############################################################
     #@input: {libelle: "4°C", code_mef_aaf: "4EME"}
     #@output: {classe.id }
-    desc "creer une classe"
+    desc "creer une classe dans l'etablissement"
     params do 
-      requires :id, type: Integer
+      requires :id, type: String
       requires :libelle, type: String
       requires :code_mef_aaf, type: String 
     end 
     post "/:id/classes" do 
-      etab = Etablissement[:id => params[:id]]
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       authorize_activites!([ACT_CREATE, ACT_MANAGE], etab.ressource, SRV_CLASSE)
       parameters = exclude_hash(params, ["id", "route_info", "session"])
@@ -384,16 +384,16 @@ class EtabApi < Grape::API
         error!("mouvaise requete", 400) 
       end 
     end 
-
-    #################
+    
+    ############################################################
     #@input{libelle: "4°D"}   
     desc "Modifier l'info d'une classe" 
     params do 
-      requires :id, type: Integer
+      requires :id, type: String
       requires :classe_id, type:Integer 
     end 
     put "/:id/classes/:classe_id" do 
-      etab = Etablissement[:id => params[:id]]
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       authorize_activites!([ACT_UPDATE, ACT_MANAGE], etab.ressource, SRV_CLASSE)
       
@@ -413,7 +413,14 @@ class EtabApi < Grape::API
         error!("mouvaise request", 400) 
       end 
     end 
-    ################
+    
+    ############################################################
+    # returns two types of responses:
+    # => Simple: ex. {"id":1,"etablissement_id":4813,"libelle":null,"libelle_aaf":"6A","type_regroupement_id":"CLS"}
+    # => Detailed: ex. {"id":1,"etablissement_id":4813,"libelle":null,"libelle_aaf":"6A","type_regroupement_id":"CLS",
+    #   "profs":[{"id":467,"id_ent":"VAA60466","id_jointure_aaf":22184,"nom":"BERNARD","prenom":"Nathalie"},..], 
+    #   "eleves":[{"id":457,"id_sconet":1038997,"id_ent":"VAA60456","id_jointure_aaf":2417366,"nom":"WERNER","prenom":"Florent"},..]}
+
     desc "get l'info d'une classe"
     params do 
       requires :id, type: String
@@ -426,6 +433,8 @@ class EtabApi < Grape::API
 
       classe = Regroupement[:id => params[:classe_id]]
       error!("ressource non trouvee", 404) if classe.nil?
+      error!("pas de droit", 403) if classe.etablissement_id != etab.id
+
       authorize_activites!([ACT_READ, ACT_MANAGE], classe.ressource)
       if params[:expand] == "true"
         present classe, with: API::Entities::DetailedRegroupement
@@ -433,8 +442,8 @@ class EtabApi < Grape::API
         present classe, with: API::Entities::SimpleRegroupement   
       end  
     end 
-    
-    #################
+
+    ############################################################
     desc "Suppression d'une classe"
     params do 
       requires :id, type: Integer
@@ -453,8 +462,71 @@ class EtabApi < Grape::API
       rescue  => e
         error!("mouvaise request", 400) 
       end 
-    end 
+    end
 
+    ############################################################ 
+    # Rattachement d'un eleve ou prof à une classe
+    desc "rattachements d'un eleve à une classe"
+    params do 
+      requires :id, type: String
+      requires :classe_id, type: Integer
+      requires :user_id, type: String
+    end
+    post "/:id/classes/:classe_id/eleves/:user_id" do
+      # role ou profil
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      
+      classe = Regroupement[:id => params[:classe_id]]
+      error!("ressource non trouvee", 404) if classe.nil?
+      error!("mouvaise requete", 400) if classe.type_regroupement_id!='CLS'
+      error!("pas de droit", 403) if classe.etablissement_id != etab.id
+      
+      user = User[:id_ent => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      begin
+        # user has profil eleve 
+        if user.profil_user_dataset.where(:profil_id=>'ELV').count == 1 
+          EleveDansRegroupement.find_or_create(:user_id => user.id,:regroupement_id => classe.id)
+        end 
+        #ressource = classe.ressource
+        #user.add_role(ressource.id, ressource.service_id, role.id)
+      rescue => e 
+        puts e.message
+        error!("mouvaise requete", 400)
+      end    
+    end
+
+    ############################################################ 
+    # Rattachement d'un eleve ou prof à une classe
+    desc "Detachement d'un eleve d'une classe"
+    params do 
+      requires :id, type: String
+      requires :classe_id, type: Integer
+      requires :user_id, type: String
+    end
+    delete "/:id/classes/:classe_id/eleves/:user_id" do
+      # role ou profil
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      
+      classe = Regroupement[:id => params[:classe_id]]
+      error!("ressource non trouvee", 404) if classe.nil?
+      error!("mouvaise requete", 400) if classe.type_regroupement_id!='CLS'
+      error!("pas de droit", 403) if classe.etablissement_id != etab.id
+      
+      user = User[:id_ent => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      begin
+        # user has profil eleve 
+        if user.profil_user_dataset.where(:profil_id=>'ELV').count == 1 
+          EleveDansRegroupement.destroy(:user_id => user.id)
+        end 
+      rescue => e 
+        puts e.message
+        error!("mouvaise requete", 400)
+      end    
+    end
     #############################################################
     # Gestion des rattachement et des roles dans une classe     #
     #############################################################
