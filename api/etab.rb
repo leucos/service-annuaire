@@ -181,9 +181,9 @@ class EtabApi < Grape::API
   
     end
 
-    #################################################
-    #  Gestion des utilisateurs                     #
-    #################################################
+    ############################################################
+    #  Gestion des utilisateurs                                #
+    ############################################################
     desc "get the list of users in an etablissement and search users in the etablissement" 
     params do 
       requires :id, type: String
@@ -212,8 +212,36 @@ class EtabApi < Grape::API
       results = super_search!(dataset, accepted_fields)
 
       results
-    end   
+    end 
 
+    ############################################################
+    desc "get the list of (eleves libres) which are not in any class"
+    params do 
+      requires :id, type:String 
+      optional :libre, type:String 
+    end 
+    get "/:id/eleves" do 
+      etab = Etablissement[:code_uai => params[:id]]
+      authorize_activites!([ACT_READ, ACT_MANAGE], etab.ressource, SRV_USER)
+      if params[:libre]== "true" 
+        JSON.pretty_generate(etab.eleves_libres)
+      else 
+        JSON.pretty_generate(etab.eleves)
+      end 
+    end 
+
+    ############################################################
+     desc "get the list of (profs) in (Etablissement)"
+    params do 
+      requires :id, type:String 
+    end 
+    get "/:id/profs" do 
+      etab = Etablissement[:code_uai => params[:id]]
+      authorize_activites!([ACT_READ, ACT_MANAGE], etab.ressource, SRV_USER)
+      JSON.pretty_generate(etab.enseignants)
+    end
+
+    ############################################################
     # get all etablissements and  add search capability to that
     desc "get la liste des etablissements and search"
     params do
@@ -247,9 +275,9 @@ class EtabApi < Grape::API
       end 
     end   
 
-    ##########################################
+    ############################################################
     # Gestion des roles dans l'etablissement #
-    ##########################################
+    ############################################################
     
     #Note: use authorize
     #{role_id : "ADM_ETB"}
@@ -288,7 +316,7 @@ class EtabApi < Grape::API
       {:user_id => user.id, :user_role => role.id}     
     end
 
-    #################
+   ############################################################
     desc "Changer le role de quelqu'un"
     params do 
       requires :id, type: Integer 
@@ -321,7 +349,7 @@ class EtabApi < Grape::API
       {:user_id => user.id, :user_role => new_role.id} 
     end 
 
-    #################
+    ############################################################
     desc "Supprimer un role de l'utilisateur dans l'etablissement"
     params do 
       requires :id, type: Integer
@@ -520,7 +548,7 @@ class EtabApi < Grape::API
       begin
         # user has profil eleve 
         if user.profil_user_dataset.where(:profil_id=>'ELV').count == 1 
-          EleveDansRegroupement.destroy(:user_id => user.id)
+          EleveDansRegroupement[:user_id => user.id, :regroupement_id => classe.id].delete
         end 
       rescue => e 
         puts e.message

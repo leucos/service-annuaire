@@ -72,9 +72,10 @@ module API
       expose :groupes_eleves
       expose :groupes_libres
       expose(:personnel) do |etab, options|
-        etab.personnel do |person| 
-          {:id => person.id, :full_name => person.full_name}
-        end
+        etab.personnel 
+        #do |person| 
+          #{:id => person.id, :full_name => person.full_name}
+        #end
       end  
       expose :contacts 
     end

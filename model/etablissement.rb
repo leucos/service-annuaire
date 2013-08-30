@@ -114,7 +114,7 @@ class Etablissement < Sequel::Model(:etablissement)
   def personnel
     # Seul les profil ayant un code ministeriel font parti de l'éducation nationale.
     # temp : peut-etre un peu léger, que faire des cuisiniers (sont-ils alimentés) par exemple ?
-    User.filter(:profil_user => ProfilUser.filter(:etablissement => self, :profil_id => Profil.exclude(:id => ["ELV", "TUT"]).select(:id))).all
+    User.filter(:profil_user => ProfilUser.filter(:etablissement => self, :profil_id => Profil.exclude(:id => ["ELV", "TUT"]).select(:id))).select(:id, :id_ent, :nom, :prenom).all
   end
 
   def matieres
@@ -124,7 +124,7 @@ class Etablissement < Sequel::Model(:etablissement)
   end
 
   def contacts
-    User.filter(:profil_user => ProfilUser.filter(:etablissement => self, :profil_id => ["ADM", "DIR"])).all
+    User.filter(:profil_user => ProfilUser.filter(:etablissement => self, :profil_id => ["ADM", "DIR"])).select(:id, :id_ent, :nom, :prenom).all
   end 
 
   # retourn le type de l'Etablissement suivi par son nom
@@ -163,5 +163,29 @@ class Etablissement < Sequel::Model(:etablissement)
   # matieres enseignées dans l'etablissement  
   def matieres_enseignees
 
+  end
+
+  # all (eleves) dans l'etablissement 
+  def eleves
+    ProfilUser.join(:user, :id => :user_id).filter(:profil_id => "ELV", :etablissement_id => self.id)
+    .select(:profil_id, :user_id, :etablissement_id, :id_sconet, :id_jointure_aaf, 
+      :nom, :prenom, :id_ent).naked.all
+
   end 
+
+  # (Eleves) that do not belong to any Class
+  def eleves_libres
+    ProfilUser.join(:user, :id => :user_id).filter(:profil_id => "ELV", :etablissement_id => self.id).select(:id, :id_ent)
+    .exclude(:id => EleveDansRegroupement.join(:regroupement, :id => :regroupement_id).filter(:type_regroupement_id => "CLS", :etablissement_id=> 4813).select(:user_id))
+    .select(:profil_id, :user_id, :etablissement_id, :id_sconet, :id_jointure_aaf, 
+      :nom, :prenom, :id_ent).naked.all
+  end  
+
+  # Tous les enseignants dans l'etablissement 
+  def enseignants
+    ProfilUser.join(:user, :id => :user_id).filter(:profil_id => "ENS", :etablissement_id => self.id)
+    .select(:profil_id, :user_id, :etablissement_id, :id_sconet, :id_jointure_aaf, 
+      :nom, :prenom, :id_ent).naked.all
+  end  
+
 end
