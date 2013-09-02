@@ -662,17 +662,46 @@ class EtabApi < Grape::API
       end 
     end
 
-    ##################### 
+    #########################################################
+    #{matieres ids : [200, 300]}
+    desc "Lister les enseignants dans une classe" 
+    params do
+      requires :id, type: String
+      requires :classe_id, type: Integer
+      optional :notin, type: String 
+    end 
+    get "/:id/classes/:classe_id/profs" do 
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      
+      classe = Regroupement[:id => params[:classe_id]]
+      error!("ressource non trouvee", 404) if classe.nil?
+      error!("pas de droit", 403) if classe.etablissement_id != etab.id
+     
+      begin 
+        if params[:notin] == "true" 
+          etab.enseignants.select{|prof|  !classe.profs.map{|x| x[:id_ent]}.include?(prof[:id_ent])}
+        else
+          classe.profs
+        end 
+      rescue  => e 
+        puts e.message
+        error!("mouvaise requete", 400)
+      end 
+    end
+
+    ##########################################################
+
     #{matieres ids : [200, 300]}
     desc "ajouter un enseignant et ajouter des matieres" 
     params do
-      requires :id, type: Integer
+      requires :id, type:String
       requires :classe_id, type: Integer
       requires :user_id, type: String
       #optional :matieres, type: Hash 
     end 
-    post "/:id/classe/:classe_id/enseigne/:user_id" do 
-      etab = Etablissement[:id => params[:id]]
+    post "/:id/classe/:classe_id/profs/:user_id" do 
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       
       classe = Regroupement[:id => params[:classe_id]]
@@ -682,8 +711,9 @@ class EtabApi < Grape::API
       error!("ressource non trouvee", 404) if user.nil?
       matieres = params[:matieres]
       begin 
-        # if user exists => add matieres else add prof 
-        if RoleUser[:user_id => user.id, :role_id => "PROF_CLS", :ressource_id => classe.ressource.id]
+        # if user exists => add matieres else add prof
+        ens_mat = EnseigneDansRegroupement[:user_id => user.id, :regroupement_id => classe.id] 
+        if ens_mat
             matieres.each do |mat|
               ens_mat = EnseigneDansRegroupement.new
               ens_mat.regroupement = classe
