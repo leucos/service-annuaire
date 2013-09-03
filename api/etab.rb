@@ -700,64 +700,76 @@ class EtabApi < Grape::API
       requires :user_id, type: String
       #optional :matieres, type: Hash 
     end 
-    post "/:id/classe/:classe_id/profs/:user_id" do 
+    post "/:id/classes/:classe_id/profs/:user_id" do 
       etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       
       classe = Regroupement[:id => params[:classe_id]]
       error!("ressource non trouvee", 404) if classe.nil?
       error!("pas de droit", 403) if classe.etablissement_id != etab.id
-      user = User[:id => params[:user_id]]
+      user = User[:id_ent => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
-      matieres = params[:matieres]
-      begin 
+      matiere = params[:matiere]
+      if matiere 
+         mat_id = matiere
+      else 
+        # matiere par defaut
+        mat_id = "003700"
+      end 
+      begin
+        "ok" 
         # if user exists => add matieres else add prof
-        ens_mat = EnseigneDansRegroupement[:user_id => user.id, :regroupement_id => classe.id] 
-        if ens_mat
-            matieres.each do |mat|
-              ens_mat = EnseigneDansRegroupement.new
-              ens_mat.regroupement = classe
-              ens_mat.user_id = user.id     
-              ens_mat.matiere_enseignee_id = mat
-              ens_mat.save 
-            end 
-        else
-          classe.add_prof(user.id, matieres)
-        end 
+        #ens_mat = EnseigneDansRegroupement[:user_id => user.id, :regroupement_id => classe.id, :matiere_enseignee_id => mat_id] 
+        #if ens_mat
+
+            # for the moment do nothing, matiere enseignee id needs to be changed to 
+            # a primary key 
+
+            #matieres.each do |mat|
+              #ens_mat.regroupement = classe
+              #ens_mat.user_id = user.id     
+              #ens_mat.matiere_enseignee_id = mat
+              #ens_mat.save 
+            #end 
+        #else
+          #classe.add_prof(user, matiere)
+          #EnseigneDansRegroupement.create(:user_id => user.id, :regroupement_id => classe.id, :matiere_enseignee_id => mat_id)
+        #end 
       rescue  => e 
         puts e.message
         error!("mouvaise requete", 400)
       end 
     end
 
-    ####################
+    ##########################################################
     desc "supprimer un enseignant"
     params do 
-      requires :id, type: Integer
+      requires :id, type: String
       requires :classe_id, type: Integer
       requires :user_id, type: String
     end
-    delete "/:id/classe/:classe_id/enseigne/:user_id" do
-      etab = Etablissement[:id => params[:id]]
+    delete "/:id/classes/:classe_id/profs/:user_id" do
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       classe = Regroupement[:id => params[:classe_id]]
       error!("ressource non trouvee", 404) if classe.nil?      
       error!("pas de droit", 403) if classe.etablissement_id != etab.id
-      user = User[:id => params[:user_id]]
+      user = User[:id_ent => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
       begin
         # delete user role as prof
-        RoleUser[:user_id => user.id, :role_id => "PROF_CLS", :ressource_id => classe.ressource.id].destroy
+        # RoleUser[:user_id => user.id, :role_id => "PROF_CLS", :ressource_id => classe.ressource.id].destroy
 
         # delete all (matieres)
-        EnseigneDansRegroupement.filter(:user_id => user.id, :Regroupement_id => classe.id).each {|mat| mat.destroy}
+        # EnseigneDansRegroupement.filter(:user_id => user.id, :Regroupement_id => classe.id).each {|mat| mat.destroy}
+        EnseigneDansRegroupement.filter(:user_id => user.id, :Regroupement_id => classe.id).destroy
       rescue => e
         puts e.message 
         error!("mouvaise requete", 400)
       end    
     end 
 
-    #######################
+    ##########################################################
     desc "supprimer une matieres"
     params do 
       requires :id, type: Integer
@@ -765,7 +777,7 @@ class EtabApi < Grape::API
       requires :user_id, type: String
       requires :matiere_id, type: Integer
     end
-    delete "/:id/classe/:classe_id/enseigne/:user_id/matieres/:matiere_id" do
+    delete "/:id/classe/:classe_id/profs/:user_id/matieres/:matiere_id" do
       etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       classe = Regroupement[:id => params[:classe_id]]

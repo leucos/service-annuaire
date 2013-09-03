@@ -93,6 +93,7 @@ class Regroupement < Sequel::Model(:regroupement)
       .naked.all  
   end
 
+
   # Liste des membres du regroupement dont le profil est élève
   def eleves
     User.filter(:eleve_dans_regroupement => EleveDansRegroupement.filter(:regroupement => self),
@@ -122,9 +123,17 @@ class Regroupement < Sequel::Model(:regroupement)
   # matieres = [ ]
   def add_prof(user, matiere, principal = "N" )
     # for the moment i dont treat roles
-    #user.add_role(self.ressource.id, self.ressource.service_id, "PROF_CLS")
-    EnseigneDansRegroupement.find_or_create(:regroupement_id => self.id, :user_id => user.id,
-      :matiere_enseignee_id => matiere.id, :prof_principal => principal)
+    # if  groupe exists, do nothing 
+    edr = EnseigneDansRegroupement[:regroupement_id => self.id, :user_id => user.id, :matiere_enseignee_id => matiere.id]
+    if edr 
+      # do nothing 
+      edr.prof_principal = principal
+      edr.save
+    else
+      # create a new record 
+      EnseigneDansRegroupement.create(:regroupement_id => self.id, :user_id => user.id, :matiere_enseignee_id => matiere.id, :prof_principal => principal)
+    end 
+
   end
 
   def delete_prof(user_id)
