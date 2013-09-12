@@ -16,6 +16,7 @@ class RoleApi < Grape::API
   # end 
   
   resource :roles do
+
     desc "list all roles"
     get  do
       Role.naked.all
@@ -40,13 +41,34 @@ class RoleApi < Grape::API
         Role.create(:id => params[:role_id], :libelle => params[:libelle], :description => params[:description])
       end 
 
-    end 
+    end
 
-    desc "modify un role"
+=begin
+    desc "Return Role info."
+      params do
+        requires :id, type: String, desc: "role id."
+      end
+      route_param :id do
+        get do
+          Role[:id => params[:role_id]]
+        end
+      end
+=end
+
+    desc "get role info"
+    params do 
+      requires:role_id, type:String
+    end 
+    get "/:role_id" do 
+      Role[:id => params[:role_id]]
+    end    
+
+    desc "modify a role"
     put "/:role_id" do 
+      "mockup code"
     end 
 
-    desc "delete un role"
+    desc "delete a role"
     delete "/:role_id" do 
       Role[:id => params[:role_id]].destroy
     end 
@@ -132,10 +154,25 @@ class RoleApi < Grape::API
     end
     post "/:role_id/activities" do
       rights = params.rights
+      rights.each do |r| 
+        #activite_id="READ" condition="belongs_to" parent_service_id="ETAB" role_id="ADM_ETB" service_id="CLASSE">
+
+        puts r.pretty_inspect
+        puts r[1].inspect
+        #puts r.methods
+        puts "##########" 
+        puts r[1].activite_id
+        puts r[1].condition
+        puts r[1].parent_service_id
+        puts r[1].service_id
+        puts r[1].role_id
+
+      end  
+
 
       #example 
       #role_tech.add_activite(SRV_USER, ACT_MANAGE, "all", SRV_LACLASSE)
-
+=begin
       puts "role_id = #{params[:role_id]}"
       role = Role[:id => params[:role_id]]
       if role
@@ -164,7 +201,7 @@ class RoleApi < Grape::API
       else
         error!("resource non trouvé", 404)
       end   
-
+=end
     end 
 
     desc "modify activities of a role"
@@ -176,9 +213,51 @@ class RoleApi < Grape::API
     end
 
     desc "list types of resources"
-    get"/resources" do 
+    get "/resources/types" do 
       Service.naked.all
     end 
 
+
+    desc "list activities par role et type ressource"
+    params do 
+      requires :role_id, type: String 
+      requires :resource_id, type: String
+    end 
+    get "/:role_id/activities/:resource_id" do 
+      role = Role[:id => params[:role_id]]
+      resource = Service[:id => params[:resource_id]]
+      if role && resource  
+        activities = role.activite_role_dataset.where(:service_id => resource.id).naked.all
+        # output
+        # [{"activite_id":"MANAGE","role_id":"TECH","service_id":"APP","condition":"all","parent_service_id":"LACLASSE"},
+        #   {"activite_id":"MANAGE","role_id":"TECH","service_id":"CLASSE","condition":"all","parent_service_id":"LACLASSE"},
+        #   {"activite_id":"MANAGE","role_id":"TECH","service_id":"DOCUMENT","condition":"all","parent_service_id":"LACLASSE"},
+        #   {"activite_id":"MANAGE","role_id":"TECH","service_id":"ETAB","condition":"all","parent_service_id":"LACLASSE"},
+        #   {"activite_id":"MANAGE","role_id":"TECH","service_id":"GROUPE","condition":"all","parent_service_id":"LACLASSE"},
+        #   {"activite_id":"MANAGE","role_id":"TECH","service_id":"LIBRE","condition":"all","parent_service_id":"LACLASSE"},
+        #   {"activite_id":"MANAGE","role_id":"TECH","service_id":"ROLE","condition":"all","parent_service_id":"LACLASSE"},
+        #   {"activite_id":"MANAGE","role_id":"TECH","service_id":"USER","condition":"all","parent_service_id":"LACLASSE"}]
+
+        # build activity hash for all resources
+
+        act = []
+        activities.each do |activity|
+         if activity[:activite_id] == "MANAGE" 
+            act += [
+              {:activite_id => "READ", :role_id =>role.id,:service_id => resource.id,:condition=> activity[:condition], :parent_service_id => activity[:parent_service_id]}, 
+              {:activite_id => "CREATE",  :role_id =>role.id,:service_id => resource.id, :condition=> activity[:condition], :parent_service_id => activity[:parent_service_id]}, 
+              {:activite_id => "DELETE",  :role_id =>role.id,:service_id => resource.id, :condition=> activity[:condition], :parent_service_id => activity[:parent_service_id]},
+              {:activite_id => "UPDATE",  :role_id =>role.id,:service_id => resource.id, :condition=> activity[:condition], :parent_service_id => activity[:parent_service_id]}
+              ]
+          else
+            act.push(activity)
+          end 
+        end
+        JSON.pretty_generate(act)
+      else 
+        error!('Role ou ressource n\'exist pas', 404)
+      end 
+    end
+      
   end
 end   

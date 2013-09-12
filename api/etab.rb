@@ -443,7 +443,7 @@ class EtabApi < Grape::API
     end 
     
     ############################################################
-    # returns two types of responses:
+    # Types of responses depending on expand params
     # => Simple: ex. {"id":1,"etablissement_id":4813,"libelle":null,"libelle_aaf":"6A","type_regroupement_id":"CLS"}
     # => Detailed: ex. {"id":1,"etablissement_id":4813,"libelle":null,"libelle_aaf":"6A","type_regroupement_id":"CLS",
     #   "profs":[{"id":467,"id_ent":"VAA60466","id_jointure_aaf":22184,"nom":"BERNARD","prenom":"Nathalie"},..], 
@@ -474,11 +474,11 @@ class EtabApi < Grape::API
     ############################################################
     desc "Suppression d'une classe"
     params do 
-      requires :id, type: Integer
+      requires :id, type: String
       requires :classe_id, type: Integer
     end 
     delete "/:id/classes/:classe_id"  do   
-      etab = Etablissement[:id => params[:id]]
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       authorize_activites!([ACT_DELETE, ACT_MANAGE], etab.ressource, SRV_CLASSE)
 
@@ -806,9 +806,9 @@ class EtabApi < Grape::API
       end   
  
 
-    ################################
-    # Gestion des groupes d'eleves #
-    ################################
+    ##################################################
+    #     Gestion des groupes d'eleves               #
+    ##################################################
     
     desc "lister les groupes d'éléve dans l'etablissement"
     params do 
@@ -819,18 +819,39 @@ class EtabApi < Grape::API
       error!("ressource non trouvee", 404) if etab.nil?
       authorize_activites!([ACT_READ, ACT_MANAGE], etab.ressource, SRV_GROUPE)
       JSON.pretty_generate(etab.groupes_eleves)
-    end 
+    end
 
+    ################################################# 
+
+    desc "retourner les infos d'un groupe d'eleve"
+    params do 
+      requires :id, type:String
+      requires :groupe_id, type:Integer
+    end 
+    get "/:id/groupes/:groupe_id" do 
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      groupe = Regroupement[:id => params[:groupe_id]]
+      error!("pas de droit", 403) if groupe.etablissement_id != etab.id
+      authorize_activites!([ACT_READ, ACT_MANAGE], groupe.ressource)
+      if params[:expand] == "true"
+        present groupe, with: API::Entities::DetailedRegroupement
+      else
+        present groupe, with: API::Entities::SimpleRegroupement   
+      end 
+    end
+
+    ################################################# 
 
     desc "creer un groupe d'eleve"
     params do 
-      requires :id, type: Integer
+      requires :id, type: String
       requires :libelle, type: String
       optional :niveau_id, type: String 
       optional :description, type: String 
     end 
     post "/:id/groupes" do 
-      etab = Etablissement[:id => params[:id]]
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       authorize_activites!([ACT_CREATE, ACT_MANAGE], etab.ressource, SRV_GROUPE)
       parameters = exclude_hash(params, ["id", "route_info", "session"])
@@ -842,7 +863,7 @@ class EtabApi < Grape::API
       end 
     end 
 
-    #################
+   ##################################################
     #@input{libelle: "4°D"}   
     desc "Modifier l'info d'un groupe d'eleve" 
     params do 
@@ -930,7 +951,7 @@ class EtabApi < Grape::API
       end    
     end 
 
-    #################
+    ##################################################
 
     desc "modifier le role d'un utilisateur dans un groupe"
     params do 
@@ -966,7 +987,7 @@ class EtabApi < Grape::API
 
     end 
     
-    ######################
+    ##################################################
 
     desc "supprimer un role dans un groupe d'eleves "
     params do 

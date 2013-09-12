@@ -11,6 +11,8 @@
 # libelle_long                  | varchar(255)        | true     |          |            | 
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
+# matiere par defaut 003700: Aide et accompagnement travail personel
+
 class MatiereEnseignee < Sequel::Model(:matiere_enseignee)
 
   # Plugins
