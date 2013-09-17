@@ -4,9 +4,9 @@ module API
       #root 'users', 'user'
       # TODO expose resource url instead of ids
       expose :id, :id_sconet, :login, :nom, :prenom, :sexe, :id_ent
-      expose(:full_name) {|user,options| user.full_name}
-      #expose :profil_user, :as => :profils
+      expose(:full_name) {|user,options| user.full_name} 
       expose(:profils) {|user,options| user.profil_user_display}
+      expose(:roles){|user,options| user.role_user_display}
       expose :email, :as => :emails
       # etablissement + rights + profils
       expose(:etablissements) do |user,options|
