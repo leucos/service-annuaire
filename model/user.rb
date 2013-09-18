@@ -279,7 +279,7 @@ class User < Sequel::Model(:user)
     .join(:etablissement, :id => :etablissement_id)
     .join(:role, :role__id => :role_user__role_id)
     .naked
-    .select(:role_id, :nom___etablissement_nom, :code_uai___etablissement_code_uai, :etablissement_id)
+    .select(:role_id, :nom___etablissement_nom, :code_uai___etablissement_code_uai, :etablissement_id, :priority)
     .all
   end
 
