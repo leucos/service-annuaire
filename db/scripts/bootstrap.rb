@@ -29,7 +29,7 @@ def clean_annuaire()
   puts "TRUNCATE ALL USER RELATED TABLES"
   [
     :last_uid, :telephone, :email, :relation_eleve, :ressource,
-    :enseigne_dans_regroupement, :role_user, :profil_user, :user, :regroupement, :eleve_dans_regroupement
+    :enseigne_dans_regroupement, :role_user, :profil_user, :user, :regroupement, :eleve_dans_regroupement, :regroupement_libre, :membre_regroupement_libre 
   ].each do |table|
     if table == :ressource
       truncate_ressource()
