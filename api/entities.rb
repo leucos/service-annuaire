@@ -36,9 +36,7 @@ module API
       end 
 
       expose(:groupes_libres) do |user,options|
-        user.groupes_libres do |groupe|
-          {:id => groupe.id, :libelle  => groupe.libelle, :rights => user.rights(groupe.ressource)}
-        end
+        user.groupes_libres 
       end 
 
     end

@@ -48,6 +48,7 @@ class User < Sequel::Model(:user)
   one_to_many :param_user
   one_to_many :telephone
   one_to_many :email
+  one_to_many :membre_regroupement_libre
 
   # Liste de tous les élèves avec qui l'utilisateur est en relation
   many_to_many :relation_eleve, :left_key => :user_id, :right_key => :eleve_id, 
@@ -445,6 +446,10 @@ class User < Sequel::Model(:user)
   end
 
   def groupes_libres(etablissement_id = nil)
+    self.membre_regroupement_libre_dataset
+    .join(:regroupement_libre, :id => :regroupement_libre_id)
+    .left_join(:user, :user__id => :created_by).naked
+    .select(:regroupement_libre_id, :joined_at, :created_at, :id_ent___created_by).all
     #regroupements(etablissement_id, TYP_REG_LBR)
   end
 
