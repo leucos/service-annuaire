@@ -677,6 +677,7 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`regroupement_libre` (
   `id` INT NOT NULL ,
   `created_at` DATE NULL ,
   `created_by` INT NOT NULL ,
+  `libelle` VARCHAR(45) NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_regroupement_libre_user1` (`created_by` ASC) ,
   CONSTRAINT `fk_regroupement_libre_user1`
