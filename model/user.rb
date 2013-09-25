@@ -449,7 +449,7 @@ class User < Sequel::Model(:user)
     self.membre_regroupement_libre_dataset
     .join(:regroupement_libre, :id => :regroupement_libre_id)
     .left_join(:user, :user__id => :created_by).naked
-    .select(:regroupement_libre_id, :joined_at, :created_at, :id_ent___created_by).all
+    .select(:regroupement_libre_id, :joined_at, :created_at, :id_ent___created_by, :libelle).all
     #regroupements(etablissement_id, TYP_REG_LBR)
   end
 
