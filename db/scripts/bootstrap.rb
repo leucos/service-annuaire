@@ -130,22 +130,22 @@ def bootstrap_annuaire()
   #Tout d'abord, on créer des services (api)
   #service laclasse.com (les super admin y sont reliés)
   Service.create(:id => SRV_LACLASSE, :libelle => "Laclasse.com", :description => "Service auquel tout est rattaché", :url => "/")
-  Service.create(:id => SRV_USER, :libelle => "Gestion utilisateur", :description => "Service de gestion des utilisateurs de laclasse.com", :url => "/user")
-  Service.create(:id => SRV_ETAB, :libelle => "Gestion etablissement", :description => "Service de gestion des etablissements de laclasse.com", :url => "/etablissement")
-  Service.create(:id => SRV_CLASSE, :libelle => "Service de gestion des classes", :url => "/classe")
+  Service.create(:id => SRV_USER, :libelle => "Utilisateur", :description => "Service de gestion des utilisateurs de laclasse.com", :url => "/user")
+  Service.create(:id => SRV_ETAB, :libelle => "Etablissement", :description => "Service de gestion des etablissements de laclasse.com", :url => "/etablissement")
+  Service.create(:id => SRV_CLASSE, :libelle => "Classes", :url => "/classe")
   # service /groupe
-  Service.create(:id => SRV_GROUPE, :libelle => "Service de gestion des groupes d'élèves", :url => "/groupe")
+  Service.create(:id => SRV_GROUPE, :libelle => "Groupes d'élèves", :url => "/groupe")
   # service /libre
-  Service.create(:id => SRV_LIBRE, :libelle => "Service de gestion des groupes libres", :url => "/libre")
+  Service.create(:id => SRV_LIBRE, :libelle => "Groupes libres", :url => "/libre")
   # service /application
-  Service.create(:id => SRV_APP, :libelle => "Service de gestion des applications", :url => "/app")
+  Service.create(:id => SRV_APP, :libelle => "Applications", :url => "/app")
   # service /role 
-  Service.create(:id => SRV_ROLE, :libelle => "Service de gestion des roles", :url => "/role")
+  Service.create(:id => SRV_ROLE, :libelle => "Roles", :url => "/role")
   
-  Service.create(:id => SRV_DOC, :libelle => "Service de gestion des documents",:url =>"/docs")
+  Service.create(:id => SRV_DOC, :libelle => "Documents",:url =>"/docs")
 
   # service params
-  Service.create(:id => SRV_PARAM, :libelle => "PARAM", :url=> "/params")
+  Service.create(:id => SRV_PARAM, :libelle => "parameters", :url=> "/params")
   # TODO 
   # service /alimentation
   # service /preference 
@@ -164,7 +164,7 @@ def bootstrap_annuaire()
 
   # Création des Roles et definitions des activités 
   # Role => admin Laclasse
-  role_tech = Role.create(:id => ROL_TECH, :libelle => "Administrateur technique", :priority =>3)
+  role_tech = Role.create(:id => ROL_TECH, :libelle => "Administrateur technique", :priority =>3 )
   # Activities => 
   role_tech.add_activite(SRV_USER, ACT_MANAGE, "all", SRV_LACLASSE)
   role_tech.add_activite(SRV_ETAB, ACT_MANAGE, "all", SRV_LACLASSE)
@@ -181,7 +181,7 @@ def bootstrap_annuaire()
 
   #---------------------------------------------------------------------------#
   # Role => admin Etab 
-  role_admin = Role.create(:id => ROL_ADM_ETB, :libelle => "Administrateur d'établissement", :priority =>2)
+  role_admin = Role.create(:id => ROL_ADM_ETB, :libelle => "Administrateur d'établissement", :priority =>2 )
 
 
   # activities 
@@ -210,6 +210,10 @@ def bootstrap_annuaire()
   
   # Activities => laclasse(root) level
   role_admin.add_activite(SRV_ETAB, ACT_READ, "belongs_to", SRV_LACLASSE)
+
+  # note: distinguish between: 
+  # update SRV_ETAB belongs_to SRV_LaCLASSE or update All ?!! 
+
   
   #---------------------------------------------------------------------------#
   # Role => Prof  

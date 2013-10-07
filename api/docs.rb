@@ -7,54 +7,123 @@ class DocsApi < Grape::API
     #authenticate_app!
   end
 
-		get '/' do 
-			"found"
-		end    
-		desc "get the list of etablissements"
-		get "/etablissements" do 
-			ds = DB[:etablissement]
-	    #dataset = ds.all
-	    dataset = Etablissement.dataset
-	    dataset.select(:id, :code_uai, :nom).naked
-		end
+	get '/' do 
+		"found"
+	end    
+	desc "get the list of etablissements"
+	get "/etablissements" do 
+		ds = DB[:etablissement]
+    #dataset = ds.all
+    dataset = Etablissement.dataset
+    dataset.select(:id, :code_uai, :nom).naked
+	end
 
 
-		desc "Get etablissement info"
-		params do
-		  requires :uai, type: String
-		  optional :expand, type:String, desc: "show simple or detailed info, value = true or false"
-		end  
-		get "/etablissements/:uai" do
-		  etab = Etablissement[:code_uai => params[:uai]]
-		  #authorize_activites!(ACT_READ,etab.ressource)
-		  # construct etablissement entity.
-		  if !etab.nil?
-		    if params[:expand] == "true"
-		      present etab, with: API::Entities::DetailedEtablissement
-		    else 
-		      present etab, with: API::Entities::SimpleEtablissement
-		   end
-		  else
-		    error!("ressource non trouve", 404) 
+	desc "Get etablissement info"
+	params do
+	  requires :uai, type: String
+	  optional :expand, type:String, desc: "show simple or detailed info, value = true or false"
+	end  
+	get "/etablissements/:uai" do
+	  etab = Etablissement[:code_uai => params[:uai]]
+	  #authorize_activites!(ACT_READ,etab.ressource)
+	  # construct etablissement entity.
+	  if !etab.nil?
+	    if params[:expand] == "true"
+	      present etab, with: API::Entities::DetailedEtablissement
+	    else 
+	      present etab, with: API::Entities::SimpleEtablissement
+	   end
+	  else
+	    error!("ressource non trouve", 404) 
+	  end 
+	end
+
+	desc "search user return user info"
+	params do 
+		requires :etablissement, type:String
+		requires :nom, type:String
+		requires :prenom, type:String
+		optional :data_de_naissance
+	end	
+	get "/users" do
+		puts "here"
+		users = User.join(:profil_user, :user_id => :user__id).join(:etablissement, :etablissement__id => :etablissement_id).naked
+		.filter(:user__nom => params[:nom].capitalize, :user__prenom => params[:prenom].capitalize, :etablissement__code_uai => params[:etablissement]).select(:id_ent)
+		 
+		if users.empty?
+			error!("ressource non trouve", 404) 
+		elsif (users.count == 1)
+			users 
+		else 
+			error!("plusieurs utilisateurs ont ete trouves")
+		end 		
+	end
+
+
+	desc "return user information" 
+	params do 
+		requires :id, type:String
+  	end
+	
+	get "/users/:id" do 
+	  user = User[:id_ent => params[:id]]
+
+	 	if !user.nil?
+		  if params[:expand] == "true"
+		    present user, with: API::Entities::DetailedUser
+		  else 
+		    present user, with: API::Entities::SimpleUser
 		  end 
-		end
+		else
+			error!("resource non trouvee") 
+		end  
+	end
 
-		desc "return user information" 
-		params do 
-			requires :id, type:String
-	  end
-		get "/users/:id" do 
-		  user = User[:id_ent => params[:id]]
 
-		 	if !user.nil?
-			  if params[:expand] == "true"
-			    present user, with: API::Entities::DetailedUser
-			  else 
-			    present user, with: API::Entities::SimpleUser
-			  end 
-			else
-				error!("resource non trouvee") 
-			end  
+
+
+	desc " return matiere information"
+	params do 
+		requires :matiere_id, type:String
+	end 
+	get "/matieres/:matiere_id" do 
+		matiere = MatiereEnseignee[:id => params[:matiere_id]]
+		if matiere
+			matiere 
+		else
+			error!("ressource non trouve", 404)
+		end 
+	end
+
+
+	desc "return all matieres"
+	get "/matieres" do 
+		MatiereEnseignee.naked.all
+	end 
+
+
+	#eleve_id         # en fonction de (etablissement, nom, prénom, sexe,
+  	#date_de_naissance)
+	#enseignant_id    # en fonction de (etablissement, nom, prénom)
+	#matiere_id       # en fonction de (établissement, code, libellé)
+	#regroupement_id  # en fonction de (établissement, nom)
+
+	desc "return regroupement id"
+	params do 
+		requires :etablissement, type:String 
+		requires :nom, type:String
+	end  
+	get "/regroupement" do 
+		regroupements = Regroupement.join(:etablissement, :etablissement__id => :etablissement_id).naked
+		.filter(:libelle_aaf=>params[:nom].upcase, :code_uai=> params[:etablissement]).select(:regroupement__id)
+		
+		if regroupements.empty?
+			error!("ressource non trouve", 404)
+		elsif (regroupements.count == 1)
+			regroupements 
+		else
+			error!("Plusieurs ressources trouvees", 404)
 		end
-  
+	end 
 end #class

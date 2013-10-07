@@ -153,56 +153,43 @@ class RoleApi < Grape::API
       requires  :rights , type: Hash
     end
     post "/:role_id/activities" do
-      rights = params.rights
-      rights.each do |r| 
-        #activite_id="READ" condition="belongs_to" parent_service_id="ETAB" role_id="ADM_ETB" service_id="CLASSE">
-
-        puts r.pretty_inspect
-        puts r[1].inspect
-        #puts r.methods
-        puts "##########" 
-        puts r[1].activite_id
-        puts r[1].condition
-        puts r[1].parent_service_id
-        puts r[1].service_id
-        puts r[1].role_id
-
-      end  
-
-
-      #example 
-      #role_tech.add_activite(SRV_USER, ACT_MANAGE, "all", SRV_LACLASSE)
-=begin
       puts "role_id = #{params[:role_id]}"
       role = Role[:id => params[:role_id]]
-      if role
-        # treat data  
-        rights.each do  |key, elem|
-          #role_tech.add_activite(SRV_USER, ACT_MANAGE, "all", SRV_LACLASSE)
-          # build matrix rights and send it to the server 
-          elem.activities.each  do |droit|
-            puts elem.activities
-            puts elem.resource
-            if droit.condition == "all"
-              puts "role.add_activite(#{elem.resource},#{droit.activity},#{droit.condition}, SRV_LACLASSE)"
-            elsif droit.condition == "self" 
-              puts "role.add_activite(#{elem.resource},#{droit.activity},#{droit.condition}, SRV_USER)"
-            elsif droit.condition == "belongs_to"
-              if droit.parent_service
-                puts "role.add_activite(#{elem.resource},#{droit.activity},#{droit.condition}, droit.parent_service)"
-              end     
-            else
-              "puts do nothing"
-            end 
 
+      rights = params.rights
+      if role
+
+        rights.each do |r| 
+          #activite_id="READ" condition="belongs_to" parent_service_id="ETAB" role_id="ADM_ETB" service_id="CLASSE">
+
+          #puts r.pretty_inspect
+          #puts r[1].inspect
+          #puts r.methods
+          puts "#####################" 
+          puts r[1].activite_id
+          puts r[1].condition
+          puts r[1].service_id
+          puts r[1].role_id
+          puts r[1].parent_service_id
+
+          # delete activities that belongs to a resource and a role
+          # add new activities 
+          RoleActivity = ActiviteRole[:activite_id => r[1].activite_id, :condition => r[1].condition, :role_id => r[1].role_id, 
+          :parent_service_id => r[1].parent_service_id, :service_id => r[1].service_id]
+          if RoleActivity
+            puts "found"
+          else 
+            if ActiviteRole.filter(:activite_id => r[1].activite_id, :role_id => r[1].role_id, :service_id =>  r[1].service_id).count > 0
+              puts "modify"
+            else 
+              puts "add"
+            end   
           end 
-          
-        end
+        end   
       else
         error!("resource non trouvé", 404)
-      end   
-=end
-    end 
+      end    
+    end  #End post
 
     desc "modify activities of a role"
     put "/:role_id/activities" do 
@@ -242,22 +229,39 @@ class RoleApi < Grape::API
 
         act = []
         activities.each do |activity|
-         if activity[:activite_id] == "MANAGE" 
-            act += [
-              {:activite_id => "READ", :role_id =>role.id,:service_id => resource.id,:condition=> activity[:condition], :parent_service_id => activity[:parent_service_id]}, 
-              {:activite_id => "CREATE",  :role_id =>role.id,:service_id => resource.id, :condition=> activity[:condition], :parent_service_id => activity[:parent_service_id]}, 
-              {:activite_id => "DELETE",  :role_id =>role.id,:service_id => resource.id, :condition=> activity[:condition], :parent_service_id => activity[:parent_service_id]},
-              {:activite_id => "UPDATE",  :role_id =>role.id,:service_id => resource.id, :condition=> activity[:condition], :parent_service_id => activity[:parent_service_id]}
-              ]
-          else
+          #if activity[:activite_id] == "MANAGE" 
+           # act += [
+            #  {:activite_id => "READ", :role_id =>role.id,:service_id => resource.id,:condition=> activity[:condition], :parent_service_id => activity[:parent_service_id]}, 
+            # {:activite_id => "CREATE",  :role_id =>role.id,:service_id => resource.id, :condition=> activity[:condition], :parent_service_id => activity[:parent_service_id]}, 
+            #  {:activite_id => "DELETE",  :role_id =>role.id,:service_id => resource.id, :condition=> activity[:condition], :parent_service_id => activity[:parent_service_id]},
+            #  {:activite_id => "UPDATE",  :role_id =>role.id,:service_id => resource.id, :condition=> activity[:condition], :parent_service_id => activity[:parent_service_id]}
+            #  ]
+          #else
             act.push(activity)
-          end 
+          #end 
         end
         JSON.pretty_generate(act)
       else 
         error!('Role ou ressource n\'exist pas', 404)
       end 
     end
-      
+
+    desc "add activities to role"
+    params do
+      requires :rights , type: Hash
+      requires :resource_id, type: String
+    end
+    post "/:role_id/activities/:resource_id" do
+      puts params[:resource_id]
+      rights = params.rights
+      rights.each do |r|  
+        puts "#####################" 
+        puts r[1].activite_id
+        puts r[1].condition
+        puts r[1].service_id
+        puts r[1].role_id
+        puts r[1].parent_service_id
+      end 
+    end       
   end
 end   
