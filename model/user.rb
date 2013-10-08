@@ -488,7 +488,7 @@ class User < Sequel::Model(:user)
     .join(:regroupement, :id => :regroupement_id)
     .join(:etablissement, :id => :etablissement_id)
     .join(:matiere_enseignee, :id => :enseigne_dans_regroupement__matiere_enseignee_id)
-    .where(:type_regroupement_id => 'GRB').naked
+    .where(:type_regroupement_id => 'GRP').naked
     .select(:code_uai___etablissement_code, :libelle_aaf___groupe_libelle, :nom___etablissement_nom, :matiere_enseignee_id, :libelle_long___matiere_libelle, :regroupement_id___groupe_id, :etablissement_id)
     .all
   end 
@@ -539,6 +539,15 @@ class User < Sequel::Model(:user)
   end
 
   # retourne les matieres enseignees par l'utilisateur dans l'etablissement dont l'id = etablissement_id 
+  def matieres_enseignees
+    self.enseigne_dans_regroupement_dataset.join(:regroupement, :regroupement__id => :regroupement_id)
+    .join(:matiere_enseignee, :matiere_enseignee__id => :enseigne_dans_regroupement__matiere_enseignee_id)
+    .join(:etablissement, :etablissement__id => :regroupement__etablissement_id)
+    .naked.select(:regroupement_id, :matiere_enseignee_id, :prof_principal, :libelle_aaf, :type_regroupement_id, :libelle_long, :code_uai)
+    .all
+  end
+
+
   def matiere_enseigne(etablissement_id)
     MatiereEnseignee.
       filter(:enseigne_dans_regroupement => EnseigneDansRegroupement.

@@ -37,8 +37,11 @@ module API
 
       expose(:groupes_libres) do |user,options|
         user.groupes_libres 
-      end 
+      end
 
+      expose(:matieres_enseignees) do |user, options|
+        user.matieres_enseignees
+      end  
     end
 
     class SimpleUser < Grape::Entity
@@ -55,7 +58,11 @@ module API
 
       expose(:groupes_eleve) do |user, options|
         user.groupes_display
-      end 
+      end
+
+      expose(:matieres_enseignees) do |user, options|
+        user.matieres_enseignees
+      end  
     end
 
     class SimpleEtablissement < Grape::Entity 
