@@ -445,7 +445,7 @@ class User < Sequel::Model(:user)
     end 
   end
 
-  def groupes_libres(etablissement_id = nil)
+  def groupes_libres
     self.membre_regroupement_libre_dataset
     .join(:regroupement_libre, :id => :regroupement_libre_id)
     .left_join(:user, :user__id => :created_by).naked

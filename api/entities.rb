@@ -52,6 +52,8 @@ module API
       expose(:profils) {|user,options| user.profil_user_display}
       expose :telephone, :as => :telephones
       expose :email, :as => :emails
+      #comment block
+=begin
       expose(:classes) do |user,options|
         user.classes_display
       end
@@ -62,7 +64,11 @@ module API
 
       expose(:matieres_enseignees) do |user, options|
         user.matieres_enseignees
-      end  
+      end 
+      expose(:groupes_libres) do |user,options|
+        user.groupes_libres 
+      end 
+=end      
     end
 
     class SimpleEtablissement < Grape::Entity 
