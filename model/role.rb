@@ -46,4 +46,9 @@ class Role < Sequel::Model(:role)
     ActiviteRole.create(:service_id => service_id, :role_id => self.id, 
       :activite_id => activite_id, :condition => condition, :parent_service_id => type_ressource)
   end
+
+  def remove_activite(service_id, activite_id, condition, type_resource)
+    activite = ActiviteRole[:service_id => service_id, :role_id => self.id, :activite_id => activite_id, :condition => condition, :parent_service_id => type_resource]
+    activite.destroy
+  end
 end

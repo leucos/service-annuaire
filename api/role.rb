@@ -154,38 +154,41 @@ class RoleApi < Grape::API
     end
     post "/:role_id/activities" do
       puts "role_id = #{params[:role_id]}"
+      #params = {"rights":{},"role_id":"ADM_ETB","resource_id":"ROLE","activite_id":"MANAGE"}
+      puts "#####################" 
+      puts params.resource_id
+      puts params.activite_id
       role = Role[:id => params[:role_id]]
-
       rights = params.rights
-      if role
-
+      service =  Service[:id => params.resource_id]
+      activite = Activite[:id => params.activite_id]
+      if role && service && activite
+        # delete activities that correspond to the role and activity
+        ActiviteRole.filter(:activite_id => activite.id, :role_id => role.id, :service_id =>  service.id).destroy
         rights.each do |r| 
-          #activite_id="READ" condition="belongs_to" parent_service_id="ETAB" role_id="ADM_ETB" service_id="CLASSE">
 
-          #puts r.pretty_inspect
-          #puts r[1].inspect
-          #puts r.methods
+          # add new activities 
+          ActiviteRole.find_or_create(:activite_id => r[1].activite_id, :condition => r[1].condition, :role_id => r[1].role_id, 
+          :parent_service_id => r[1].parent_service_id, :service_id => r[1].service_id)
+=begin
           puts "#####################" 
           puts r[1].activite_id
           puts r[1].condition
           puts r[1].service_id
           puts r[1].role_id
           puts r[1].parent_service_id
-
-          # delete activities that belongs to a resource and a role
-          # add new activities 
-          RoleActivity = ActiviteRole[:activite_id => r[1].activite_id, :condition => r[1].condition, :role_id => r[1].role_id, 
-          :parent_service_id => r[1].parent_service_id, :service_id => r[1].service_id]
-          if RoleActivity
-            puts "found"
+          if activity
+            puts "found, dont modify"
           else 
-            if ActiviteRole.filter(:activite_id => r[1].activite_id, :role_id => r[1].role_id, :service_id =>  r[1].service_id).count > 0
+            if ActiviteRole.filter(:activite_id => r[1].activite_id, :role_id => r[1].role_id, :service_id =>  r[1].service_id, :condition => r[1].condition ).count > 0
               puts "modify"
             else 
               puts "add"
             end   
           end 
-        end   
+        end
+=end    
+        end 
       else
         error!("resource non trouvé", 404)
       end    

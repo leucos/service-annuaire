@@ -454,9 +454,9 @@ class User < Sequel::Model(:user)
   end
 
 
-  ########################## 
-  #    classes prof        #
-  ##########################
+  #################################### 
+  #    classes prof                  #
+  ####################################
   #toutes les classes dans lesquelles l'utilisateur enseigne
   def enseigne_classes(etablissement_id = nil)
     regroupement_enseingant = self.enseigne_dans_regroupement.map do |enseigne_regroupement|
