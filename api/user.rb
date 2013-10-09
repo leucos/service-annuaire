@@ -93,13 +93,12 @@ class UserApi < Grape::API
       optional :ville, type: String
       optional :id_sconet, type: Integer
       optional :id_jointure_aaf, type: Integer
+      optional :bloque, type:Boolean
     end
     put "/:user_id" do
       user = check_user!()
       authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
-
       modify_user(user)
-
       present user, with: API::Entities::SimpleUser
     end
 
