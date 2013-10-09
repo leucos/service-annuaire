@@ -30,9 +30,9 @@ class EtabApi < Grape::API
   end
 
   resource :etablissements do
-    ####################################
-    # Gestion de l'etablissement (CRUD)#
-    ####################################
+    ##############################################################################
+    #             Gestion de l'etablissement (CRUD)                              #
+    ##############################################################################
 
     #{ "id": 1234, "nom": "Saint Honoré" }
     #res 200:
@@ -75,7 +75,7 @@ class EtabApi < Grape::API
       end 
     end
 
-    #################
+    ##############################################################################
     desc "Get etablissement info"
     params do
       requires :id, type: String
@@ -98,7 +98,7 @@ class EtabApi < Grape::API
       end 
     end
 
-    #################
+    ##############################################################################
     desc "Modifier l'info d'un etablissement"
     params do
       requires :id , type: String
@@ -144,7 +144,7 @@ class EtabApi < Grape::API
         error!("Validation failed", 400)
       end 
     end
-    ##################################
+    ##############################################################################
     desc "Upload an image(logo)"
     params do 
       requires :id, type:String
@@ -181,9 +181,9 @@ class EtabApi < Grape::API
   
     end
 
-    ############################################################
-    #  Gestion des utilisateurs                                #
-    ############################################################
+    ##############################################################################
+    #                    Gestion des utilisateurs                                #
+    ##############################################################################
     desc "get the list of users in an etablissement and search users in the etablissement" 
     params do 
       requires :id, type: String
