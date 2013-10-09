@@ -40,6 +40,7 @@ class UserApi < Grape::API
   end
 
   resource :users do
+    ##############################################################################
     desc "Renvois le profil utilisateur si on donne le bon id. Nécessite une authentification."
     get "/:user_id", :requirements => { :user_id => /.{8}/ } do
       user = check_user!() 
@@ -51,6 +52,7 @@ class UserApi < Grape::API
       end 
     end
 
+    ##############################################################################
     # Renvois la ressource user
     desc "Service de création d'un utilisateur"
     params do
@@ -75,7 +77,7 @@ class UserApi < Grape::API
     end
 
 
-
+    ##############################################################################
     # Même chose que post mais peut ne pas prendre des champs require
     # Renvois la ressource user complète
     desc "Modification d'un compte utilisateur"
@@ -101,6 +103,7 @@ class UserApi < Grape::API
       present user, with: API::Entities::SimpleUser
     end
 
+    ##############################################################################
     # Supprime un utilisateur 
     desc "Supprission d'un compte utilisateur"
     delete "/:user_id", :requirements => { :user_id => /.{8}/ } do
@@ -119,6 +122,7 @@ class UserApi < Grape::API
       user.relations
     end
 
+    ##############################################################################
     #Il ne peut y en avoir qu'une part adulte
     #Cas d'un user qui devient parent d'élève {eleve_id: VAA60001, type_relation_id: "PAR"}
     desc "Ajout d'une relation entre un adulte et un élève"
@@ -142,6 +146,7 @@ class UserApi < Grape::API
       present user, with: API::Entities::SimpleUser
     end
 
+    ##############################################################################
     desc "Modification de la relation"
     params do
       requires :type_relation_id, type: String
@@ -164,6 +169,7 @@ class UserApi < Grape::API
     end
     
 
+    ##############################################################################
     # @state[not finished]
     #Suppression de la relation (1 par adulte)
     #DEL /user/:user_id/relation/:eleve_id 
@@ -185,6 +191,7 @@ class UserApi < Grape::API
       present user, with: API::Entities::SimpleUser
     end
 
+    ##############################################################################
     desc "recuperer la liste des emails"
     get "/:user_id/emails" do 
       user = check_user!()
@@ -197,6 +204,7 @@ class UserApi < Grape::API
       end
     end
 
+    ##############################################################################
     desc "ajouter un email à l'utilisateur"
     params do
       requires :adresse, type: String
@@ -213,6 +221,7 @@ class UserApi < Grape::API
       present user, with: API::Entities::SimpleUser
     end
 
+    ##############################################################################
     # modifier l'adresse et le type de l'email
     # l'email doit apartenir à l'utilisateur user_id
     desc "modifier un email existant"
@@ -237,6 +246,7 @@ class UserApi < Grape::API
       present user, with: API::Entities::SimpleUser
     end
 
+    ##############################################################################
     # supprimer un des email de l'utilisateur 
     desc "supprimer un email"
     params do
@@ -253,6 +263,7 @@ class UserApi < Grape::API
       present user, with: API::Entities::SimpleUser
     end
 
+    ##############################################################################
     desc "Envois un email de verification à l'utilisateur sur l'email choisit"
     params do
       requires :user_id, type: String
@@ -267,6 +278,7 @@ class UserApi < Grape::API
       email.send_validation_mail()
     end
 
+    ##############################################################################
     desc "Envois un email de verification à l'utilisateur sur l'email choisit"
     params do
       requires :user_id, type: String
@@ -282,6 +294,7 @@ class UserApi < Grape::API
       error!("Clé de validation invalide ou périmée", 404) unless valide
     end
 
+    ##############################################################################
     #recuperer la liste des telephones qui appartien à un utilisateur 
     desc "recuperer les telephones"
     get ":user_id/telephones" do
@@ -312,6 +325,7 @@ class UserApi < Grape::API
       end
     end
 
+    ##############################################################################
     #modifier le telephone
     desc "modifier un telephone" 
     params do
@@ -337,6 +351,7 @@ class UserApi < Grape::API
       end
     end
 
+    ##############################################################################
     #supprimer un telephone 
     desc "suppression d'un telephone"
     delete ":user_id/telephone/:telephone_id"  do
@@ -354,7 +369,7 @@ class UserApi < Grape::API
       end
     end
 
-
+    ##############################################################################
     #Récupère les préférences d'une application
     desc "Récupère les préférences d'une application d'un utilisateur"
     get ":user_id/application/:application_id/preferences" do 
@@ -367,6 +382,7 @@ class UserApi < Grape::API
       user.preferences(application_id)
     end
 
+    ##############################################################################
     #Modifie une préférence
     desc "Modifier une(des) preferecne(s)"
     put ":user_id/application/:application_id/preferences" do
@@ -402,6 +418,7 @@ class UserApi < Grape::API
       end
     end
 
+    ##############################################################################
     #Remettre la valeure par défaut pour toutes les préférences
     desc "Remettre la valeure par défaut pour toutes les préférences"
     delete ":user_id/application/:application_id/preferences" do 
@@ -421,6 +438,7 @@ class UserApi < Grape::API
       end
     end
 
+    ##############################################################################
     # todo : gérer aussi les récupération de mot de passe avec login 
     # et envoie de mail au parent si l'élève n'a pas d'email ?
     # todo : comment limiter les appel à cette api pour éviter le spamming ?
@@ -449,6 +467,7 @@ class UserApi < Grape::API
       user.send_password_mail(params[:adresse])
     end
 
+    ##############################################################################
     desc "Simple service permettant de savoir si un login est disponible et valide"
     params do
       requires :login, type: String
@@ -468,6 +487,7 @@ class UserApi < Grape::API
       result
     end
 
+    ##############################################################################
     desc "Service de recherche d'utilisateurs au niveau de LACLASSE"
     params do
       optional :query, type: String, desc: "pattern de recherche. Possibilité de spécifier la colonne sur laquelle faire la recherche ex: 'nom:Chackpack prenom:Georges'"
@@ -504,8 +524,98 @@ class UserApi < Grape::API
 
       # puts results.inspect
       results
-      
     end
+
+    ##############################################################################
+    #                         Gestion des roles                                  # 
+    ##############################################################################
+    
+    desc "Assigner un role à un utilisateur"
+    params do
+      requires :user_id, type: String 
+      requires :role_id, type: String
+      requires :etab_id, type: String
+    end  
+    post "/:user_id/roles/:role_id/:etab_id" do 
+      # check if user is authorized to  change the role of an other user
+      #authorize_activites!(ACT_CREATE, etab.ressource)
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], Ressource.laclasse, SRV_USER)
+      authorize_activites!([ACT_CREATE, ACT_MANAGE], Ressource.laclasse, SRV_ROLE)
+
+      etab = Etablissement[:code_uai => params.etab_id]
+      error!("ressource non trouvee", 404) if etab.nil?
+      user = User[:id_ent => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      role = Role[:id => params[:role_id]]
+
+      error!("ressource non trouvee", 404) if role.nil?
+      begin 
+        #ressource = etab.ressource
+        user.add_role(etab.id, role.id)  
+      rescue => e
+        #puts e.message
+        error!("Validation Failed", 400)
+      end
+      {:user_id => user.id, :user_role => role.id, :etablissement => etab.nom}     
+    end
+
+   ############################################################
+    desc "Modifier le role de quelqu'un"
+    params do 
+      requires :user_id, type: String
+      requires :old_role_id, type: String
+      requires :new_role_id, type: String
+      requires :etab_id, type: String
+      requires :new_etab_id, type: String     
+    end  
+    put "/:user_id/roles/:old_role_id/:etab_id" do
+      etab = Etablissement[:code_uai => params.etab_id]
+      error!("ressource non trouvee", 404) if etab.nil?
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE],Ressource.laclasse, SRV_USER)
+      authorize_activites!([ACT_CREATE, ACT_MANAGE], Ressource.laclasse, SRV_ROLE)
+
+      user = User[:id_ent => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      old_role = Role[:id => params[:old_role_id]]
+      error!("ressource non trouvee", 404) if old_role.nil?
+      new_role = Role[:id => params[:new_role_id]]
+      error!("ressource non trouvee", 404) if new_role.nil?
+      begin 
+        role_user = RoleUser[:etablissement_id => etab.id, :role_id => old_role.id, :user_id => user.id]
+        if role_user 
+          role_user.destroy
+        end 
+        user.add_role(etab.id, new_role.id)
+      rescue => e
+        #puts e.message
+        error!("Validation Failed", 400)
+      end
+      {:user_id => user.id, :user_role => new_role.id} 
+    end 
+    ############################################################
+    desc "Supprimer le role de l'utilisateur"
+    params do 
+      requires :etab_id, type: String
+      requires :user_id, type: String
+      requires :role_id, type: String
+    end 
+    delete "/:user_id/roles/:role_id/:etab_id" do
+      etab = Etablissement[:code_uai => params[:etab_id]]                                                                                                                                                                                                                         
+      error!("ressource non trouvee", 404) if etab.nil?
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE],Ressource.laclasse, SRV_USER)
+      authorize_activites!([ACT_DELETE, ACT_MANAGE], Ressource.laclasse, SRV_ROLE)
+      user = User[:id_ent => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      role = Role[:id => params[:role_id]]
+      error!("ressource non trouvee", 404) if role.nil?
+      begin 
+        role_user = RoleUser[:user_id => user.id, :etablissement_id => etab.id, :role_id => role.id]
+        role_user.destroy if role_user
+      rescue => e
+        error!("Validation Failed", 400)
+      end
+    end  
+     ############################################################
 
   end #resource
 end
