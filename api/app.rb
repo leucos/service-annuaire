@@ -10,11 +10,13 @@ class ApplicationApi < Grape::API
   default_error_status 400
   resource :applications do 
     
+    #####################################################################
     desc "get all applications"
     get do
       Application.all
     end 
 
+    #####################################################################
     desc "get an application info"
     params do 
       requires :id, type: String
@@ -23,6 +25,7 @@ class ApplicationApi < Grape::API
       Application[:id => params[:id]]
     end
     
+    #####################################################################
     desc "create an application"
     params do
       requires :code, type:String
@@ -36,10 +39,9 @@ class ApplicationApi < Grape::API
       app.description = params[:description]
       app.url = params[:url]
       app.save
-      #Application.create(:id=> params[:code], :libelle => params[:libelle], :description => params[:descrioption], :url=> params[:url])
     end 
 
-
+    #####################################################################
     desc "delete an application"
     params do 
       requires :id, type: String
@@ -48,6 +50,7 @@ class ApplicationApi < Grape::API
       Application[:id => params[:id]].destroy
     end
     
+    #####################################################################
     desc "return all application parameters"
     params do
       requires :id, type:String
@@ -58,8 +61,45 @@ class ApplicationApi < Grape::API
         app.param_application_dataset.naked.all
       else
         error!("application n\'exist pas", 404)
-      end 
-      
+      end   
+    end
+    #####################################################################
+
+    desc "create parameter to the application"
+    params do 
+      requires :code, type:String 
+      requires :preference, type:Boolean 
+      requires :id, type:String 
+      requires :type_param_id, type:String 
+      optional :libelle, type:String 
+      optional :description, type:String 
+      optional :valeur_defaut, type:String
+      optional :autres_valeur, type:String 
     end 
+    post "/:id/params" do 
+      app = Application[:id => params.id]
+      if app
+        app.add_parameter(params.code, params.type_param_id, params.preference, params.description, params.valeur_defaut , params.autres_valeurs)
+      else 
+        error!("ressource non trouvée", 404)
+      end 
+    end
+
+    ##################################################################### 
+    desc "delete a parameter fo an application"
+    params do 
+      requires :code, type:String
+      requires :id, type:String 
+    end
+
+    delete "/:id/params/:code" do
+      param = ParamApp[:code => params.code, :application_id => params.id]
+      if param 
+        param.destroy
+      else
+        error!("ressource non trouvee", 404)
+      end 
+    end 
+    #####################################################################   
   end
 end    

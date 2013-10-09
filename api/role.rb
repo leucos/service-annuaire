@@ -265,6 +265,17 @@ class RoleApi < Grape::API
         puts r[1].role_id
         puts r[1].parent_service_id
       end 
-    end       
+    end
+
+
+
+    desc "add a role to a user"
+    params do 
+      #requires
+    end
+    post "/users/:role_id/:user_id" do 
+
+    end
+
   end
 end   

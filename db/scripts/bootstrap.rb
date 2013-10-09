@@ -238,6 +238,8 @@ def bootstrap_annuaire()
 
   # activities on himself 
   prof_role.add_activite(SRV_USER, ACT_UPDATE, "self", SRV_USER)
+
+  # This is not neccessary 
   prof_role.add_activite(SRV_USER, ACT_READ, "self", SRV_USER)
   #---------------------------------------------------------------------------#
   # Role => eleve
