@@ -88,18 +88,37 @@ class ApplicationApi < Grape::API
     ##################################################################### 
     desc "delete a parameter fo an application"
     params do 
-      requires :code, type:String
+      requires :param_id, type:Integer
       requires :id, type:String 
     end
 
-    delete "/:id/params/:code" do
-      param = ParamApp[:code => params.code, :application_id => params.id]
+    delete "/:id/params/:param_id" do
+      puts 
+      param = ParamApplication[:id => params.param_id, :application_id => params.id]
       if param 
         param.destroy
       else
         error!("ressource non trouvee", 404)
       end 
     end 
-    #####################################################################   
+    ##################################################################### 
+
+    desc "modify a parametre" 
+    params do 
+      requires :param_id, type:Integer
+      requires :id, type:String
+    end 
+    put "/:id/params/:param_id" do 
+      param = ParamApplication[:id => params.param_id, :application_id => params.id]
+      if params
+        # modify parameter
+
+      else
+        error!("ressource non trouvee", 404) 
+      end 
+    end
+
+    #####################################################################  
+
   end
 end    
