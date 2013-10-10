@@ -111,7 +111,7 @@ class ApplicationApi < Grape::API
     put "/:id/params/:param_id" do 
       param = ParamApplication[:id => params.param_id, :application_id => params.id]
       if param
-        param.reference = params.reference if params.reference
+        param.preference = params.preference if params.preference
         param.description = params.description if params.description
         param.libelle = params.libelle if params.libelle
         param.valeur_defaut = params.valeur_defaut if params.valeur_defaut
