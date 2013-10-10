@@ -110,9 +110,30 @@ class ApplicationApi < Grape::API
     end 
     put "/:id/params/:param_id" do 
       param = ParamApplication[:id => params.param_id, :application_id => params.id]
-      if params
-        # modify parameter
+      if param
+        param.reference = params.reference if params.reference
+        param.description = params.description if params.description
+        param.libelle = params.libelle if params.libelle
+        param.valeur_defaut = params.valeur_defaut if params.valeur_defaut
+        param.autres_valeurs = params.autres_valeurs if params.autres_valeurs
+        param.type_param_id = params.type_param_id if params.type_param_id
+        param.save
+      else
+        error!("ressource non trouvee", 404) 
+      end 
+    end
 
+    #####################################################################  
+
+    desc "return parameter details" 
+    params do 
+      requires :param_id, type:Integer
+      requires :id, type:String
+    end 
+    get "/:id/params/:param_id" do 
+      param = ParamApplication[:id => params.param_id, :application_id => params.id]
+      if param
+        param
       else
         error!("ressource non trouvee", 404) 
       end 
