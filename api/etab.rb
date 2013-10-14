@@ -309,7 +309,9 @@ class EtabApi < Grape::API
           :alimentation_state => x.alimentation_state,
           :longitude => x.longitude,
           :latitude => x.latitude , 
-          :contacts => x.contacts
+          :contacts => x.contacts, 
+          :eleves => x.eleves, 
+          :enseignants => x.enseignants
           }
         }        
         {total: dataset.pagination_record_count, page: page_no, data: data}
