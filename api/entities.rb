@@ -77,8 +77,8 @@ module API
     end
 
     class DetailedEtablissement < Grape::Entity
-      expose :id, :code_uai, :nom, :adresse, :code_postal, :ville, :type_etablissement_id, :telephone, :fax
-      expose :full_name
+      expose :id, :code_uai, :nom, :adresse, :code_postal, :ville, :type_etablissement_id, :telephone, :fax, 
+      :full_name, :alimentation_state, :alimentation_date, :data_received, :longitude, :latitude, :site_url , :logo
       expose :classes 
       expose :groupes_eleves
       expose :groupes_libres
