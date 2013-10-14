@@ -30,9 +30,10 @@ class EtabApi < Grape::API
   end
 
   resource :etablissements do
-    ##############################################################################
-    #             Gestion de l'etablissement (CRUD)                              #
-    ##############################################################################
+
+  ##############################################################################
+  #             Gestion de l'etablissement (CRUD)                              #
+  ##############################################################################
 
     #{ "id": 1234, "nom": "Saint Honoré" }
     #res 200:
@@ -144,6 +145,7 @@ class EtabApi < Grape::API
         error!("Validation failed", 400)
       end 
     end
+
     ##############################################################################
     desc "Upload an image(logo)"
     params do 
@@ -151,9 +153,9 @@ class EtabApi < Grape::API
     end 
     post "/:id/upload/logo" do
       puts params.inspect
-      #puts params[:image].inspect
+      puts params[:image].inspect
 
-      #puts params[:upfile][:tempfile].inspect
+      puts params[:upfile][:tempfile].inspect
       etab = Etablissement[:code_uai => params[:id]]
       if etab 
         tempfile = params[:image][:tempfile]
@@ -267,11 +269,50 @@ class EtabApi < Grape::API
       ds = DB[:etablissement]
       #dataset = ds.all
       dataset = Etablissement.dataset
+
+      # return all etablissements 
       if params[:all] == true
         dataset.select(:id, :code_uai, :nom).naked
       else 
-        results = super_search!(dataset, accepted_fields)
-        results
+        if params[:query]
+          patterns = split_query(params[:query])
+          dataset = apply_filter!(patterns, dataset, accepted_fields)
+        end
+
+        column = params[:sort_col]
+        direction = params[:sort_dir]
+        if column
+          dataset = apply_sort!(column, direction, dataset, accepted_fields)
+        elsif direction
+          error!("Direction de tri définit sans colonne (sort)", 400)
+        end
+
+        # todo : Limit arbitraire de 500, gérer la limit max en fonction du profil ?
+        page_size = params[:limit] ? params[:limit] : 500
+        page_no = params[:page] ? params[:page] : 1
+
+        dataset = dataset.paginate(page_no, page_size)
+        data = dataset.collect{ |x| {
+          :id => x.id, 
+          :classes => x.classes, 
+          :code_uai => x.code_uai, 
+          :nom => x.nom,
+          :adresse => x.adresse,
+          :code_postal  => x.code_postal,
+          :ville => x.ville, 
+          :type_etablissement_id => x.type_etablissement_id,
+          :telephone => x.telephone, 
+          :fax => x.fax , 
+          :groupes_eleves => x.groupes_eleves,
+          :personnel => x.personnel,
+          :site_url => x.site_url,
+          :alimentation_state => x.alimentation_state,
+          :longitude => x.longitude,
+          :latitude => x.latitude , 
+          :contacts => x.contacts
+          }
+        }        
+        {total: dataset.pagination_record_count, page: page_no, data: data}
       end 
     end   
 

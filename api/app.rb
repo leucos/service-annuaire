@@ -11,12 +11,14 @@ class ApplicationApi < Grape::API
   resource :applications do 
     
     #####################################################################
+    
     desc "get all applications"
     get do
       Application.all
     end 
 
     #####################################################################
+
     desc "get an application info"
     params do 
       requires :id, type: String
@@ -26,6 +28,7 @@ class ApplicationApi < Grape::API
     end
     
     #####################################################################
+
     desc "create an application"
     params do
       requires :code, type:String
@@ -42,6 +45,7 @@ class ApplicationApi < Grape::API
     end 
 
     #####################################################################
+
     desc "delete an application"
     params do 
       requires :id, type: String
@@ -51,6 +55,7 @@ class ApplicationApi < Grape::API
     end
     
     #####################################################################
+
     desc "return all application parameters"
     params do
       requires :id, type:String
@@ -86,6 +91,7 @@ class ApplicationApi < Grape::API
     end
 
     ##################################################################### 
+
     desc "delete a parameter fo an application"
     params do 
       requires :param_id, type:Integer
@@ -101,6 +107,7 @@ class ApplicationApi < Grape::API
         error!("ressource non trouvee", 404)
       end 
     end 
+
     ##################################################################### 
 
     desc "modify a parametre" 
