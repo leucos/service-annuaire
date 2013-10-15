@@ -303,13 +303,14 @@ class EtabApi < Grape::API
           :type_etablissement_id => x.type_etablissement_id,
           :telephone => x.telephone, 
           :fax => x.fax , 
-          :groupes_eleves => x.groupes_eleves,
-          :personnel => x.personnel,
           :site_url => x.site_url,
           :alimentation_state => x.alimentation_state,
+          :alimentation_date => x.alimentation_date,
           :longitude => x.longitude,
           :latitude => x.latitude , 
-          :contacts => x.contacts, 
+          :contacts => x.contacts,
+          :groupes_eleves => x.groupes_eleves,
+          :personnel => x.personnel, 
           :eleves => x.eleves, 
           :enseignants => x.enseignants
           }
