@@ -294,6 +294,9 @@ class UserApi < Grape::API
     end
 
     ##############################################################################
+    #                       User Telephone Api                                   #
+    ##############################################################################
+
     #recuperer la liste des telephones qui appartien à un utilisateur 
     desc "recuperer les telephones"
     get ":user_id/telephones" do
@@ -304,6 +307,7 @@ class UserApi < Grape::API
       user.telephone.map{|tel| {id: tel.id, numero: tel.numero, type: tel.type_telephone_id} } 
     end 
     
+    ##############################################################################
     #ajouter un telephone
     desc "ajouter un numero de telephone à l'utilisateur"
     params do
@@ -318,7 +322,7 @@ class UserApi < Grape::API
       numero = params["numero"]
       if !params["type_telephone_id"].nil? and ["MAIS", "PORT", "TRAV", "AUTR"].include?(params["type_telephone_id"])
         type_telephone_id = params["type_telephone_id"]
-        user.add_telephone(numero, type_telephone_id )
+        user.add_telephone(numero, type_telephone_id)
       else
         user.add_telephone(numero)
       end

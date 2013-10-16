@@ -43,5 +43,6 @@ class Telephone < Sequel::Model(:telephone)
     validates_presence [:type_telephone_id, :user_id, :numero]
     # Un numéro peut-être composé d'un '+' au début et suivi de 10 à 13 chiffres
     validates_format /^[\+|\d]\d{9,13}$/, :numero
+    #validates_format /^0[1-6]{1}(([0-9]{2}){4})|((\s[0-9]{2}){4})|((-[0-9]{2}){4})$/,  :numero
   end
 end
