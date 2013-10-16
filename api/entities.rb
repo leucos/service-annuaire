@@ -3,7 +3,7 @@ module API
     class DetailedUser < Grape::Entity
       #root 'users', 'user'
       # TODO expose resource url instead of ids
-      expose :id, :id_sconet, :login, :nom, :prenom, :sexe, :id_ent
+      expose :id, :id_sconet, :login, :nom, :prenom, :sexe, :id_ent, :date_naissance, :adresse, :code_postal, :ville
       expose(:full_name) {|user,options| user.full_name} 
       expose(:profils) {|user,options| user.profil_user_display}
       expose(:roles){|user,options| user.role_user_display}
@@ -41,7 +41,15 @@ module API
 
       expose(:matieres_enseignees) do |user, options|
         user.matieres_enseignees
-      end  
+      end
+
+      expose(:parents) do |user, options|
+        user.parents
+      end
+
+      expose(:enfants) do |user, options|
+        user.enfants
+      end     
     end
 
     class SimpleUser < Grape::Entity
