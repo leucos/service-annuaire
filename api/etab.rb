@@ -131,8 +131,8 @@ class EtabApi < Grape::API
         parameters.each do |k,v|
           if k != "route_info" or k != "session"
             begin
-              if etab.respond_to?(k.to_sym)
-                 etab.set(k.to_sym => v)
+              if etab.respond_to?(k.to_sym) && etab.columns.include?(k.to_sym)
+                etab.set(k.to_sym => v)
               end 
             rescue => e
               #puts e.message
@@ -145,6 +145,18 @@ class EtabApi < Grape::API
         error!("Validation failed", 400)
       end 
     end
+
+    ##############################################################################
+    desc "Supprimer un etablissement"
+    params do 
+      requires :id, type:String
+    end
+    delete "/:id" do 
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource nont trouvee", 404) if etab.nil?
+      authorize_activites!([ACT_DELETE, ACT_MANAGE], etab.ressource)
+      etab.destroy
+    end  
 
     ##############################################################################
     desc "Upload an image(logo)"
@@ -216,7 +228,7 @@ class EtabApi < Grape::API
       results
     end 
 
-    ############################################################
+     ##############################################################################
     desc "get the list of (eleves libres) which are not in any class"
     params do 
       requires :id, type:String 
@@ -232,7 +244,7 @@ class EtabApi < Grape::API
       end 
     end 
 
-    ############################################################
+    ##############################################################################
      desc "get the list of (profs) in (Etablissement)"
     params do 
       requires :id, type:String 
@@ -243,7 +255,7 @@ class EtabApi < Grape::API
       JSON.pretty_generate(etab.enseignants)
     end
 
-    ############################################################
+    ##############################################################################
     # get all etablissements and  add search capability to that
     desc "get la liste des etablissements and search"
     params do
@@ -319,9 +331,9 @@ class EtabApi < Grape::API
       end 
     end   
 
-    ############################################################
-    # Gestion des roles dans l'etablissement #
-    ############################################################
+    ##############################################################################
+    #             Gestion des roles dans l'etablissement                         #
+    ##############################################################################
     
     #Note: use authorize
     #{role_id : "ADM_ETB"}
@@ -360,7 +372,7 @@ class EtabApi < Grape::API
       {:user_id => user.id, :user_role => role.id}     
     end
 
-   ############################################################
+    ##############################################################################
     desc "Changer le role de quelqu'un"
     params do 
       requires :id, type: Integer 
@@ -393,7 +405,7 @@ class EtabApi < Grape::API
       {:user_id => user.id, :user_role => new_role.id} 
     end 
 
-    ############################################################
+    ##############################################################################
     desc "Supprimer un role de l'utilisateur dans l'etablissement"
     params do 
       requires :id, type: Integer
@@ -417,9 +429,9 @@ class EtabApi < Grape::API
       end
     end  
 
-    ############################################################
-    #             Gestion des classes                          #
-    ############################################################
+    ##############################################################################
+    #                         Gestion des classes                                #
+    ##############################################################################
     desc "list all classes in the etablissement"
     params do 
       requires :id, type: String
@@ -435,7 +447,7 @@ class EtabApi < Grape::API
       end 
     end 
 
-    ############################################################
+    ##############################################################################
     #@input: {libelle: "4°C", code_mef_aaf: "4EME"}
     #@output: {classe.id }
     desc "creer une classe dans l'etablissement"
@@ -457,7 +469,7 @@ class EtabApi < Grape::API
       end 
     end 
     
-    ############################################################
+   ##############################################################################
     #@input{libelle: "4°D"}   
     desc "Modifier l'info d'une classe" 
     params do 
@@ -486,7 +498,7 @@ class EtabApi < Grape::API
       end 
     end 
     
-    ############################################################
+    ##############################################################################
     # Types of responses depending on expand params
     # => Simple: ex. {"id":1,"etablissement_id":4813,"libelle":null,"libelle_aaf":"6A","type_regroupement_id":"CLS"}
     # => Detailed: ex. {"id":1,"etablissement_id":4813,"libelle":null,"libelle_aaf":"6A","type_regroupement_id":"CLS",
@@ -515,7 +527,7 @@ class EtabApi < Grape::API
       end  
     end 
 
-    ############################################################
+    ##############################################################################
     desc "Suppression d'une classe"
     params do 
       requires :id, type: String
@@ -536,7 +548,7 @@ class EtabApi < Grape::API
       end 
     end
 
-    ############################################################ 
+    ##############################################################################
     # Rattachement d'un eleve ou prof à une classe
     desc "rattachements d'un eleve à une classe"
     params do 
@@ -569,7 +581,7 @@ class EtabApi < Grape::API
       end    
     end
 
-    ############################################################ 
+    ##############################################################################
     # Rattachement d'un eleve ou prof à une classe
     desc "Detachement d'un eleve d'une classe"
     params do 
@@ -599,9 +611,9 @@ class EtabApi < Grape::API
         error!("mouvaise requete", 400)
       end    
     end
-    #############################################################
-    # Gestion des rattachement et des roles dans une classe     #
-    #############################################################
+    ##############################################################################
+    #          Gestion des rattachement et des roles dans une classe             #
+    ##############################################################################
 
     # add  a profil
     # what type of profil/role
@@ -638,7 +650,7 @@ class EtabApi < Grape::API
       end    
     end 
 
-    #################
+    ##############################################################################
 
     desc "modifier le role d'un utilisateur dans une classe"
     params do 
@@ -674,7 +686,7 @@ class EtabApi < Grape::API
 
     end 
     
-    ######################
+    ##############################################################################
     ## la il ya un probleme 
     desc "Dettachement"
     params do 
@@ -706,7 +718,7 @@ class EtabApi < Grape::API
       end 
     end
 
-    #########################################################
+    ##############################################################################
     #{matieres ids : [200, 300]}
     desc "Lister les enseignants dans une classe" 
     params do
@@ -734,7 +746,7 @@ class EtabApi < Grape::API
       end 
     end
 
-    ##########################################################
+    ##############################################################################
 
     #{matieres ids : [200, 300]}
     desc "ajouter un enseignant et ajouter des matieres" 
@@ -785,7 +797,7 @@ class EtabApi < Grape::API
       end 
     end
 
-    ##########################################################
+    ##############################################################################
     desc "supprimer un enseignant"
     params do 
       requires :id, type: String
@@ -813,7 +825,7 @@ class EtabApi < Grape::API
       end    
     end 
 
-    ##########################################################
+    ##############################################################################
     desc "supprimer une matieres"
     params do 
       requires :id, type: Integer
@@ -839,7 +851,7 @@ class EtabApi < Grape::API
       end
     end  
 
-    ############################
+    ##############################################################################
       desc "lister les matieres enseignees dans letablissement"
       params do 
         requires :id, type: String
@@ -850,9 +862,9 @@ class EtabApi < Grape::API
       end   
  
 
-    ##################################################
-    #     Gestion des groupes d'eleves               #
-    ##################################################
+    ##############################################################################
+    #                     Gestion des groupes d'eleves                           #
+    ##############################################################################
     
     desc "lister les groupes d'éléve dans l'etablissement"
     params do 
@@ -865,7 +877,7 @@ class EtabApi < Grape::API
       JSON.pretty_generate(etab.groupes_eleves)
     end
 
-    ################################################# 
+    ##############################################################################
 
     desc "retourner les infos d'un groupe d'eleve"
     params do 
@@ -885,7 +897,7 @@ class EtabApi < Grape::API
       end 
     end
 
-    ################################################# 
+    ##############################################################################
 
     desc "creer un groupe d'eleve"
     params do 
@@ -907,7 +919,7 @@ class EtabApi < Grape::API
       end 
     end 
 
-   ##################################################
+   ##############################################################################
     #@input{libelle: "4°D"}   
     desc "Modifier l'info d'un groupe d'eleve" 
     params do 
@@ -937,7 +949,7 @@ class EtabApi < Grape::API
       end 
     end 
 
-    #################
+    ##############################################################################
     desc "Suppression d'un groupe"
     params do 
       requires :id, type: Integer
@@ -959,9 +971,9 @@ class EtabApi < Grape::API
       end 
     end
 
-    ##################################################
-    ## gestion d'un role dans un groupe ou une classe #
-    ##################################################
+    ##############################################################################
+    ##          gestion d'un role dans un groupe ou une classe                   #
+    ##############################################################################
 
     # i dont know if i need this 
     desc " rattacher un role a un utilisateur dans un groupe d'eleve"
@@ -995,7 +1007,7 @@ class EtabApi < Grape::API
       end    
     end 
 
-    ##################################################
+    ##############################################################################
 
     desc "modifier le role d'un utilisateur dans un groupe"
     params do 
@@ -1031,7 +1043,7 @@ class EtabApi < Grape::API
 
     end 
     
-    ##################################################
+    ##############################################################################
 
     desc "supprimer un role dans un groupe d'eleves "
     params do 
@@ -1063,12 +1075,12 @@ class EtabApi < Grape::API
       end 
     end
 
-    ######################################################################### 
+    ##############################################################################
 
 
-    ##############################
-    # Gestion des Groupes libres #
-    ##############################
+    ##############################################################################
+    #             Gestion des Groupes libres                                    #
+    ##############################################################################
     #pour l'instant on cree les groupes libres dans un etablissement "to do"
     desc "liste les groupes libres dans un etablissement"
     params do 
@@ -1102,7 +1114,7 @@ class EtabApi < Grape::API
       end  
     end 
 
-    ###########################
+     ##############################################################################
 
     desc "modification d'un groupe libre"
     params do 
@@ -1130,7 +1142,7 @@ class EtabApi < Grape::API
       end 
     end
 
-    ###########################
+     ##############################################################################
     desc "suppression d'un groupe libre"
     params do 
       requires :id , type: Integer
@@ -1150,7 +1162,7 @@ class EtabApi < Grape::API
         error!("mouvaise requete", 400)  
       end 
     end
-    ###########################
+     ##############################################################################
 
     desc "Gestion des rattachements a un groupe libre"
     params do
@@ -1179,7 +1191,7 @@ class EtabApi < Grape::API
       end    
     end 
 
-    ################
+     ##############################################################################
     desc "supprimer un rattachement"
     params do
       requires :id, type: Integer 
@@ -1212,7 +1224,7 @@ class EtabApi < Grape::API
     
    
 
-    ####################
+     ##############################################################################
     desc "gestion des role dans un groupe d'eleves"
     params do 
       requires :id, type: Integer
@@ -1222,14 +1234,14 @@ class EtabApi < Grape::API
     post "/:id/groupe_eleve/:groupe_id/role_user/:user_id" do
       # role ou profil  
     end
-    ####################
+     ##############################################################################
 
 
 
     
 
 
-    #################
+     ##############################################################################
     # []
     desc "Recuperer les niveaux pour cet etablissement" 
     params do 
@@ -1241,9 +1253,9 @@ class EtabApi < Grape::API
         Regroupement.filter(:etablissement_id => etab.id).select(:niveau_id)
     end 
 
-    #######################
-    # Gestion des profils #
-    #######################
+    ##############################################################################
+    #                     Gestion des profils                                    #
+     ##############################################################################
 
     #{profil_id: "ELV"}
     desc "Ajout d'un profils utilisateur"
@@ -1270,7 +1282,7 @@ class EtabApi < Grape::API
       end 
     end   
     
-    #################
+     ##############################################################################
     #{new_profil_id: "PROF", etablissement_id: 1234}
     desc "Modification d'un profil"
     params do  
@@ -1308,7 +1320,7 @@ class EtabApi < Grape::API
     end 
     
 
-    ##################
+     ##############################################################################
     desc "Suppression d'un profil"
     params do 
       requires :id, type: Integer 
@@ -1336,9 +1348,9 @@ class EtabApi < Grape::API
     end 
 
 
-    ##########################
-    # Gestion des parametres #
-    ##########################
+    ##############################################################################
+    #                  Gestion des parametres                                    #
+    ##############################################################################
 
     #note: is it necessary to do the casting
     desc "Recupere la valeur d'un parametre precis"
@@ -1372,7 +1384,7 @@ class EtabApi < Grape::API
       end 
     end 
     
-    ##################
+     ##############################################################################
     desc "Modifie la valeur d'un parametre"
     params do 
       requires :id, type: Integer 
@@ -1402,7 +1414,7 @@ class EtabApi < Grape::API
 
     end
 
-    ##################
+     ##############################################################################
     desc "Remettre la valeure par defaut du parametre"
     params do 
       requires :id, type: Integer 
@@ -1426,7 +1438,7 @@ class EtabApi < Grape::API
       end   
     end
 
-    ##################
+     ##############################################################################
     desc "Recupere tous les parametres sur une application donnee"
     params do
       requires :id, type: Integer 
@@ -1452,7 +1464,7 @@ class EtabApi < Grape::API
       end 
     end
 
-    ###################
+     ##############################################################################
     desc "Recupere tous les  parametres de l'etablissement" 
     params do 
       requires :id, type: Integer 
@@ -1475,9 +1487,9 @@ class EtabApi < Grape::API
     end 
 
 
-    ##########################################
-    # Gestion de l'activation des parametres #
-    ##########################################
+    ##############################################################################
+    #           Gestion de l'activation des parametres                           #
+    ##############################################################################
 
     ###################
     #{"GED", "CAHIER_TXT"}
@@ -1495,7 +1507,7 @@ class EtabApi < Grape::API
       end 
     end
 
-    ###########################################
+     ##############################################################################
     #{actif: true|false}
     desc "Activer ou desactiver une application"
     params do 
@@ -1522,7 +1534,7 @@ class EtabApi < Grape::API
       end  
     end
 
-    ####################################
+     ##############################################################################
     desc "return the list of etablissements type"
     params do 
     end 

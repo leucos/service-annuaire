@@ -478,7 +478,8 @@ class User < Sequel::Model(:user)
     .join(:etablissement, :id => :etablissement_id)
     .join(:matiere_enseignee, :id => :enseigne_dans_regroupement__matiere_enseignee_id)
     .where(:type_regroupement_id => 'CLS').naked
-    .select(:code_uai___etablissement_code, :libelle_aaf___classe_libelle, :nom___etablissement_nom, :matiere_enseignee_id, :libelle_long___matiere_libelle, :regroupement_id___classe_id, :etablissement_id)
+    .select(:code_uai___etablissement_code, :libelle_aaf___classe_libelle, :nom___etablissement_nom, 
+      :matiere_enseignee_id, :libelle_long___matiere_libelle, :regroupement_id___classe_id, :etablissement_id, :prof_principal)
     .all
   end 
 
