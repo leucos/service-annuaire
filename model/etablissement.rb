@@ -124,7 +124,10 @@ class Etablissement < Sequel::Model(:etablissement)
   end
 
   def contacts
-    User.filter(:profil_user => ProfilUser.filter(:etablissement => self, :profil_id => ["ADM", "DIR"])).select(:id, :id_ent, :nom, :prenom).all
+    #User.filter(:profil_user => ProfilUser.filter(:etablissement => self, :profil_id => ["ADM", "DIR"])).select(:id, :id_ent, :nom, :prenom).all
+    User.join(:profil_user_fonction, :user_id => :user__id)
+    .join(:fonction, :fonction__id =>:fonction_id)
+    .filter(:profil_id => ["ADM", "DIR"], :etablissement_id => self.id).naked.all
   end 
 
   # retourn le type de l'Etablissement suivi par son nom
