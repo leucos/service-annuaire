@@ -164,15 +164,11 @@ class EtabApi < Grape::API
       requires :id, type:String
     end 
     post "/:id/upload/logo" do
-      puts params.inspect
-      puts params[:image].inspect
-
-      puts params[:upfile][:tempfile].inspect
+      #puts params.inspect
       etab = Etablissement[:code_uai => params[:id]]
       if etab 
         tempfile = params[:image][:tempfile]
         imagetype = params[:image][:type].split("/")[1]
-
 
         # read received file and write it to public folder
         File.open(tempfile.path, 'rb') do |input| 
@@ -181,8 +177,7 @@ class EtabApi < Grape::API
 
         etab.logo = "banniere_etab_#{params[:id]}.#{imagetype}"
         etab.save 
-        puts "logo saved"
-
+        #puts "logo saved"
         {
           etablissemnt: params[:id],
           filename: "banniere_etab_#{params[:id]}.#{imagetype}",
