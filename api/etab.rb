@@ -164,7 +164,7 @@ class EtabApi < Grape::API
       requires :id, type:String
     end 
     post "/:id/upload/logo" do
-      #puts params.inspect
+      puts params.inspect
       etab = Etablissement[:code_uai => params[:id]]
       if etab 
         tempfile = params[:image][:tempfile]
