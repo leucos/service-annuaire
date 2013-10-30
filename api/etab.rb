@@ -768,7 +768,7 @@ class EtabApi < Grape::API
         mat_id = "003700"
       end 
       begin
-        "ok" 
+        classe.add_prof(user, mat_id)
         # if user exists => add matieres else add prof
         #ens_mat = EnseigneDansRegroupement[:user_id => user.id, :regroupement_id => classe.id, :matiere_enseignee_id => mat_id] 
         #if ens_mat

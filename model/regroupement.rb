@@ -121,17 +121,17 @@ class Regroupement < Sequel::Model(:regroupement)
 =end 
 
   # matieres = [ ]
-  def add_prof(user, matiere, principal = "N" )
+  def add_prof(user, matiere_id, principal = "N" )
     # for the moment i dont treat roles
     # if  groupe exists, do nothing 
-    edr = EnseigneDansRegroupement[:regroupement_id => self.id, :user_id => user.id, :matiere_enseignee_id => matiere.id]
+    edr = EnseigneDansRegroupement[:regroupement_id => self.id, :user_id => user.id, :matiere_enseignee_id => matiere_id]
     if edr 
       # do nothing 
       edr.prof_principal = principal
       edr.save
     else
       # create a new record 
-      EnseigneDansRegroupement.create(:regroupement_id => self.id, :user_id => user.id, :matiere_enseignee_id => matiere.id, :prof_principal => principal)
+      EnseigneDansRegroupement.create(:regroupement_id => self.id, :user_id => user.id, :matiere_enseignee_id => matiere_id, :prof_principal => principal)
     end 
 
   end
