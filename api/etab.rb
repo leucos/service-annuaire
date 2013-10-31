@@ -1212,14 +1212,8 @@ class EtabApi < Grape::API
       rescue =>  e
         error!("mouvaise requete", 400)
       end 
-    end 
-
-
-
-    
-   
-
-     ##############################################################################
+    end
+    ##############################################################################
     desc "gestion des role dans un groupe d'eleves"
     params do 
       requires :id, type: Integer
@@ -1229,14 +1223,10 @@ class EtabApi < Grape::API
     post "/:id/groupe_eleve/:groupe_id/role_user/:user_id" do
       # role ou profil  
     end
-     ##############################################################################
+    ##############################################################################
 
 
-
-    
-
-
-     ##############################################################################
+    ##############################################################################
     # []
     desc "Recuperer les niveaux pour cet etablissement" 
     params do 
@@ -1250,7 +1240,7 @@ class EtabApi < Grape::API
 
     ##############################################################################
     #                     Gestion des profils                                    #
-     ##############################################################################
+    ##############################################################################
 
     #{profil_id: "ELV"}
     desc "Ajout d'un profils utilisateur"
@@ -1433,7 +1423,7 @@ class EtabApi < Grape::API
       end   
     end
 
-     ##############################################################################
+    ##############################################################################
     desc "Recupere tous les parametres sur une application donnee"
     params do
       requires :id, type: Integer 
@@ -1492,7 +1482,7 @@ class EtabApi < Grape::API
     params do 
       requires :id, type: Integer 
     end 
-    get "/:id/application_actifs" do
+    get ":id/application_actifs" do
       etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       begin
@@ -1501,8 +1491,20 @@ class EtabApi < Grape::API
         error!("mouvaise requete", 400)
       end 
     end
-
-     ##############################################################################
+    
+    ##############################################################################
+    desc "Return the list of applications in the etablissement"
+    params do 
+      requires :id, type:String
+    end
+    get ":id/applications" do 
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      ApplicationEtablissement.filter(:etablissement_id => etab.id)
+      .join(:application, :application__id => :application_id)
+      .naked.all
+    end  
+    ##############################################################################
     #{actif: true|false}
     desc "Activer ou desactiver une application"
     params do 

@@ -90,14 +90,21 @@ class Regroupement < Sequel::Model(:regroupement)
     User.filter(:enseigne_dans_regroupement => EnseigneDansRegroupement.filter(:regroupement => self),
       :profil_user => ProfilUser.filter(:etablissement_id => etablissement_id, :profil_id => 'ENS'))
       .select(:id, :id_ent, :id_jointure_aaf, :nom, :prenom)
-      .naked.all  
+      .all
+
+    #DB.fetch("select * form user where user")  
+    #profs_info = User.filter(:enseigne_dans_regroupement => EnseigneDansRegroupement.filter(:regroupement => self),
+      #:profil_user => ProfilUser.filter(:etablissement_id => self.etablissement_id, :profil_id => 'ENS'))
+    #.join(:enseigne_dans_regroupement, :user_id => :user__id)
+    #.join(:matiere_enseignee, :matiere_enseignee__id => :matiere_enseignee_id)
+    #.naked.all  
   end
 
 
   # Liste des membres du regroupement dont le profil est élève
   def eleves
     User.filter(:eleve_dans_regroupement => EleveDansRegroupement.filter(:regroupement => self),
-      :profil_user => ProfilUser.filter(:etablissement_id => etablissement_id, :profil_id => 'ELV'))
+      :profil_user => ProfilUser.filter(:etablissement_id => self.etablissement_id, :profil_id => 'ELV'))
       .select(:id, :id_sconet, :id_ent, :id_jointure_aaf, :nom, :prenom)
       .naked.all
   end
