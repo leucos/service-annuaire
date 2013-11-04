@@ -60,7 +60,6 @@ module API
       expose(:profils) {|user,options| user.profil_user_display}
       expose :telephone, :as => :telephones
       expose :email, :as => :emails
-      #comment block
 =begin
       expose(:classes) do |user,options|
         user.classes_display

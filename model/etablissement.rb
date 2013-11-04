@@ -105,9 +105,12 @@ class Etablissement < Sequel::Model(:etablissement)
 
   # les groupes libre dans l'etablissement 
   def groupes_libres
-    ds1 = DB.fetch("SELECT `regroupement_id`, count(user_id) AS `profs` FROM `enseigne_dans_regroupement` GROUP BY `regroupement_id`")
-    ds2 = DB.fetch("SELECT `regroupement_id`, count(user_id) AS `eleves` FROM `eleve_dans_regroupement` GROUP BY `regroupement_id`") 
-    regroupement_dataset.where(:type_regroupement_id => "LBR").left_join(ds1, :regroupement_id => :id).left_join(ds2, :regroupement_id => :regroupement__id).naked.all
+    #ds1 = DB.fetch("SELECT `regroupement_id`, count(user_id) AS `profs` FROM `enseigne_dans_regroupement` GROUP BY `regroupement_id`")
+    #ds2 = DB.fetch("SELECT `regroupement_id`, count(user_id) AS `eleves` FROM `eleve_dans_regroupement` GROUP BY `regroupement_id`") 
+    #regroupement_dataset.where(:type_regroupement_id => "LBR").left_join(ds1, :regroupement_id => :id).left_join(ds2, :regroupement_id => :regroupement__id).naked.all
+    #RegroupementLibre.naked.all
+    RegroupementLibre.join(:user, :user__id => :created_by).select(:regroupement_libre__id, :regroupement_libre__libelle, 
+      :regroupement_libre__created_at, :user__nom, :user__prenom, :user__id_ent).naked.all
   end 
 
   # Liste de tous les membres d'un établissement qui font parti de l'éducation nationale
