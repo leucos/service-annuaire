@@ -28,4 +28,10 @@ class RegroupementLibre < Sequel::Model(:regroupement_libre)
   # Not nullable cols
   def validate
   end
+
+  def membres 
+    self.membre_regroupement_libre_dataset.join(:user , :user__id => :user_id)
+    .select(:id_ent, :nom, :prenom, :joined_at, :user_id)
+    .naked.all
+  end 
 end

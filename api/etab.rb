@@ -1076,7 +1076,8 @@ class EtabApi < Grape::API
     ##############################################################################
     #             Gestion des Groupes libres                                    #
     ##############################################################################
-    #pour l'instant on cree les groupes libres dans un etablissement "to do"
+    # pour l'instant les apis concernant les groupes libres son attachés à un etablissement 
+    # peut-etre on va les separer àpres.
     desc "liste les groupes libres dans un etablissement"
     params do 
       requires :id, type: String
@@ -1088,7 +1089,30 @@ class EtabApi < Grape::API
       etab.groupes_libres
     end
 
+    ##############################################################################
+    desc "retournez les details d'un groupe libre"
+    params do 
+      requires :id, type: String
+      requires :groupe_id, type: Integer
+    end 
+    get "/:id/groupes_libres/:groupe_id" do 
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      groupe = RegroupementLibre[:id => params[:groupe_id]]
+      puts groupe.inspect
+      error!("ressource non trouvee", 404) if groupe.nil?
+      # problem authorize activites groupe libre 
+      # authorize_activites!([ACT_READ, ACT_MANAGE], groupe.ressource)
+      #groupe
+      if params[:expand] == "true"
+        present groupe, with: API::Entities::DetailedGroupeLibre
+      else
+        present groupe, with: API::Entities::SimpleGroupeLibre   
+      end
+      #groupe
+    end
 
+    ##############################################################################   
     desc "creation d'un groupe libre"
     params do 
       requires :id, type: Integer

@@ -109,8 +109,14 @@ class Etablissement < Sequel::Model(:etablissement)
     #ds2 = DB.fetch("SELECT `regroupement_id`, count(user_id) AS `eleves` FROM `eleve_dans_regroupement` GROUP BY `regroupement_id`") 
     #regroupement_dataset.where(:type_regroupement_id => "LBR").left_join(ds1, :regroupement_id => :id).left_join(ds2, :regroupement_id => :regroupement__id).naked.all
     #RegroupementLibre.naked.all
-    RegroupementLibre.join(:user, :user__id => :created_by).select(:regroupement_libre__id, :regroupement_libre__libelle, 
-      :regroupement_libre__created_at, :user__nom, :user__prenom, :user__id_ent).naked.all
+    ds1 = MembreRegroupementLibre.group_and_count(:regroupement_libre_id) 
+    ds2 = RegroupementLibre.join(:user, :user__id => :created_by)
+    #ds2.naked.all
+    #.select(:regroupement_libre__id, :regroupement_libre__libelle, 
+      #:regroupement_libre__created_at, :user__nom, :user__prenom, :user__id_ent, ds1__count)
+
+    ds2.join(ds1, :regroupement_libre_id => :regroupement_libre__id).select(:regroupement_libre__id,
+      :regroupement_libre__created_at, :user__nom, :user__prenom, :user__id_ent,:libelle,:count___membres).naked.all
   end 
 
   # Liste de tous les membres d'un établissement qui font parti de l'éducation nationale
