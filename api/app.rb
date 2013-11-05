@@ -10,6 +10,7 @@ class ApplicationApi < Grape::API
   default_error_status 400
   resource :applications do 
     
+    #    !important: needs to add authentiction and authorization       #
     #####################################################################
     
     desc "get all applications"
@@ -19,7 +20,7 @@ class ApplicationApi < Grape::API
 
     #####################################################################
 
-    desc "get an application info"
+    desc "return application details"
     params do 
       requires :id, type: String
     end 
@@ -146,7 +147,42 @@ class ApplicationApi < Grape::API
       end 
     end
 
+    #####################################################################
+
+    desc "return application security keys information"
+    params do 
+      requires :id, type:String 
+    end 
+    get "/:id/keys" do
+      application = Application[:id => params[:id]]
+      if application
+          key = ApplicationKey[:application_id => application.id]
+          if key 
+            {:key => key.application_key}
+          else 
+            {:key => ""}
+          end 
+      else 
+        error!("ressource non trouvee", 404)
+      end
+    end 
     #####################################################################  
+
+    desc "generte a new application key"
+    params do 
+      requires :id, type:String 
+    end
+    post "/:id/keys" do 
+      application = Application[:id => params[:id]]
+      if application
+          # generate new key algorithm 
+          {key:"1233544"}
+      else 
+        error!("ressource non trouvee", 404)
+      end
+    end
+
+    #####################################################################     
 
   end
 end    

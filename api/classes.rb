@@ -1,7 +1,8 @@
 #encoding: utf-8
 
 require 'grape'
-class ClassApi < Grape::API                                                                                                                                                                                     
+class ClassApi < Grape::API 
+  prefix 'api'                                                                                                                                                                                    
   format :json
 
   resource :classes do 

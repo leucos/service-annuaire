@@ -59,7 +59,7 @@ class AlimentationApi < Grape::API
         requires :type_data, :type => String, :desc => "type of data"
         requires :data, :type => String, :desc => "data that is treated" 
       end
-    post "/recieve" do 
+    post "/receive" do 
       Laclasse::Log.info("--------------------------------------------------------------")
       Laclasse::Log.info("recieved data from etablissement #{params['uai']} for #{params['type_data']}")
       #algo

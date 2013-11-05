@@ -1115,17 +1115,31 @@ class EtabApi < Grape::API
     ##############################################################################   
     desc "creation d'un groupe libre"
     params do 
-      requires :id, type: Integer
+      requires :id, type: String
       requires :libelle, type: String 
+      requires :created_by, type: Integer
+      # may be add some description to a group 
       optional :description, type: String   
     end
     post "/:id/groupes_libres"  do
-      etab = Etablissement[:id => params[:id]]
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
-      authorize_activites!([ACT_CREATE, ACT_MANAGE], etab.ressource, SRV_LIBRE)
+      #authorize_activites!([ACT_CREATE, ACT_MANAGE], Laclasse.ressource, SRV_LIBRE)
       parameters = exclude_hash(params, ["id", "route_info", "session"])
       begin
-        groupe = etab.add_groupe_libre(parameters)
+        #groupe = etab.add_groupe_libre(parameters)
+        # find groupe 
+        groupe = RegroupementLibre[:libelle => params[:libelle]]
+        if groupe 
+          puts groupe.inspect
+          groupe
+        else
+          groupe = RegroupementLibre.create(:libelle => params[:libelle], :created_at => Time.now, :created_by => params[:created_by])
+          #if params[:description]
+            #groupe.description = params[:description]
+            #groupe.save
+          #end 
+        end  
         groupe
       rescue => e
         puts e.message
@@ -1368,7 +1382,7 @@ class EtabApi < Grape::API
       requires :app_id, type: String
       requires :code , type: String 
     end 
-    get "/:id/parametre/:app_id/:code" do
+    get "/:id/parametres/:app_id/:code" do
       etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
 
@@ -1401,7 +1415,7 @@ class EtabApi < Grape::API
       requires :code , type: String
       #requires :valeur, type: String
     end 
-    put "/:id/parametre/:app_id/:code" do
+    put "/:id/parametres/:app_id/:code" do
       #puts params.inspect
       etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
@@ -1476,11 +1490,12 @@ class EtabApi < Grape::API
      ##############################################################################
     desc "Recupere tous les  parametres de l'etablissement" 
     params do 
-      requires :id, type: Integer 
+      requires :id, type: String
     end 
     get "/:id/parametres" do
-      etab = Etablissement[:id => params[:id]]
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
+      # add authorization
       begin
         parameters = []
         ApplicationEtablissement.filter(:etablissement_id => etab.id).each do |app_etab|
