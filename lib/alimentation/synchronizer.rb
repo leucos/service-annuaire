@@ -664,7 +664,7 @@ module Alimentation
 
             # rattache prof to regroupement with matiere id 
             @logger.debug("rattache prof with #{rattachement['id_jointure_aaf']} to groupe #{rattachement['libelle_regroupement']}")
-            regroupement.add_prof(prof, matiere, rattachement["prof_principal"])
+            regroupement.add_prof(prof, matiere.id, rattachement["prof_principal"])
           rescue => e
             @logger.error(e.message)
             @errorstack.push(e.message)

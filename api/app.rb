@@ -175,8 +175,18 @@ class ApplicationApi < Grape::API
     post "/:id/keys" do 
       application = Application[:id => params[:id]]
       if application
-          # generate new key algorithm 
-          {key:"1233544"}
+          key = SecureRandom.urlsafe_base64
+          # mockup generate new key algorithm
+          old_key = ApplicationKey[:application_id => application.id]
+          if old_key 
+            #chage valeur 
+            old_key.application_key = key 
+            old_key.save
+          else
+            #create a new key 
+            ApplicationKey.create(:application_id => application.id, :application_key => key)
+          end 
+          {:key => key, :app_id => application.id}
       else 
         error!("ressource non trouvee", 404)
       end

@@ -1,4 +1,4 @@
-#coding: utf-8
+#encoding: utf-8
 #
 # model for 'relation_eleve' table
 # generated 2012-04-19 17:45:32 +0200 by model_generator.rb
