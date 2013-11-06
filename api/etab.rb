@@ -1410,20 +1410,19 @@ class EtabApi < Grape::API
      ##############################################################################
     desc "Modifie la valeur d'un parametre"
     params do 
-      requires :id, type: Integer 
+      requires :id, type: String 
       requires :app_id, type: String
-      requires :code , type: String
-      #requires :valeur, type: String
+      requires :param_id , type: Integer
     end 
-    put "/:id/parametres/:app_id/:code" do
+    put "/:id/applications/:app_id/parametres/:param_id" do
       #puts params.inspect
-      etab = Etablissement[:id => params[:id]]
+      etab = Etablissement[:id => params[:code_uai]]
       error!("ressource non trouvee", 404) if etab.nil?
 
       app = Application[:id => params[:app_id]]
       error!("ressource non trouvee", 404) if app.nil?
 
-      param_application = ParamApplication[:code => params[:code]]
+      param_application = ParamApplication[:id => params[:param_id]]
       error!("ressource non trouvee", 404) if param_application.nil?
  
       begin
@@ -1444,7 +1443,7 @@ class EtabApi < Grape::API
       requires :app_id, type: String 
       requires :code , type: String
     end   
-    delete "/:id/parametre/:app_id/:code" do 
+    delete "/:id/parametres/:app_id/:code" do 
       etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
 
@@ -1464,11 +1463,11 @@ class EtabApi < Grape::API
     ##############################################################################
     desc "Recupere tous les parametres sur une application donnee"
     params do
-      requires :id, type: Integer 
+      requires :id, type: String
       requires :app_id, type: String  
     end 
-    get "/:id/parametres/:app_id" do
-      etab = Etablissement[:id => params[:id]]
+    get "/:id/applications/:app_id/parametres" do
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
 
       app = Application[:id => params[:app_id]]
@@ -1488,7 +1487,7 @@ class EtabApi < Grape::API
     end
 
      ##############################################################################
-    desc "Recupere tous les  parametres de l'etablissement" 
+    desc "Recupere tous les  parametres de l'etablissement pour tous les applications" 
     params do 
       requires :id, type: String
     end 
