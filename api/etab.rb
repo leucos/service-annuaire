@@ -77,7 +77,7 @@ class EtabApi < Grape::API
     end
 
     ##############################################################################
-    desc "Get etablissement info"
+    desc "return etablissement details"
     params do
       requires :id, type: String
       optional :expand, type:String, desc: "show simple or detailed info, value = true or false"
@@ -744,7 +744,7 @@ class EtabApi < Grape::API
     ##############################################################################
 
     #{matieres ids : [200, 300]}
-    desc "ajouter un enseignant et ajouter des matieres" 
+    desc "Ajouter un enseignant et ajouter des matieres" 
     params do
       requires :id, type:String
       requires :classe_id, type: Integer
@@ -971,7 +971,7 @@ class EtabApi < Grape::API
     ##############################################################################
 
     # i dont know if i need this 
-    desc " rattacher un role a un utilisateur dans un groupe d'eleve"
+    desc "Rattacher un role a un utilisateur dans un groupe d'eleve"
     params do 
       requires :id, type: Integer
       requires :groupe_id, type: Integer
@@ -1511,7 +1511,7 @@ class EtabApi < Grape::API
 
 
     ##############################################################################
-    #           Gestion de l'activation des parametres                           #
+    #           Gestion des applications et Activation                           #
     ##############################################################################
 
     ###################
@@ -1531,7 +1531,7 @@ class EtabApi < Grape::API
     end
     
     ##############################################################################
-    desc "Return the list of applications in the etablissement"
+    desc "Return the list of applications in the (etablissement)"
     params do 
       requires :id, type:String
     end
@@ -1568,9 +1568,38 @@ class EtabApi < Grape::API
         error!("mouvaise requete", 400)
       end  
     end
+    
+    ##############################################################################
+    desc "Ajouter une application à l'etablissement"
+    params do
+      requires :id, type:String
+      requires :app_id,  type:String
+    end
+    post ":id/applications/:app_id" do 
+      puts params.inspect 
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 400) if etab.nil?
+      application = ApplicationEtablissement[:etablissement_id => etab.id, :application_id => params[:app_id]]
+      if application 
+        application 
+      else
+        application = ApplicationEtablissement.create(:etablissement_id => etab.id, :application_id => params[:app_id])
+      end 
+    end 
+    ##############################################################################
+    desc "supprimer l'application de l'etablissement"
+    params do 
+      requires :id, type:String 
+      requires :app_id, type:String 
+    end
 
-     ##############################################################################
-    desc "return the list of etablissements type"
+    delete ":id/applications/:app_id" do 
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 400) if etab.nil?
+      ApplicationEtablissement.filter(:etablissement_id => etab.id, :application_id => params[:app_id]).destroy()
+    end 
+    ##############################################################################
+    desc "Return the list of (etablissements) types"
     params do 
     end 
     get "/types/types_etablissements" do 
