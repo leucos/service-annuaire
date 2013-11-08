@@ -656,7 +656,7 @@ module Alimentation
 
             #find matiere 
             matiere = MatiereEnseignee[:id => rattachement["matiere_enseignee_id"]]
-            puts matiere.inspect
+            #puts matiere.inspect
 
             if matiere.nil?
               raise "matiere with id  #{rattachement['matiere_enseignee_id']} does not exist"

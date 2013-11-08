@@ -115,7 +115,7 @@ class Etablissement < Sequel::Model(:etablissement)
     #.select(:regroupement_libre__id, :regroupement_libre__libelle, 
       #:regroupement_libre__created_at, :user__nom, :user__prenom, :user__id_ent, ds1__count)
 
-    ds2.join(ds1, :regroupement_libre_id => :regroupement_libre__id).select(:regroupement_libre__id,
+    ds2.left_join(ds1, :regroupement_libre_id => :regroupement_libre__id).select(:regroupement_libre__id,
       :regroupement_libre__created_at, :user__nom, :user__prenom, :user__id_ent,:libelle,:count___membres).naked.all
   end 
 

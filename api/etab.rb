@@ -1401,8 +1401,7 @@ class EtabApi < Grape::API
         else
           error!("ressource non trouvee", 404) 
         end
-      rescue => e
-        puts e.message 
+      rescue => e 
         error!("mouvaise requete", 400)
       end 
     end 
@@ -1413,10 +1412,12 @@ class EtabApi < Grape::API
       requires :id, type: String 
       requires :app_id, type: String
       requires :param_id , type: Integer
+      requires :value 
     end 
     put "/:id/applications/:app_id/parametres/:param_id" do
       #puts params.inspect
-      etab = Etablissement[:id => params[:code_uai]]
+      #note detect if value is acceptable or not 
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
 
       app = Application[:id => params[:app_id]]
@@ -1427,10 +1428,9 @@ class EtabApi < Grape::API
  
       begin
         id = param_application.id
-        valeur = params[:valeur]
-        etab.set_preference(id, valeur)
+        value = params[:value]
+        etab.set_preference(id, value)
       rescue => e
-        puts e.message  
         error!("mouvaise requete", 400)
       end 
 
@@ -1439,12 +1439,12 @@ class EtabApi < Grape::API
      ##############################################################################
     desc "Remettre la valeure par defaut du parametre"
     params do 
-      requires :id, type: Integer 
+      requires :id, type: String
       requires :app_id, type: String 
       requires :code , type: String
     end   
-    delete "/:id/parametres/:app_id/:code" do 
-      etab = Etablissement[:id => params[:id]]
+    delete "/:id/applications/:app_id/parametres/:code" do 
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
 
       app = Application[:id => params[:app_id]]
@@ -1514,8 +1514,8 @@ class EtabApi < Grape::API
     #           Gestion des applications et Activation                           #
     ##############################################################################
 
-    ###################
-    #{"GED", "CAHIER_TXT"}
+    ##############################################################################
+    # example : {"DOC", "CAHIER_TXT"}
     desc "Gestion de l'activation des applications"
     params do 
       requires :id, type: Integer 
