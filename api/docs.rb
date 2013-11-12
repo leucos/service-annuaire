@@ -88,7 +88,7 @@ class DocsApi < Grape::API
   get "/matieres/libelle/:libelle" do 
     matiere = MatiereEnseignee[:libelle_long => params[:libelle].upcase]
     if matiere 
-      matiere.id 
+      matiere
     else
       error!("ressource non trouve", 404)
     end
