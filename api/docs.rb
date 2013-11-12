@@ -81,7 +81,18 @@ class DocsApi < Grape::API
   end
 
 
-
+  desc "return matiere id for libelle long"
+  params do 
+    requires :libelle, type:String
+  end 
+  get "/matieres/libelle/:libelle" do 
+    matiere = MatiereEnseignee[:libelle_long => params[:libelle].upcase]
+    if matiere 
+      matiere.id 
+    else
+      error!("ressource non trouve", 404)
+    end
+  end  
 
   desc " return matiere information"
   params do 
