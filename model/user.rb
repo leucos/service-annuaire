@@ -560,8 +560,17 @@ class User < Sequel::Model(:user)
   def matiere_enseigne(groupe_id)
     MatiereEnseignee.
       filter(:enseigne_dans_regroupement => EnseigneDansRegroupement.
-        filter(:user => self, :regroupement_id  => groupe_id)).all
+        filter(:user => self, :regroupement_id  => groupe_id)).naked.all
   end
+
+  def prof_principal(groupe_id)
+    edr = EnseigneDansRegroupement[:user_id => self.id, :regroupement_id=> groupe_id]
+    if edr 
+      edr.prof_principal
+    else
+      "N"
+    end 
+  end 
 
   # Rajoute un email à un utilisateur et le met en principal si c'est le premier
   # @param adresse : adresse de l'email

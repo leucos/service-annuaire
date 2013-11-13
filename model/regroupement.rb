@@ -87,19 +87,29 @@ class Regroupement < Sequel::Model(:regroupement)
 
   # Liste des membres du regroupement dont le profil est Prof
   def profs
-    #User.filter(:enseigne_dans_regroupement => EnseigneDansRegroupement.filter(:regroupement => self),
+      #User.filter(:enseigne_dans_regroupement => EnseigneDansRegroupement.filter(:regroupement => self),
       #:profil_user => ProfilUser.filter(:etablissement_id => etablissement_id, :profil_id => 'ENS'))
       #.select(:id, :id_ent, :id_jointure_aaf, :nom, :prenom)
       #.all
+      User.filter(:enseigne_dans_regroupement => EnseigneDansRegroupement.filter(:regroupement => self),
+      :profil_user => ProfilUser.filter(:etablissement_id => etablissement_id, :profil_id => 'ENS'))
+      .map{|u| {
+        :user_id => u.id, 
+        :id_ent => u.id_ent, 
+        :id_jointure_aaf => u.id_jointure_aaf,
+        :nom => u.nom, 
+        :prenom => u.prenom, 
+        :prof_principal => u.prof_principal(self.id),
+        :matieres => u.matiere_enseigne(self.id)}} 
+   
+    #EnseigneDansRegroupement.join(:user, :user__id => :user_id)
+    #.join(:matiere_enseignee, :matiere_enseignee__id => :enseigne_dans_regroupement__matiere_enseignee_id)
+    #.filter(:regroupement => self)
+    #.select(:user_id, :id_ent, :id_jointure_aaf, :nom, :prenom, :prof_principal, :matiere_enseignee__id, :matiere_enseignee__libelle_long).naked.all
+    
 
-    #DB.fetch("select * form user where user")  
-    #profs_info = User.filter(:enseigne_dans_regroupement => EnseigneDansRegroupement.filter(:regroupement => self),
-      #:profil_user => ProfilUser.filter(:etablissement_id => self.etablissement_id, :profil_id => 'ENS'))
-    #.join(:enseigne_dans_regroupement, :user_id => :user__id)
-    #.join(:matiere_enseignee, :matiere_enseignee__id => :matiere_enseignee_id)
-    #.naked.all  
-
-    EnseigneDansRegroupement.join(:user, :user__id => :user_id).filter(:regroupement => self).select(:id, :id_ent, :id_jointure_aaf, :nom, :prenom, :prof_principal).all
+    #EnseigneDansRegroupement.join(:user, :user__id => :user_id).filter(:regroupement => self)
+    #.select(:id, :id_ent, :id_jointure_aaf, :nom, :prenom, :prof_principal).naked.all
   end
 
 
