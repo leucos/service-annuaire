@@ -749,7 +749,7 @@ class EtabApi < Grape::API
       requires :id, type:String
       requires :classe_id, type: Integer
       requires :user_id, type: String
-      #optional :matieres, type: Hash 
+      optional :matiere, type:String
     end 
     post "/:id/classes/:classe_id/profs/:user_id" do 
       etab = Etablissement[:code_uai => params[:id]]
@@ -798,7 +798,9 @@ class EtabApi < Grape::API
       requires :id, type: String
       requires :classe_id, type: Integer
       requires :user_id, type: String
+      optional :matiere, type:String
     end
+
     delete "/:id/classes/:classe_id/profs/:user_id" do
       etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
@@ -813,7 +815,13 @@ class EtabApi < Grape::API
 
         # delete all (matieres)
         # EnseigneDansRegroupement.filter(:user_id => user.id, :Regroupement_id => classe.id).each {|mat| mat.destroy}
-        EnseigneDansRegroupement.filter(:user_id => user.id, :Regroupement_id => classe.id).destroy
+        if params[:matiere]
+          #delete matiere  with prof
+          EnseigneDansRegroupement.filter(:user_id => user.id, :Regroupement_id => classe.id, :matiere_enseignee_id => params[:matiere]).destroy
+        else
+          #delete prof completely
+          EnseigneDansRegroupement.filter(:user_id => user.id, :Regroupement_id => classe.id).destroy
+        end 
       rescue => e
         puts e.message 
         error!("mouvaise requete", 400)
