@@ -882,7 +882,7 @@ class EtabApi < Grape::API
 
     ##############################################################################
 
-    desc "retourner les infos d'un groupe d'eleve"
+    desc "Retourner les infos d'un groupe d'eleve"
     params do 
       requires :id, type:String
       requires :groupe_id, type:Integer
@@ -976,6 +976,121 @@ class EtabApi < Grape::API
 
     ##############################################################################
     ##          gestion d'un role dans un groupe ou une classe                   #
+    ##############################################################################
+    desc "Retournez la liste des prof dans un groupe"
+    params do 
+      requires :id, type:String
+      requires :groupe_id, type:Integer
+    end 
+    get "/:id/groupes/:groupe_id/profs" do 
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      
+      groupe = Regroupement[:id => params[:groupe_id]]
+      error!("ressource non trouvee", 404) if groupe.nil?
+      error!("pas de droit", 403) if groupe.etablissement_id != etab.id
+
+      groupe.profs
+    end
+    ##############################################################################
+    desc "Ajouter un enseignant et ajouter des matieres à un groupe" 
+    params do
+      requires :id, type:String
+      requires :groupe_id, type: Integer
+      requires :user_id, type: String
+      optional :matiere, type:String
+    end 
+    post "/:id/groupe/:groupe_id/profs/:user_id" do 
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      
+      groupe = Regroupement[:id => params[:groupe_id]]
+      error!("ressource non trouvee", 404) if groupe.nil?
+      error!("pas de droit", 403) if groupe.etablissement_id != etab.id
+      
+      user = User[:id_ent => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      
+      matiere = params[:matiere]
+      if matiere 
+         mat_id = matiere
+      else 
+        # matiere par defaut
+        mat_id = "003700"
+      end 
+      begin
+        groupe.add_prof(user, mat_id)
+      rescue  => e 
+        puts e.message
+        error!("mouvaise requete", 400)
+      end 
+    end
+
+    ##############################################################################
+    desc "supprimer un enseignant d'un groupe"
+    params do 
+      requires :id, type: String
+      requires :groupe_id, type: Integer
+      requires :user_id, type: String
+      optional :matiere, type:String
+    end
+
+    delete "/:id/classes/:classe_id/profs/:user_id" do
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      
+      groupe = Regroupement[:id => params[:groupe_id]]
+      error!("ressource non trouvee", 404) if classe.nil?      
+      error!("pas de droit", 403) if groupe.etablissement_id != etab.id
+      user = User[:id_ent => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      begin
+        # delete user role as prof
+        # RoleUser[:user_id => user.id, :role_id => "PROF_CLS", :ressource_id => classe.ressource.id].destroy
+
+        # delete all (matieres)
+        # EnseigneDansRegroupement.filter(:user_id => user.id, :Regroupement_id => classe.id).each {|mat| mat.destroy}
+        if params[:matiere]
+          #delete matiere  with prof
+          EnseigneDansRegroupement.filter(:user_id => user.id, :Regroupement_id => groupe.id, :matiere_enseignee_id => params[:matiere]).destroy
+        else
+          #delete prof completely
+          EnseigneDansRegroupement.filter(:user_id => user.id, :Regroupement_id => groupe.id).destroy
+        end 
+      rescue => e
+        puts e.message 
+        error!("mouvaise requete", 400)
+      end    
+    end 
+
+    ##############################################################################
+    desc "supprimer une matieres d'un groupe"
+    params do 
+      requires :id, type: Integer
+      requires :classe_id, type: Integer
+      requires :user_id, type: String
+      requires :matiere_id, type: Integer
+    end
+    delete "/:id/groupe/:groupe_id/profs/:user_id/matieres/:matiere_id" do
+      etab = Etablissement[:id => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      groupe = Regroupement[:id => params[:groupe_id]]
+      error!("ressource non trouvee", 404) if groupe.nil?      
+      error!("pas de droit", 403) if groupe.etablissement_id != etab.id
+      user = User[:id => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      matiere_id = params[:matiere_id]
+      begin
+        # delete all (matieres)
+        EnseigneDansRegroupement.filter(:user_id => user.id, :Regroupement_id => groupe.id, :matiere_enseignee_id => matiere_id).each {|mat| mat.destroy}
+      rescue => e 
+        puts e.message 
+        error!("mouvaise requete", 400)
+      end
+    end  
+
+    ##############################################################################
+
     ##############################################################################
 
     # i dont know if i need this 
