@@ -85,7 +85,7 @@ class DocsApi < Grape::API
   params do 
     requires :libelle, type:String
   end 
-  get "/matieres/libelle/:libelle" do 
+  get "/matieres/libelle/:libelle",requirements: { libelle: /.*/ }  do 
     matiere = MatiereEnseignee[:libelle_long => params[:libelle].upcase]
     if matiere 
       matiere
@@ -98,7 +98,7 @@ class DocsApi < Grape::API
   params do 
     requires :matiere_id, type:String
   end 
-  get "/matieres/:matiere_id" do 
+  get "/matieres/:matiere_id", requirements: { matiere_id: /.*/ } do 
     matiere = MatiereEnseignee[:id => params[:matiere_id]]
     if matiere
       matiere 

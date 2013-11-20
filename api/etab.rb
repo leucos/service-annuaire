@@ -1000,7 +1000,7 @@ class EtabApi < Grape::API
       requires :user_id, type: String
       optional :matiere, type:String
     end 
-    post "/:id/groupe/:groupe_id/profs/:user_id" do 
+    post "/:id/groupes/:groupe_id/profs/:user_id" do 
       etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       
@@ -1035,12 +1035,12 @@ class EtabApi < Grape::API
       optional :matiere, type:String
     end
 
-    delete "/:id/classes/:classe_id/profs/:user_id" do
+    delete "/:id/groupes/:groupe_id/profs/:user_id" do
       etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       
       groupe = Regroupement[:id => params[:groupe_id]]
-      error!("ressource non trouvee", 404) if classe.nil?      
+      error!("ressource non trouvee", 404) if groupe.nil?      
       error!("pas de droit", 403) if groupe.etablissement_id != etab.id
       user = User[:id_ent => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
@@ -1067,11 +1067,11 @@ class EtabApi < Grape::API
     desc "supprimer une matieres d'un groupe"
     params do 
       requires :id, type: Integer
-      requires :classe_id, type: Integer
+      requires :groupe_id, type: Integer
       requires :user_id, type: String
       requires :matiere_id, type: Integer
     end
-    delete "/:id/groupe/:groupe_id/profs/:user_id/matieres/:matiere_id" do
+    delete "/:id/groupes/:groupe_id/profs/:user_id/matieres/:matiere_id" do
       etab = Etablissement[:id => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       groupe = Regroupement[:id => params[:groupe_id]]

@@ -531,7 +531,7 @@ C'est un élément centrale de l'annuaire car il permet à un établissement de 
 L'authentification est un aspect très important dans cet application 
 et ça comporte deux types d'authentification:
 
-### Authentifier les client directement au sien de serveur des api
+### Authentifier les utilisateurs directement au sien de serveur des apis
 ça se fait par le biais de cookies(sevrer CAS)
 
 ### Authentifier une Application(e.g gestion de document)
