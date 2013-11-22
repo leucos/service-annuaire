@@ -7,6 +7,7 @@ class DocsApi < Grape::API
     #authenticate_app!
   end
 
+  ##############################################################################
   get '/' do 
     "found"
   end    
@@ -19,6 +20,7 @@ class DocsApi < Grape::API
   end
 
 
+  ##############################################################################
   desc "Get etablissement info"
   params do
     requires :uai, type: String
@@ -39,6 +41,7 @@ class DocsApi < Grape::API
     end 
   end
 
+  ##############################################################################
   desc "search user return user info"
   params do 
     requires :etablissement, type:String
@@ -61,6 +64,7 @@ class DocsApi < Grape::API
   end
 
 
+  ##############################################################################
   desc "return user information" 
   params do 
     requires :id, type:String
@@ -81,6 +85,7 @@ class DocsApi < Grape::API
   end
 
 
+  ##############################################################################
   desc "return matiere id for libelle long"
   params do 
     requires :libelle, type:String
@@ -108,6 +113,7 @@ class DocsApi < Grape::API
   end
 
 
+  ##############################################################################
   desc "return all matieres"
   get "/matieres" do 
     MatiereEnseignee.naked.all
@@ -120,6 +126,7 @@ class DocsApi < Grape::API
   #matiere_id       # en fonction de (établissement, code, libellé)
   #regroupement_id  # en fonction de (établissement, nom)
 
+  ##############################################################################
   desc "return regroupement id if exist"
   params do 
     requires :etablissement, type:String 
@@ -138,6 +145,7 @@ class DocsApi < Grape::API
     end
   end 
 
+  ##############################################################################
   desc "return regroupement info "
   params do 
     requires :id, type:Integer

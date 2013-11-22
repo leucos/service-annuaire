@@ -183,12 +183,23 @@ class Etablissement < Sequel::Model(:etablissement)
     .select(:profil_id, :user_id, :etablissement_id, :id_sconet, :id_jointure_aaf, 
       :nom, :prenom, :id_ent).naked.all
 
-  end 
+  end
+
+  def eleves_exclude(regroupement_id)
+    if Regroupement[:id => regroupement_id, :etablissement_id => self.id]  
+      ProfilUser.join(:user, :id => :user_id).filter(:profil_id => "ELV", :etablissement_id => self.id)
+      .exclude(:id => EleveDansRegroupement.filter(:regroupement_id => regroupement_id).select(:user_id))
+      .select(:profil_id, :user_id, :etablissement_id, :id_sconet, :id_jointure_aaf, 
+        :nom, :prenom, :id_ent).naked.all
+    else 
+      []
+    end 
+  end  
 
   # (Eleves) that do not belong to any Class
   def eleves_libres
     ProfilUser.join(:user, :id => :user_id).filter(:profil_id => "ELV", :etablissement_id => self.id).select(:id, :id_ent)
-    .exclude(:id => EleveDansRegroupement.join(:regroupement, :id => :regroupement_id).filter(:type_regroupement_id => "CLS", :etablissement_id=> 4813).select(:user_id))
+    .exclude(:id => EleveDansRegroupement.join(:regroupement, :id => :regroupement_id).filter(:type_regroupement_id => "CLS", :etablissement_id=> self.id).select(:user_id))
     .select(:profil_id, :user_id, :etablissement_id, :id_sconet, :id_jointure_aaf, 
       :nom, :prenom, :id_ent).naked.all
   end  

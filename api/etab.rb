@@ -227,13 +227,18 @@ class EtabApi < Grape::API
     desc "get the list of (eleves libres) which are not in any class"
     params do 
       requires :id, type:String 
-      optional :libre, type:String 
+      # ce parametre retourne les eleves qui n'appartienne pas à une classe
+      optional :libre, type:String
+      # exclude eleves that belongs to a certain groupe or class
+      optional :exclude, type:Integer  
     end 
     get "/:id/eleves" do 
       etab = Etablissement[:code_uai => params[:id]]
       authorize_activites!([ACT_READ, ACT_MANAGE], etab.ressource, SRV_USER)
       if params[:libre]== "true" 
         JSON.pretty_generate(etab.eleves_libres)
+      elsif params[:exclude]
+        JSON.pretty_generate(etab.eleves_exclude(params[:exclude])) 
       else 
         JSON.pretty_generate(etab.eleves)
       end 
@@ -975,8 +980,10 @@ class EtabApi < Grape::API
     end
 
     ##############################################################################
-    ##          gestion d'un role dans un groupe ou une classe                   #
+    ##          gestion d'un role dans un groupe                                ##
     ##############################################################################
+    ##            Gestion des prof dans un group                                ##
+
     desc "Retournez la liste des prof dans un groupe"
     params do 
       requires :id, type:String
@@ -992,6 +999,7 @@ class EtabApi < Grape::API
 
       groupe.profs
     end
+
     ##############################################################################
     desc "Ajouter un enseignant et ajouter des matieres à un groupe" 
     params do
@@ -1058,13 +1066,31 @@ class EtabApi < Grape::API
           EnseigneDansRegroupement.filter(:user_id => user.id, :Regroupement_id => groupe.id).destroy
         end 
       rescue => e
-        puts e.message 
         error!("mouvaise requete", 400)
       end    
     end 
 
     ##############################################################################
-    desc "supprimer une matieres d'un groupe"
+    desc "retourner la liste des eleves dans un groupe"
+    params do 
+    end 
+    get "/:id/groupes/:groupe_id/eleves" do
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+
+      groupe = Regroupement[:id => params[:groupe_id]]
+      error!("ressource non trouvee", 404) if groupe.nil?      
+      error!("pas de droit", 403) if groupe.etablissement_id != etab.id
+      begin 
+        groupe.eleves
+      rescue => e 
+        error!(e.message, 400)
+      end 
+
+    end 
+
+    ##############################################################################
+    desc "supprimer une matieres liée à un prof d'un groupe"
     params do 
       requires :id, type: Integer
       requires :groupe_id, type: Integer
@@ -1089,6 +1115,68 @@ class EtabApi < Grape::API
       end
     end  
 
+    ##############################################################################
+    # => Rattachement d'un eleve à un groupe 
+    desc "rattachements d'un eleve à un groupe"
+    params do 
+      requires :id, type: String
+      requires :groupe_id, type: Integer
+      requires :user_id, type: String
+    end
+    post "/:id/groupes/:groupe_id/eleves/:user_id" do
+      # role ou profil
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      
+      groupe = Regroupement[:id => params[:groupe_id]]
+      error!("ressource non trouvee", 404) if groupe.nil?
+      error!("mouvaise requete", 400) if groupe.type_regroupement_id!='GRP'
+      error!("pas de droit", 403) if groupe.etablissement_id != etab.id
+      
+      user = User[:id_ent => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      begin
+        # user has profil eleve 
+        if user.profil_user_dataset.where(:profil_id=>'ELV').count == 1 
+          EleveDansRegroupement.find_or_create(:user_id => user.id,:regroupement_id => groupe.id)
+        end 
+        #ressource = classe.ressource
+        #user.add_role(ressource.id, ressource.service_id, role.id)
+      rescue => e 
+        puts e.message
+        error!("mouvaise requete", 400)
+      end    
+    end
+
+    ##############################################################################
+    desc "Detachement d'un eleve d'une classe"
+    params do 
+      requires :id, type: String
+      requires :groupe_id, type: Integer
+      requires :user_id, type: String
+    end
+    delete "/:id/groupes/:groupe_id/eleves/:user_id" do
+      # role ou profil
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      
+      groupe = Regroupement[:id => params[:groupe_id]]
+      error!("ressource non trouvee", 404) if groupe.nil?
+      error!("mouvaise requete", 400) if groupe.type_regroupement_id!='GRP'
+      error!("pas de droit", 403) if groupe.etablissement_id != etab.id
+      
+      user = User[:id_ent => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      begin
+        # user has profil eleve 
+        if user.profil_user_dataset.where(:profil_id=>'ELV').count == 1 
+          EleveDansRegroupement[:user_id => user.id, :regroupement_id => groupe.id].destroy
+        end 
+      rescue => e 
+        puts e.message
+        error!("mouvaise requete", 400)
+      end    
+    end
     ##############################################################################
 
     ##############################################################################
@@ -1193,8 +1281,7 @@ class EtabApi < Grape::API
       end 
     end
 
-    ##############################################################################
-
+    
 
     ##############################################################################
     #             Gestion des Groupes libres                                    #
