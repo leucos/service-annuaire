@@ -918,12 +918,12 @@ class EtabApi < Grape::API
       etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       authorize_activites!([ACT_CREATE, ACT_MANAGE], etab.ressource, SRV_GROUPE)
-      parameters = exclude_hash(params, ["id", "route_info", "session"])
+      parameters = exclude_hash(params, ["id", "route_info", "session", "session_key"])
       begin
           groupe = etab.add_groupe_eleve(parameters)
           groupe
       rescue => e
-        error!("mouvaise request", 400) 
+        error!("mauvaise requete", 400) 
       end 
     end 
 
@@ -931,7 +931,7 @@ class EtabApi < Grape::API
     #@input{libelle: "4°D"}   
     desc "Modifier l'info d'un groupe d'eleve" 
     params do 
-      requires :id, type: Integer
+      requires :id, type: String
       requires :groupe_id, type:Integer 
     end 
     put "/:id/groupes/:groupe_id" do 
@@ -960,11 +960,11 @@ class EtabApi < Grape::API
     ##############################################################################
     desc "Suppression d'un groupe"
     params do 
-      requires :id, type: Integer
+      requires :id, type:String
       requires :groupe_id, type: Integer
     end 
     delete "/:id/groupes/:groupe_id"  do   
-      etab = Etablissement[:id => params[:id]]
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       authorize_activites!([ACT_DELETE, ACT_MANAGE], etab.ressource, SRV_GROUPE)
       groupe = Regroupement[:id => params[:groupe_id]]
@@ -974,7 +974,6 @@ class EtabApi < Grape::API
       begin
         Regroupement[:id => groupe.id].destroy
       rescue  => e
-        puts e.message
         error!("mouvaise requete", 400)  
       end 
     end
