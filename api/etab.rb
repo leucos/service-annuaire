@@ -1387,19 +1387,19 @@ class EtabApi < Grape::API
      ##############################################################################
     desc "suppression d'un groupe libre"
     params do 
-      requires :id , type: Integer
+      requires :id , type:String
       requires :groupe_id, type:Integer
     end 
     delete "/:id/groupes_libres/:groupe_id" do
-      etab = Etablissement[:id => params[:id]]
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       authorize_activites!([ACT_DELETE, ACT_MANAGE], etab.ressource, SRV_LIBRE)
 
-      groupe = Regroupement[:id => params[:groupe_id]]
+      groupe = RegroupementLibre[:id => params[:groupe_id]]
       error!("ressource non trouvee", 404) if groupe.nil? 
       authorize_activites!([ACT_DELETE, ACT_MANAGE], groupe.ressource)
       begin
-        Regroupement[:id => groupe.id].destroy
+        groupe.destroy
       rescue  => e
         error!("mouvaise requete", 400)  
       end 
