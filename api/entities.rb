@@ -96,6 +96,8 @@ module API
         #end
       end  
       expose :contacts 
+      expose :eleves 
+      expose :enseignants 
     end
 
     class SimpleRegroupement < Grape::Entity
