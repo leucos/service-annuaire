@@ -116,6 +116,7 @@ module API
     class DetailedGroupeLibre < Grape::Entity
       expose :id, :created_at, :created_by, :libelle
       expose(:membres){|regroupement,options| regroupement.membres}
+      expose(:responsable){|regroupement,options| regroupement.responsable}
     end 
   end 
     

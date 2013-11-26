@@ -1308,7 +1308,6 @@ class EtabApi < Grape::API
       etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       groupe = RegroupementLibre[:id => params[:groupe_id]]
-      puts groupe.inspect
       error!("ressource non trouvee", 404) if groupe.nil?
       # problem authorize activites groupe libre 
       # authorize_activites!([ACT_READ, ACT_MANAGE], groupe.ressource)
@@ -1406,27 +1405,29 @@ class EtabApi < Grape::API
     end
      ##############################################################################
 
-    desc "Gestion des rattachements a un groupe libre"
+    desc "Ajouter un membre au regroupement Libre"
     params do
-      requires :id, type: Integer 
-      requires :libre_id , type: Integer
+      requires :id, type: String 
+      requires :groupe_id , type: Integer
       requires :user_id, type: String
     end
-    post "/:id/libre/:libre_id/rattach" do 
-      etab = Etablissement[:id => params[:id]]
+    post "/:id/groupes_libres/:groupe_id/membres" do 
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       
-      groupe = Regroupement[:id => params[:libre_id]]
+      groupe = RegroupementLibre[:id => params[:groupe_id]]
       error!("ressource non trouvee", 404) if groupe.nil?
-      
-      role = Role[:id => "MMBR"]
 
-      user = User[:id => params[:user_id]]
+      user = User[:id_ent => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
+      
       begin 
-        ressource = groupe.ressource
-        user.add_role(ressource.id, ressource.service_id, role.id)
-
+        membre = MembreRegroupementLibre[:user_id => user.id, :regroupement_libre_id => groupe.id]
+        if membre 
+          membre
+        else 
+          MembreRegroupementLibre.create(:user_id => user.id, :regroupement_libre_id => groupe.id, :joined_at => DateTime.now)
+        end   
       rescue => e 
         puts e.message
         error!("mouvaise requete", 400)
@@ -1434,32 +1435,33 @@ class EtabApi < Grape::API
     end 
 
      ##############################################################################
-    desc "supprimer un rattachement"
+    desc "supprimer un membre du groupe"
     params do
-      requires :id, type: Integer 
-      requires :libre_id , type: Integer
-      requires :user_id, type: String
+      requires :id, type: String 
+      requires :groupe_id , type: Integer
+      requires :membre_id, type: String
     end
-    delete "/:id/libre/:libre_id/rattach/:user_id" do
-      etab = Etablissement[:id => params[:id]]
+    delete "/:id/groupes_libres/:groupe_id/membres/:membre_id" do
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       
-      groupe = Regroupement[:id => params[:libre_id]]
+      groupe = RegroupementLibre[:id => params[:groupe_id]]
       error!("ressource non trouvee", 404) if groupe.nil?
 
 
-      user = User[:id => params[:user_id]]
+      user = User[:id_ent => params[:membre_id]]
       error!("ressource non trouvee", 404) if user.nil?
 
-      role = Role[:id => "MMBR"]
       begin
-        ressource = groupe.ressource
-        RoleUser[:user_id => user.id, :role_id => role.id, :ressource => ressource.id]
-
+        membre = MembreRegroupementLibre[:user_id => user.id, :regroupement_libre_id => groupe.id]
+        if membre 
+          membre.destroy
+        end 
       rescue =>  e
         error!("mouvaise requete", 400)
       end 
     end
+
     ##############################################################################
     desc "gestion des role dans un groupe d'eleves"
     params do 
