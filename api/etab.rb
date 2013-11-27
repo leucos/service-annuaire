@@ -454,17 +454,19 @@ class EtabApi < Grape::API
     params do 
       requires :id, type: String
       requires :libelle, type: String
-      requires :code_mef_aaf, type: String 
+      requires :code_mef_aaf, type: String
+      optional :description,  type:String 
     end 
     post "/:id/classes" do 
       etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       authorize_activites!([ACT_CREATE, ACT_MANAGE], etab.ressource, SRV_CLASSE)
-      parameters = exclude_hash(params, ["id", "route_info", "session"])
+      parameters = exclude_hash(params, ["id", "route_info", "session", "session_key"])
       begin
           classe = etab.add_classe(parameters)
           classe
       rescue => e
+        puts e.message 
         error!("mouvaise requete", 400) 
       end 
     end 
@@ -1477,14 +1479,15 @@ class EtabApi < Grape::API
 
     ##############################################################################
     # []
-    desc "Recuperer les niveaux pour cet etablissement" 
+    desc "Recuperer les niveaux des classes" 
     params do 
-      requires :id, type: Integer
+      requires :id, type: String
     end 
-    get "/:id/classe/niveaux" do
-      etab = Etablissement[:id => params[:id]]
+    get "/:id/niveaux" do
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
-        Regroupement.filter(:etablissement_id => etab.id).select(:niveau_id)
+        #Regroupement.filter(:etablissement_id => etab.id).select(:niveau_id)
+        Niveau.select(:ent_mef_jointure,:mef_libelle).naked.all
     end 
 
     ##############################################################################

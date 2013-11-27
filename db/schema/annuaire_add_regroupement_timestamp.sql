@@ -2,12 +2,13 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL';
 
+DROP SCHEMA IF EXISTS `annuairev3` ;
+CREATE SCHEMA IF NOT EXISTS `annuairev3` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci ;
+USE `annuairev3` ;
 
 -- -----------------------------------------------------
 -- Table `annuairev3`.`user`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`user` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`user` (
   `id` INT NOT NULL AUTO_INCREMENT COMMENT 'Identifiant utilisé pour toutes les applications de l\'ent. Son format est définit dans le chaier des charges de l\'annuaire ENT p 43.' ,
   `id_sconet` INT NULL COMMENT 'Identifiant sconet pour les élèves.\nCorrespond à @ENTEleveStructRattachId' ,
@@ -40,8 +41,6 @@ COMMENT = 'change id to integer and \nmodify id_ent';
 -- -----------------------------------------------------
 -- Table `annuairev3`.`type_regroupement`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`type_regroupement` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`type_regroupement` (
   `id` CHAR(8) NOT NULL ,
   `libelle` VARCHAR(45) NULL ,
@@ -54,8 +53,6 @@ COMMENT = 'Type de regroupement : classe, groupe d\'élèves, groupes de t' /* c
 -- -----------------------------------------------------
 -- Table `annuairev3`.`niveau`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`niveau` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`niveau` (
   `ent_mef_jointure` VARCHAR(20) NOT NULL ,
   `mef_libelle` VARCHAR(256) NULL ,
@@ -68,8 +65,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `annuairev3`.`type_etablissement`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`type_etablissement` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`type_etablissement` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `nom` VARCHAR(255) NULL ,
@@ -84,8 +79,6 @@ COMMENT = 'Les données de cette table doivent correspondre aux données ' /* co
 -- -----------------------------------------------------
 -- Table `annuairev3`.`etablissement`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`etablissement` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`etablissement` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `code_uai` CHAR(8) NULL COMMENT 'Code UAI (UNITE ADMINISTRATIVE IMMATRICULEE) de l\'établissement.\nOn peut les trouver ici :\nhttp://www.infocentre.education.fr/ibce/' ,
@@ -121,8 +114,6 @@ COMMENT = 'notes : \nid = structure_jointure \nchange type data_last_maj_' /* co
 -- -----------------------------------------------------
 -- Table `annuairev3`.`regroupement`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`regroupement` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`regroupement` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `libelle` VARCHAR(45) NULL COMMENT 'Libellé fournit par l\'utilisateur. Est par défault égal au libellé sconet en cas d\'alimentation automatique.' ,
@@ -132,6 +123,7 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`regroupement` (
   `type_regroupement_id` CHAR(8) NOT NULL ,
   `code_mef_aaf` VARCHAR(20) NULL ,
   `etablissement_id` INT NOT NULL ,
+  `date_creation` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_regroupement_type_regroupement1` (`type_regroupement_id` ASC) ,
   INDEX `fk_regroupement_niveau1` (`code_mef_aaf` ASC) ,
@@ -158,8 +150,6 @@ COMMENT = 'change code_mef to code_mef_aaf ';
 -- -----------------------------------------------------
 -- Table `annuairev3`.`matiere_enseignee`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`matiere_enseignee` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`matiere_enseignee` (
   `id` VARCHAR(10) NOT NULL COMMENT 'si commence 9999 alors pas BCN' ,
   `libelle_court` VARCHAR(45) NULL ,
@@ -171,8 +161,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `annuairev3`.`enseigne_dans_regroupement`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`enseigne_dans_regroupement` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`enseigne_dans_regroupement` (
   `user_id` INT NOT NULL ,
   `regroupement_id` INT NOT NULL ,
@@ -204,8 +192,6 @@ COMMENT = 'Table spécifique aux Professeur';
 -- -----------------------------------------------------
 -- Table `annuairev3`.`type_relation_eleve`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`type_relation_eleve` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`type_relation_eleve` (
   `id` TINYINT(2) NOT NULL ,
   `description` VARCHAR(45) NULL ,
@@ -218,8 +204,6 @@ COMMENT = 'Type de relation avec les élèves : parent, responsable légal' /* c
 -- -----------------------------------------------------
 -- Table `annuairev3`.`relation_eleve`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`relation_eleve` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`relation_eleve` (
   `user_id` INT NOT NULL COMMENT 'Personne en relation avec l\'élève.' ,
   `eleve_id` INT NOT NULL COMMENT 'Eleve avec lequel la personne est en relation.' ,
@@ -253,8 +237,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `annuairev3`.`type_telephone`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`type_telephone` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`type_telephone` (
   `id` CHAR(8) NOT NULL ,
   `libelle` VARCHAR(45) NULL ,
@@ -266,8 +248,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `annuairev3`.`telephone`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`telephone` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`telephone` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `numero` CHAR(32) NOT NULL ,
@@ -292,8 +272,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `annuairev3`.`role`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`role` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`role` (
   `id` VARCHAR(20) NOT NULL ,
   `libelle` VARCHAR(45) NULL ,
@@ -307,8 +285,6 @@ COMMENT = 'Un rôle est lié a une application, son libellé permet de com' /* c
 -- -----------------------------------------------------
 -- Table `annuairev3`.`profil_national`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`profil_national` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`profil_national` (
   `id` CHAR(8) NOT NULL COMMENT 'Identifiant à 4 caractère maximum.\n=code_men si code_men présent' ,
   `description` VARCHAR(100) NULL ,
@@ -328,8 +304,6 @@ COMMENT = 'profil table is  a reference table that make use of the docu' /* comm
 -- -----------------------------------------------------
 -- Table `annuairev3`.`activite`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`activite` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`activite` (
   `id` VARCHAR(45) NOT NULL ,
   `libelle` VARCHAR(255) NULL ,
@@ -342,8 +316,6 @@ COMMENT = 'ensemble des roles d\'une application\n';
 -- -----------------------------------------------------
 -- Table `annuairev3`.`application`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`application` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`application` (
   `id` CHAR(8) NOT NULL ,
   `libelle` VARCHAR(255) NULL ,
@@ -357,8 +329,6 @@ COMMENT = 'application:\nLaclasse.com\ngestion Etablissement\ngestion user' /* c
 -- -----------------------------------------------------
 -- Table `annuairev3`.`type_param`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`type_param` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`type_param` (
   `id` CHAR(8) NOT NULL ,
   PRIMARY KEY (`id`) )
@@ -369,8 +339,6 @@ COMMENT = 'url\ninterne /externe \npriorite \nfonts\n...';
 -- -----------------------------------------------------
 -- Table `annuairev3`.`param_application`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`param_application` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`param_application` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `code` VARCHAR(45) NOT NULL ,
@@ -402,8 +370,6 @@ COMMENT = 'Paramètres de l\'application avec leurs valeurs par défaut. ';
 -- -----------------------------------------------------
 -- Table `annuairev3`.`fonction`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`fonction` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`fonction` (
   `libelle` VARCHAR(45) NULL ,
   `description` VARCHAR(100) NULL ,
@@ -417,8 +383,6 @@ COMMENT = 'fonction is a reference table de reference alimented by the ' /* comm
 -- -----------------------------------------------------
 -- Table `annuairev3`.`last_uid`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`last_uid` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`last_uid` (
   `last_uid` CHAR(8) NULL )
 ENGINE = InnoDB
@@ -428,8 +392,6 @@ COMMENT = 'Permet de générer des UID de manière atomique';
 -- -----------------------------------------------------
 -- Table `annuairev3`.`email`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`email` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`email` (
   `id` INT NOT NULL AUTO_INCREMENT ,
   `adresse` VARCHAR(255) NOT NULL ,
@@ -450,8 +412,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `annuairev3`.`service`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`service` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`service` (
   `id` CHAR(8) NOT NULL ,
   `libelle` VARCHAR(255) NULL ,
@@ -465,8 +425,6 @@ COMMENT = 'service or type of resource, or type of subject\n\nnote: is it' /* co
 -- -----------------------------------------------------
 -- Table `annuairev3`.`ressource`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`ressource` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`ressource` (
   `id` VARCHAR(255) NOT NULL ,
   `service_id` CHAR(8) NOT NULL ,
@@ -484,8 +442,6 @@ COMMENT = 'Une ressource est n\'importe quel élément sur lequel on peut ' /* c
 -- -----------------------------------------------------
 -- Table `annuairev3`.`param_etablissement`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`param_etablissement` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`param_etablissement` (
   `etablissement_id` INT NOT NULL ,
   `param_application_id` INT NOT NULL ,
@@ -509,8 +465,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `annuairev3`.`param_user`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`param_user` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`param_user` (
   `user_id` INT NOT NULL ,
   `param_application_id` INT NOT NULL ,
@@ -534,8 +488,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `annuairev3`.`role_user`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`role_user` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`role_user` (
   `user_id` INT NOT NULL ,
   `role_id` VARCHAR(20) NOT NULL ,
@@ -566,8 +518,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `annuairev3`.`profil_user`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`profil_user` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`profil_user` (
   `profil_id` CHAR(8) NOT NULL ,
   `user_id` INT NOT NULL ,
@@ -598,8 +548,6 @@ COMMENT = 'profil_user is the table that link  the user to an etablisse' /* comm
 -- -----------------------------------------------------
 -- Table `annuairev3`.`application_etablissement`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`application_etablissement` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`application_etablissement` (
   `application_id` CHAR(8) NOT NULL ,
   `etablissement_id` INT NOT NULL ,
@@ -622,8 +570,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `annuairev3`.`eleve_dans_regroupement`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`eleve_dans_regroupement` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`eleve_dans_regroupement` (
   `user_id` INT NOT NULL ,
   `regroupement_id` INT NOT NULL ,
@@ -646,8 +592,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table `annuairev3`.`profil_user_fonction`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`profil_user_fonction` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`profil_user_fonction` (
   `profil_id` CHAR(8) NOT NULL ,
   `user_id` INT NOT NULL ,
@@ -673,8 +617,6 @@ COMMENT = 'this table generated from many to many between profil_user a' /* comm
 -- -----------------------------------------------------
 -- Table `annuairev3`.`activite_role`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`activite_role` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`activite_role` (
   `activite_id` VARCHAR(45) NOT NULL ,
   `role_id` VARCHAR(20) NOT NULL ,
@@ -713,8 +655,6 @@ COMMENT = 'condition in activite_role \nare: :all, :self, belongs_to';
 -- -----------------------------------------------------
 -- Table `annuairev3`.`application_key`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS `annuairev3`.`application_key` ;
-
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`application_key` (
   `application_id` CHAR(8) NOT NULL ,
   `application_key` VARCHAR(45) NOT NULL ,
@@ -726,6 +666,47 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`application_key` (
   CONSTRAINT `fk_application_key_application1`
     FOREIGN KEY (`application_id` )
     REFERENCES `annuairev3`.`application` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `annuairev3`.`regroupement_libre`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `annuairev3`.`regroupement_libre` (
+  `id` INT NOT NULL AUTO_INCREMENT ,
+  `created_at` DATE NULL ,
+  `created_by` INT NOT NULL ,
+  `libelle` VARCHAR(45) NULL ,
+  PRIMARY KEY (`id`) ,
+  INDEX `fk_regroupement_libre_user1` (`created_by` ASC) ,
+  CONSTRAINT `fk_regroupement_libre_user1`
+    FOREIGN KEY (`created_by` )
+    REFERENCES `annuairev3`.`user` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `annuairev3`.`membre_regroupement_libre`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `annuairev3`.`membre_regroupement_libre` (
+  `user_id` INT NOT NULL ,
+  `regroupement_libre_id` INT NOT NULL ,
+  `joined_at` DATE NULL ,
+  PRIMARY KEY (`user_id`, `regroupement_libre_id`) ,
+  INDEX `fk_user_has_regroupement_libre_regroupement_libre1` (`regroupement_libre_id` ASC) ,
+  INDEX `fk_user_has_regroupement_libre_user1` (`user_id` ASC) ,
+  CONSTRAINT `fk_user_has_regroupement_libre_user1`
+    FOREIGN KEY (`user_id` )
+    REFERENCES `annuairev3`.`user` (`id` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_user_has_regroupement_libre_regroupement_libre1`
+    FOREIGN KEY (`regroupement_libre_id` )
+    REFERENCES `annuairev3`.`regroupement_libre` (`id` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
@@ -794,3 +775,5 @@ INSERT INTO `annuairev3`.`type_telephone` (`id`, `libelle`, `description`) VALUE
 INSERT INTO `annuairev3`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('AUTRE', 'Autre', 'Autre numéro de téléphone');
 
 COMMIT;
+
+
