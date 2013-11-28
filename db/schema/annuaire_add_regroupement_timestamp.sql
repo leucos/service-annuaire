@@ -722,9 +722,9 @@ SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `annuairev3`;
-INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('1', 'CLS', 'Classe');
-INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('2', 'GRP', 'Groupe d\'élèves');
-INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('3', 'ENV', 'Groupe de travail');
+INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('CLS', 'Classe', 'Classe');
+INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('GRP', 'Groupe d\'élèves', 'Groupe d\'élèves');
+INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('LBR', 'Groupe d\'élèves', 'Groupe libre');
 
 COMMIT;
 
