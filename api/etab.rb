@@ -201,6 +201,7 @@ class EtabApi < Grape::API
       optional :page, type: Integer, desc: "Dans le cas d'une requète paginée"
       optional :sort_col, type: String, desc: "Nom de la colonne sur laquelle faire le tri"
       optional :sort_dir, type: String, regexp: /^(asc|desc)$/i, desc: "Direction de tri : ASC ou DESC"
+      optional :all, type:Boolean
       group :advanced do
         optional :prenom, type: String
         optional :nom, type: String
@@ -218,9 +219,12 @@ class EtabApi < Grape::API
 
       dataset = User.search_all_dataset()
       dataset = dataset.where(:etablissement__code_uai => params[:id])
-      results = super_search!(dataset, accepted_fields)
-
-      results
+      if params[:all]
+        dataset.select(:user__nom, :prenom, :id_ent,:user__id, :profil_user__profil_id, :profil_national__description).naked.all
+      else 
+        results = super_search!(dataset, accepted_fields)
+        results
+      end 
     end 
 
      ##############################################################################
