@@ -63,7 +63,6 @@ class DocsApi < Grape::API
     end     
   end
 
-
   ##############################################################################
   desc "return user information" 
   params do 
@@ -71,19 +70,43 @@ class DocsApi < Grape::API
     end
   
   get "/users/:id" do 
-    user = User[:id_ent => params[:id]]
+      user = User[:id_ent => params[:id]]
 
-    if !user.nil?
-      if params[:expand] == "true"
-        present user, with: API::Entities::DetailedUser
-      else 
-        present user, with: API::Entities::SimpleUser
-      end 
-    else
-      error!("resource non trouvee") 
-    end  
+      if !user.nil?
+        if params[:expand] == "true"
+          present user, with: API::Entities::DetailedUser
+        else 
+          present user, with: API::Entities::SimpleUser
+        end 
+      else
+        error!("resource non trouvee", 404) 
+      end  
   end
 
+
+  #############################################################################
+  desc "return A list of user informations" 
+  params do 
+    requires :ids, type:String
+  end
+  
+  get "/users/liste/:ids" do 
+    
+    begin
+      ids_array = params[:ids].split(';')
+      liste = []
+      ids_array.each  do |id|
+        user = User[:id_ent => id]
+        puts user 
+        if user
+          liste.push({id_ent:id, nom:user.nom, prenom:user.prenom, full_name:user.full_name})
+        end 
+      end
+      liste 
+    rescue => e
+      error!("mouvaise requete", 404)
+    end 
+  end
 
   ##############################################################################
   desc "return matiere id for libelle long"

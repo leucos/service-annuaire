@@ -248,7 +248,7 @@ class EtabApi < Grape::API
       end 
     end 
 
-    ##############################################################################
+    ###############################################################################
      desc "get the list of (profs) in (Etablissement)"
     params do 
       requires :id, type:String 
@@ -259,7 +259,7 @@ class EtabApi < Grape::API
       JSON.pretty_generate(etab.enseignants)
     end
 
-    ##############################################################################
+    ################################################################################
     # get all etablissements and  add search capability to that
     desc "get la liste des etablissements and search"
     params do
@@ -1593,6 +1593,34 @@ class EtabApi < Grape::API
     #                  Gestion des parametres                                    #
     ##############################################################################
 
+    desc "Recupere tous les parametres sur une application donnee"
+    params do
+      requires :id, type: String
+      requires :app_id, type: String  
+    end 
+    get "/:id/applications/:app_id/parametres" do
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+
+      app = Application[:id => params[:app_id]]
+      error!("ressource non trouvee", 404) if app.nil?
+      begin
+        if ApplicationEtablissement[:application_id => app.id, :etablissement_id => etab.id]
+          parameters = etab.preferences(app.id) 
+          # for the moment this returns the whole parameter object
+          parameters
+        else
+          error!("ressource non trouvee", 404) 
+        end 
+
+      rescue  => e 
+        error!("mouvaise requete", 400)
+      end 
+    end
+
+    ##############################################################################
+
+
     #note: is it necessary to do the casting
     desc "Recupere la valeur d'un parametre precis"
     params do 
@@ -1679,32 +1707,7 @@ class EtabApi < Grape::API
     end
 
     ##############################################################################
-    desc "Recupere tous les parametres sur une application donnee"
-    params do
-      requires :id, type: String
-      requires :app_id, type: String  
-    end 
-    get "/:id/applications/:app_id/parametres" do
-      etab = Etablissement[:code_uai => params[:id]]
-      error!("ressource non trouvee", 404) if etab.nil?
-
-      app = Application[:id => params[:app_id]]
-      error!("ressource non trouvee", 404) if app.nil?
-      begin
-        if ApplicationEtablissement[:application_id => app.id, :etablissement_id => etab.id]
-          parameters = etab.preferences(app.id) 
-          # for the moment this returns the whole parameter object
-          parameters
-        else
-          error!("ressource non trouvee", 404) 
-        end 
-
-      rescue  => e 
-        error!("mouvaise requete", 400)
-      end 
-    end
-
-     ##############################################################################
+    
     desc "Recupere tous les  parametres de l'etablissement pour tous les applications" 
     params do 
       requires :id, type: String
