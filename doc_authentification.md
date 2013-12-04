@@ -8,21 +8,30 @@ et ça comporte deux types d'authentification:
 ### Authentifier les utilisateurs directement au sien de serveur des apis
 ça se fait par le biais de cookies(sevrer CAS)
 
-### Authentifier une Application(e.g gestion de document)
-Une chaîne de caractères  est d'abord créé en utilisant la requête.
+### Authentifier une Application (e.g gestion de document)
+Une chaîne de caractères est d'abord créé en utilisant la requête (canonical_string).
 
-Les paramétrés sont triés par ordre alphabétique, et ensuite concaténé.
+Les paramétrés sont triés par ordre alphabétique, et ensuite concaténés.
 
-On ajoute à cet chaîne le timestap ts et la clé privé.
+On ajoute à cet chaîne le timestap(ts) et la clé privé(peut-etre pas necessaire!).
 
-La chaîne de la chaîne est calculé comme suit :
+La chaîne(canonical String) est calculé comme suit :
 
-String = 'request uri,(parametres triés et concatenés (e.g p1=v1&p2=v2)),(ts=timestamp),(key=private_key)'
+``` canonical String 
+	canonical_string = uri + '/' +  service +'?' 
+	parameters = Hash[args.sort]
+   	canonical_string += parameters.collect{|key, value| [key.to_s, CGI::escape(value.to_s)].join('=')}.join('&')
+   	canonical_string += ';' 
+   	canonical_string += timestamp
+   	canonical_string += ';'
+    canonical_string += app_id
 
-Cette chaîne est ensuite utilisé pour créer la signature qui est un Base64 codé SHA1 HMAC , en utilisant la clé privée secrète de l'application.
+    singature = SHA1.hmac(canonical_string, secret_key)
 
-Cette signature est ensuite ajouté à la requete avec l'id de l'application: signature="HMAC"&app=app_id 
+    signed request = uri + '/' + service + '?' + query_parameters +";signature=signature;app_id=app_id
 
-Signature = Base64(HMAC.digest(Digest.new('sha1'), private_key, String))
+```
+envoyez la requete signée ...
 
-Du côté du serveur, le SHA1 HMAC est calculé de la même manière en utilisant les paramétres de demande et la clé secrète du client, qui est connu pour seul le client et le serveur.
+
+Du côté du serveur, le SHA1 HMAC est calculé de la même manière en utilisant les paramétres de demande et la clé secrète du client, qui est connu seulement par le client et le serveur.

@@ -1,3 +1,5 @@
+require_relative '../lib/auth_api'
+
 class DocsApi < Grape::API
   format :json
   helpers RightHelpers
@@ -180,5 +182,15 @@ class DocsApi < Grape::API
     else 
       error!("ressource non trouve", 404)
     end 
+  end
+
+  ##############################################################################
+  desc "api de test"
+  get "/signed" do 
+    
+    puts "Authenticated"
+    puts AuthApi.authenticate(request) 
+ 
   end 
+
 end #class

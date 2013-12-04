@@ -1,6 +1,7 @@
 #encoding: utf-8
-
 require 'grape'
+require_relative '../lib/auth_api'
+
 class ApplicationApi < Grape::API                                                                                                                                                                                     
   prefix 'api'
   version 'v1', :using => :param, :parameter => "v"
@@ -175,7 +176,7 @@ class ApplicationApi < Grape::API
     post "/:id/keys" do 
       application = Application[:id => params[:id]]
       if application
-          key = SecureRandom.urlsafe_base64
+          key = AuthApi.generate_key
           # mockup generate new key algorithm
           old_key = ApplicationKey[:application_id => application.id]
           if old_key 

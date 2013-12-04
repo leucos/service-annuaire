@@ -8,54 +8,106 @@ require 'net/http'
 
 class  AuthApi 
 
-	def initialize()
-		@entrypoint = 'http://localhost:9292/api/app'
-		@accesskey = 'NYczonwTxv'
-		@secretkey = 'x4whvXnG7cCOBiNBoi1r'
+	def initialize
+		
 	end
 
-	# une fonction pour generer une clé de 512 bits (OK)
-	def generate_key()
+	# une fonction pour generer une clé de 512 bits 
+	def self.generate_key
+		"generate key called"
 		random_bytes = OpenSSL::Random.random_bytes(512)
 		Digest::SHA2.new(512).digest(random_bytes)
       	Base64.encode64(Digest::SHA2.new(512).digest(random_bytes))
 	end   
 
-	def servicecall(service, args)
-		# Example request 
-		# GET /api/app/users/VAA60000?expand=true;accesskey=NYczonwTxv;timestamp=2013-11-29T12%3A15%3A21;signature=GKLAiknAqOK3e0NIVNwuhCAL15U%3D
-		# /api/app/users/VAA60000?expand=true;accesskey=NYczonwTxv;timestamp=2013-11-29T15%3A40%3A38;signature=signature
-	   
-	    timestamp = Time.now.getutc.strftime('%FT%T')
-	    message = @accesskey + service + timestamp
+
+	# une fonction pour encrypter une requete  
+	def self.servicecall(uri,service, args, secret_key, app_id) 
+	   	timestamp = Time.now.getutc.strftime('%FT%T')
+		canonical_string = uri + '/' +  service +'?'
+
+		#sort hash 
+		parameters = Hash[args.sort]
+	   	canonical_string += parameters.collect{|key, value| [key.to_s, CGI::escape(value.to_s)].join('=')}.join('&')
+	   	canonical_string += ';' 
+	   	canonical_string += timestamp
+	   	canonical_string += ';'
+        canonical_string += app_id
+
+        # puts canonical_string
+
 	    digest = OpenSSL::Digest::Digest.new('sha1')
-	    digested_message = Base64.encode64(OpenSSL::HMAC.digest(digest, @secretkey, message))
-	    #hmac = HMAC::SHA1.new(@secretkey)
-	    #hmac.update(message)
-	    #digest = hmac.digest()
+		digested_message = Base64.encode64(OpenSSL::HMAC.digest(digest, secret_key, canonical_string))
+	    
+	    query = args.collect{|key, value| [key.to_s, CGI::escape(value.to_s)].join('=')}.join('&')
 
-	    args['accesskey'] = @accesskey
-	    args['timestamp'] = timestamp
-	    args['signature'] = digested_message
+	    temp_args = {}
+	    temp_args['app_id'] = app_id
+	    temp_args['timestamp'] = timestamp
+	    temp_args['signature'] = digested_message
 
-	    puts args['signature'] 
+	    #  puts "signed message "
+	    #  puts temp_args['signature'] 
 
-	    query = args.collect do |key, value|
-	        [key.to_s, CGI::escape(value.to_s)].join('=')
-	    end.join(';')
+	    signature = temp_args.collect{|key, value| [key.to_s, CGI::escape(value.to_s)].join('=')}.join(';').chomp
 
-	    url = @entrypoint + '/' + service + '?' + query
+	    url = uri + '/' + service + '?' + query +";"+ signature
 	    Net::HTTP.get(URI.parse(url))
 	end
 
-	def sign(request, key)
-		headers = Headers.new(request)
-        canonical_string = headers.canonical_string
-     	digest = OpenSSL::Digest::Digest.new('sha1')
-     	b64_encode(OpenSSL::HMAC.digest(digest, secret_key, canonical_string))
-	end
+	# returns uri of the rack request 
+	def self.url(request)
+        url = request.scheme + "://"
+        url << request.host
+        if request.scheme == "https" && request.port != 443 ||
+           request.scheme == "http" && request.port != 80
+          url << ":#{request.port}"
+        end
 
+        url << request.path
+        url
+    end
 
-	def authenticate(request, signature)
-	end  
+	def self.authenticate(request)
+	    # get the liste of all parameters
+	    parameters = request.query_string()
+	   
+		principal_parameters = request.params
+	    
+	    timestamp = principal_parameters["timestamp"]
+
+	    signature = principal_parameters["signature"]
+	    
+	    app_id = principal_parameters["app_id"]
+	   	
+	   	app_key = ApplicationKey[:application_id => app_id]
+
+	    
+	    if app_key
+		    principal_parameters.reject! {|k,v| (k == "app_id" || k == "timestamp" || k == "signature" )}
+		   
+		    # rebuild string
+		    canonical_string = url(request) + '?'
+		    canonical_string += Hash[principal_parameters.sort].collect{|key, value| [key.to_s, CGI::escape(value.to_s)].join('=')}.join('&')
+		    canonical_string += ';' 
+		   	canonical_string += timestamp
+		   	canonical_string += ';'
+	        canonical_string += app_id
+
+	     
+
+	        ## resign messsage
+	        digest = OpenSSL::Digest::Digest.new('sha1')
+			signed_message = Base64.encode64(OpenSSL::HMAC.digest(digest, app_key.application_key, canonical_string))
+	
+			if signature == signed_message
+				return true 
+			else 
+				return false 
+			end
+		else 
+			return false 
+		end
+	end 	
+
 end 

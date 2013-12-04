@@ -8,23 +8,24 @@ require_relative '../../lib/auth_api'
 describe "ApiAuth" do
 
   it "should generate a 512 key successfully" do 
-    secret = AuthApi.new.generate_key
+    secret = AuthApi.generate_key
     puts secret 
   end 
  
-  it "Should send a signed request" do
-    api_auth = AuthApi.new
-    api_auth.servicecall('users/VAA60000', {expand:true})
+  it "Should  get true for a correctly signed request" do
+  	uri = 'http://localhost:9292/api/app'
+  	app_id = 'DOC'
+  	secret_key = "uVHdU5+Py5bAVCddvIe0QQYArCUtkSJwR8Prg0zLYgJ6b" 
+    AuthApi.servicecall(uri, 'signed', {:expand => true, :name =>"bashar"},secret_key, app_id)
+    # prints true 
   end
 
-
-  it "Should authenticated based on signature" do 
-  	api_auth = AuthApi.new 
-  	api_auth.authenticate 
+  it "should retrun false for non authorized request" do 
+	uri = 'http://localhost:9292/api/app'
+  	app_id = 'DOC'
+  	secret_key = "uVHdU5+Py5bAVCddvIe0Qqdfqdfdfqsdfqsdf" 
+    AuthApi.servicecall(uri, 'signed', {:expand => true, :name =>"bashar"},secret_key, app_id)
+    # prints false
   end
-
-  it "Hmac ruby equals Hmac OpenSSl"
-
-  end  
 
 end 
