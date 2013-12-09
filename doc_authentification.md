@@ -17,7 +17,7 @@ On ajoute à cet chaîne le timestap(ts) et la clé privé(peut-etre pas necessa
 
 La chaîne(canonical String) est calculé comme suit :
 
-``` canonical String 
+`   canonical String 
 	canonical_string = uri + '/' +  service +'?' 
 	parameters = Hash[args.sort]
    	canonical_string += parameters.collect{|key, value| [key.to_s, CGI::escape(value.to_s)].join('=')}.join('&')
@@ -26,11 +26,13 @@ La chaîne(canonical String) est calculé comme suit :
    	canonical_string += ';'
     canonical_string += app_id
 
+` 
+
+` 
     singature = SHA1.hmac(canonical_string, secret_key)
 
     signed request = uri + '/' + service + '?' + query_parameters +";signature=signature;app_id=app_id
-
-```
+`
 envoyez la requete signée ...
 
 
