@@ -17,8 +17,8 @@ On ajoute à cet chaîne le timestap(ts) et la clé privé(peut-etre pas necessa
 
 La chaîne(canonical String) est calculé comme suit :
 
-`   canonical String 
-	canonical_string = uri + '/' +  service +'?' 
+`   canonical String `
+`	canonical_string = uri + '/' +  service +'?' `
 	parameters = Hash[args.sort]
    	canonical_string += parameters.collect{|key, value| [key.to_s, CGI::escape(value.to_s)].join('=')}.join('&')
    	canonical_string += ';' 
