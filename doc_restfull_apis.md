@@ -15,13 +15,13 @@ ATTENTION, il ne s'agit pas forcément de l'api actuelle mais de ce que l'on aim
 
 Permet de manipuler les utilisateurs ainsi que leur ressources associés (numéro de téléphone, adresse, email, rattachements?)
 
-  ``` //TODO : gestion création de compte
-  //Activation avec code
-  //Gestion des rattachement à un autre fournisseur d'identité
-  //Api pour savoir si un login est dispo ?
-  GET /user/login_available?login=prout
-  res : 200 avec message si OK, pas dispo ou pas valide ?
-  //api pour tester si un mot de passe correspond au critère de validation des mots de passes ?  ```
+    //TODO : gestion création de compte
+    //Activation avec code
+    //Gestion des rattachement à un autre fournisseur d'identité
+    //Api pour savoir si un login est dispo ?
+    GET /user/login_available?login=prout
+    res : 200 avec message si OK, pas dispo ou pas valide ?
+    //api pour tester si un mot de passe correspond au critère de validation des mots de passes ? 
 
   
   //Il faut une api publique pour récupérer l'id d'un utilisateur en fonction de son login
