@@ -6,14 +6,14 @@ ATTENTION : CE PROJET COMMENCE A PEINE ET N'EST PAS DU TOUT A UN STADE UTILISABL
 Ensemble de services web (REST) pour manipuler les données d'annuaire dans laclasse.com
 
 ## Configuration
-  export NLS_LANG=FRENCH_FRANCE.UTF8
+    export NLS_LANG=FRENCH_FRANCE.UTF8
     bundle install
     bundle exec rake db:configure
     bundle exec rake db:bootstrap
     
 puis utiliser les service de l'alimentation pour alimenter les matieres, fonctions, code_mef
 
-  annuaire_server/api/alimentation/sync_mat?api_key="secret"
+    annuaire_server/api/alimentation/sync_mat?api_key="secret"
     annuaire_server/api/alimentation/sync_fonc?api_key="secret"
     annuaire_server/api/alimentation/sync_mef?api_key="secret"
   

@@ -51,13 +51,12 @@ module RightHelpers
     # for more security we may sign the request like in amazon authentication
     # api_key is sent as a request parameter or as a header
     # i think we must send api_id in the request
+    # Todo:  use APIAuth to authenticate applications 
 
-    puts request.inspect 
-
-      
+    #puts request.inspect 
+  
     session = params[:api_key] if params[:api_key]
     session = request.env["HTTP_API_KEY"] if request.env["HTTP_API_KEY"]
-    #puts session
     session.nil? ? app_id = nil : app_id = AuthSession.get(session)
     puts app_id 
     error!('Non authentifié', 401) unless app_id

@@ -24,6 +24,16 @@ class EtabApi < Grape::API
       end
       return parameters
     end
+
+     def modify_user(user)
+      # Use the declared helper
+      declared(params, include_missing: false).each do |k,v|
+        user.set(k.to_sym => v)
+      end
+
+      user.save()
+    end
+
   end
   before do
     authenticate! 
@@ -225,9 +235,94 @@ class EtabApi < Grape::API
         results = super_search!(dataset, accepted_fields)
         results
       end 
+    end
+
+    ##############################################################################
+
+    desc "Create user in the etablissement"
+    params do
+      requires :id, type:String
+      requires :login, type: String, desc: "Doit commencer par une lettre et ne pas comporter d'espace"
+      requires :password, type: String
+      requires :nom, type: String
+      requires :prenom, type: String
+      requires :profil, type: String
+      optional :sexe, type: String, desc: "Valeurs possibles : F ou M"
+      optional :date_naissance, type: Date
+      optional :adresse, type: String
+      optional :code_postal, type: Integer, desc: "Ne doit comporter que 6 chiffres" 
+      optional :ville, type: String
+      optional :id_sconet, type: Integer
+      optional :id_jointure_aaf, type: Integer
+    end 
+    post "/:id/users" do 
+      begin
+        etab = Etablissement[:code_uai => params[:id]]
+        authorize_activites!([ACT_CREATE, ACT_MANAGE], etab.ressource,SRV_USER)
+
+        user = User.new
+        #modify_user(user)
+        
+        declared(params, include_missing: false).each do |k,v|
+          if k.to_sym != :id && user.respond_to?(k.to_sym)  
+              user.set(k.to_sym => v)
+          end   
+        end
+        user.save()
+        user.add_profil(etab.id, params[:profil])
+        present user, with: API::Entities::SimpleUser
+      rescue => e 
+        error!(e.message, 400)
+      end  
+    end
+
+    ##############################################################################
+    desc "Modify user info in the (etablissemnt)"
+    params do 
+      optional :login, type: String, desc: "Doit commencer par une lettre et ne pas comporter d'espace"
+      optional :password, type: String
+      optional :nom, type: String
+      optional :prenom, type: String
+      optional :sexe, type: String, desc: "Valeurs possibles : F ou M"
+      optional :date_naissance, type: Date
+      optional :adresse, type: String
+      optional :code_postal, type: Integer, desc: "Ne doit comporter que 6 chiffres" 
+      optional :ville, type: String
+      optional :id_sconet, type: Integer
+      optional :id_jointure_aaf, type: Integer
+      optional :bloque, type:Boolean
+    end
+    put "/:id/users/:user_id" do
+      begin
+        etab = Etablissement[:code_uai => params[:id]]
+        user = User[:id_ent => params[:user_id]]
+        authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
+        declared(params, include_missing: false).each do |k,v|
+          if k.to_sym != :id && user.respond_to?(k.to_sym)  
+              user.set(k.to_sym => v)
+          end   
+        end
+        user.save()
+        present user, with: API::Entities::SimpleUser  
+      rescue => e
+        error!(e.message, 400)
+      end   
+    end
+
+    ##############################################################################
+    desc "Delete a user from the etablissement"
+    delete "/:id/users/:user_id" do 
+      begin 
+        etab = Etablissement[:code_uai => params[:id]]
+        user = User[:id_ent => params[:user_id]]
+        authorize_activites!([ACT_DELETE, ACT_MANAGE], user.ressource) 
+        user.destroy
+      rescue => e
+        error!(e.message, 400)
+      end  
     end 
 
-     ##############################################################################
+    ##############################################################################
     desc "get the list of (eleves libres) which are not in any class"
     params do 
       requires :id, type:String 
@@ -249,7 +344,7 @@ class EtabApi < Grape::API
     end 
 
     ###############################################################################
-     desc "get the list of (profs) in (Etablissement)"
+    desc "get the list of (profs) in (Etablissement)"
     params do 
       requires :id, type:String 
     end 
@@ -1767,25 +1862,35 @@ class EtabApi < Grape::API
     #{actif: true|false}
     desc "Activer ou desactiver une application"
     params do 
-      requires :id , type: Integer 
+      requires :id , type: String
       requires :app_id , type: String
       requires :actif , type: Boolean 
     end 
-    put ":id/application_actifs/activer/:app_id" do
-      etab = Etablissement[:id => params[:id]]
+    put ":id/applications/:app_id" do
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
 
       app = Application[:id => params[:app_id]]
       error!("ressource non trouvee", 400) if app.nil?
       activate = params[:actif]
+
+      application = ApplicationEtablissement[:etablissement_id => etab.id, :application_id => app.id] 
       begin 
         if activate 
-          ApplicationEtablissement.create(:etablissement_id => etab.id, :application_id => app.id)
-        else 
-          ApplicationEtablissement[:application_id => app.id, :etablissement_id => etab.id].destroy
+          if application
+            application.active = true 
+            application.save 
+          else
+            ApplicationEtablissement.create(:etablissement_id => etab.id, :application_id => app.id)
+          end      
+        else
+          if application
+            application.active = false
+            application.save
+          end   
         end 
       rescue => e 
-        puts e.message 
+        #puts e.message 
         error!("mouvaise requete", 400)
       end  
     end
