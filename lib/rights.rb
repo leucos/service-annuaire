@@ -147,9 +147,9 @@ module Rights
     #TODO modifier les droits 
     rights = resolve_rights(user_id) 
     
-    ##
-    puts rights.inspect 
-    ##
+    #### debug ####
+    ##puts rights.inspect 
+    #### debug ####
     
     rights.each do |activity|
 

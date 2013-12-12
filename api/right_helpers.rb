@@ -23,7 +23,11 @@ module RightHelpers
     #puts session 
     # 
     user_login = AuthSession.get(session)
-    puts user_login 
+    
+    #### debug ####
+    puts user_login
+    #### debug ####
+ 
     if !user_login.nil?
       @current_user = User[:login => user_login]
     else 
@@ -58,7 +62,7 @@ module RightHelpers
     session = params[:api_key] if params[:api_key]
     session = request.env["HTTP_API_KEY"] if request.env["HTTP_API_KEY"]
     session.nil? ? app_id = nil : app_id = AuthSession.get(session)
-    puts app_id 
+    #puts app_id 
     error!('Non authentifié', 401) unless app_id
   end 
 
