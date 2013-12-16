@@ -1652,11 +1652,10 @@ class EtabApi < Grape::API
       profil = Profil[:id => params[:profil_id]]
       error!("profil non trouvee", 404) if profil.nil?
       begin
-        authorize_activites!([ACT_CREATE, ACT_MANAGE], user.ressource)
+        authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
         user.add_profil(etab.id, profil.id)
         ProfilUser[:user_id => user.id, :etablissement_id => etab.id, :profil_id => profil.id] 
       rescue  => e 
-        puts e.message
         error!(e.message, 400)
       end 
     end   
@@ -1714,16 +1713,109 @@ class EtabApi < Grape::API
 
       profil = Profil[:id => params[:profil_id]]
       error!("ressource non trouvee", 404) if profil.nil?
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
       begin
         # delete corresponding role
-        
+
         RoleUser[:user_id => user.id, :role_id => profil.role_id].destroy
         # delete user's profile 
         ProfilUser[:profil_id => profil.id, :user_id => user.id, :etablissement_id => etab.id].destroy  
       rescue => e 
         error!(e.message, 400)
       end
+    end
+
+
+    ##############################################################################
+    #                       Etablissement User Telephone Api                     #
+    ##############################################################################
+
+    #recuperer la liste des telephones qui appartien à un utilisateur 
+    desc "recuperer les telephones"
+    get "/:id/users/:user_id/telephones" do
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+      user = User[:id_ent => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      authorize_activites!([ACT_READ, ACT_MANAGE], user.ressource)
+      user.telephone.map{|tel| {id: tel.id, numero: tel.numero, type: tel.type_telephone_id} } 
     end 
+    
+    ##############################################################################
+    #ajouter un telephone
+    desc "ajouter un numero de telephone à l'utilisateur"
+    params do
+      requires :numero, type: String
+      optional :type_telephone_id, type: String
+    end
+    post "/:id/users/:user_id/telephone"do
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+     
+      user = User[:id_ent => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
+      numero = params["numero"]
+      if !params["type_telephone_id"].nil? and ["MAIS", "PORT", "TRAV", "AUTR"].include?(params["type_telephone_id"])
+        type_telephone_id = params["type_telephone_id"]
+        user.add_telephone(numero, type_telephone_id)
+      else
+        user.add_telephone(numero)
+      end
+    end
+
+    ##############################################################################
+    #modifier le telephone
+    desc "modifier un telephone" 
+    params do
+      requires :telephone_id, type: Integer
+      optional :numero, type: String
+      optional :type_telephone_id, type: String
+    end
+    put "/:id/users/:user_id/telephone/:telephone_id"  do 
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+     
+      user = User[:id_ent => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
+
+      tel = user.telephone_dataset[params[:telephone_id]]  
+      error!("ressource non trouvée", 404) if tel.nil?
+      
+      tel.set(:numero => params[:numero]) if params[:numero]
+      tel.set(:type_telephone_id  => params[:type_telephone_id]) if params[:type_telephone_id]
+
+      begin
+        tel.save()
+      rescue => e
+        error!("Erreur lors de la sauvegarde : #{e.message}", 400)
+      end
+    end
+
+    ##############################################################################
+    #supprimer un telephone 
+    desc "suppression d'un telephone"
+    delete "/:id/users/:user_id/telephone/:telephone_id"  do
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+     
+      user = User[:id_ent => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
+
+      if params["telephone_id"].nil? or params["telephone_id"].empty? 
+        error!("mouvaise requete", 400)
+      elsif !user.telephone.map{|tel| tel.id}.include?(params["telephone_id"].to_i)  
+        error!("ressource non trouvé", 404)
+      else
+        tel = Telephone[:id => params["telephone_id"].to_i]
+        tel.destroy
+      end
+    end
 
 
     ##############################################################################
