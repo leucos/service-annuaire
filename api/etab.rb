@@ -236,7 +236,25 @@ class EtabApi < Grape::API
         results
       end 
     end
+    
+    ##############################################################################    
+    desc "get user infon in the etablissement"
+    params do 
+      requires :id, type:String
+      requires :user_id, type:String 
+      #optional :expand, type:Boolean
+    end
 
+    get "/:id/users/:user_id"  do 
+      etab = Etablissement[:code_uai => params[:id]]
+      user = User[:id_ent => params[:user_id]]
+      authorize_activites!([ACT_READ, ACT_MANAGE], user.ressource)
+       if params[:expand] == "true"
+        present user, with: API::Entities::DetailedUser
+      else 
+        present user, with: API::Entities::SimpleUser
+      end
+    end 
     ##############################################################################
 
     desc "Create user in the etablissement"
@@ -1620,12 +1638,12 @@ class EtabApi < Grape::API
     #{profil_id: "ELV"}
     desc "Ajout d'un profils utilisateur"
     params do 
-      requires :id, type: Integer
+      requires :id, type: String
       requires :user_id , type: String
       requires :profil_id, type: String
     end  
     post "/:id/profil_user/:user_id" do
-      etab = Etablissement[:id => params[:id]]
+      etab = Etablissement[:code_uai => params[:id]]
       error!("etablissement non trouve", 404) if etab.nil?
 
       user = User[:id_ent => params[:user_id]]
@@ -1634,11 +1652,12 @@ class EtabApi < Grape::API
       profil = Profil[:id => params[:profil_id]]
       error!("profil non trouvee", 404) if profil.nil?
       begin
+        authorize_activites!([ACT_CREATE, ACT_MANAGE], user.ressource)
         user.add_profil(etab.id, profil.id)
         ProfilUser[:user_id => user.id, :etablissement_id => etab.id, :profil_id => profil.id] 
       rescue  => e 
         puts e.message
-        error!("mouvaise requete", 400)
+        error!(e.message, 400)
       end 
     end   
     
@@ -1646,13 +1665,13 @@ class EtabApi < Grape::API
     #{new_profil_id: "PROF", etablissement_id: 1234}
     desc "Modification d'un profil"
     params do  
-      requires :id, type: Integer
+      requires :id, type: String
       requires :user_id, type: String
       requires :old_profil_id, type: String
       requires :new_profil_id, type: String
     end 
     put "/:id/profil_user/:user_id/:old_profil_id" do 
-      etab = Etablissement[:id => params[:id]]
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
 
       user = User[:id => params[:user_id]]
@@ -1673,9 +1692,8 @@ class EtabApi < Grape::API
         # set the new profile
         user.add_profil(etab.id, new_profil.id)
         ProfilUser[:user_id => user.id, :etablissement_id => etab.id, :profil_id => new_profil.id]   
-      rescue  => e 
-        puts e.message 
-        error!("mouvaise requete", 400)
+      rescue  => e  
+        error!(e.message, 400)
       end 
     end 
     
@@ -1683,12 +1701,12 @@ class EtabApi < Grape::API
      ##############################################################################
     desc "Suppression d'un profil"
     params do 
-      requires :id, type: Integer 
+      requires :id, type: String
       requires :user_id, type: String 
       requires :profil_id , type: String 
     end 
     delete "/:id/profil_user/:user_id/:profil_id" do 
-      etab = Etablissement[:id => params[:id]]
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
 
       user = User[:id_ent => params[:user_id]]
@@ -1698,12 +1716,12 @@ class EtabApi < Grape::API
       error!("ressource non trouvee", 404) if profil.nil?
       begin
         # delete corresponding role
+        
         RoleUser[:user_id => user.id, :role_id => profil.role_id].destroy
         # delete user's profile 
         ProfilUser[:profil_id => profil.id, :user_id => user.id, :etablissement_id => etab.id].destroy  
       rescue => e 
-        puts e.message
-        error!("mouvaise requete", 400)
+        error!(e.message, 400)
       end
     end 
 
