@@ -25,13 +25,17 @@ class EtabApi < Grape::API
       return parameters
     end
 
-     def modify_user(user)
+    def modify_user(user)
       # Use the declared helper
       declared(params, include_missing: false).each do |k,v|
         user.set(k.to_sym => v)
       end
 
       user.save()
+    end
+
+    def check_email!(user, email)
+      error!("Email non trouvé", 404) if !user.has_email(email.adresse)
     end
 
   end
@@ -1794,8 +1798,7 @@ class EtabApi < Grape::API
         error!("Erreur lors de la sauvegarde : #{e.message}", 400)
       end
     end
-
-    ##############################################################################
+     ##############################################################################
     #supprimer un telephone 
     desc "suppression d'un telephone"
     delete "/:id/users/:user_id/telephone/:telephone_id"  do
@@ -1816,7 +1819,100 @@ class EtabApi < Grape::API
         tel.destroy
       end
     end
+    #############################################################################
+    #                           Gestion des emails                              #
+    #############################################################################
+    desc "recuperer la liste des emails de l'etablissement"
 
+    get "/:id/users/:user_id/emails" do 
+      
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+     
+      user = User[:id_ent => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      
+      authorize_activites!([ACT_READ, ACT_MANAGE], user.ressource)
+
+      emails = user.email
+      emails.map  do |email|
+        {:id => email.id, :adresse => email.adresse, :academique => email.academique, :principal => email.principal}
+      end
+    end
+
+    ##############################################################################
+    desc "ajouter un email à l'utilisateur"
+    params do
+      requires :adresse, type: String
+      optional :academique, type: Boolean
+    end
+    post "/:id/users/:user_id/emails" do
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+     
+      user = User[:id_ent => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
+
+      academique = params[:academique] ? true : false 
+      user.add_email(params[:adresse], academique)
+
+      present user, with: API::Entities::SimpleUser
+    end
+
+    ##############################################################################
+    # modifier l'adresse et le type de l'email
+    # l'email doit apartenir à l'utilisateur user_id
+    desc "modifier un email existant"
+    params do
+      requires :email_id, type: Integer
+      optional :adresse, type: String
+      optional :academique, type: Boolean
+      optional :principal, type: Boolean
+    end
+    put "/:id/users/:user_id/emails/:email_id" do
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+     
+      user = User[:id_ent => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+      
+      email = Email[:id => params[:email_id]] 
+      check_email!(user, email)
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
+
+      email.adresse = params[:adresse] if params[:adresse]
+      email.academique = params[:academique] if params[:academique]
+      email.principal = params[:principal] if params[:principal]
+      #Todo : si l'utilisateur à déjà un email principal, faut-il l'enlever ou générer une erreur ?
+      email.save()
+
+      present user, with: API::Entities::SimpleUser
+    end
+
+    ##############################################################################
+    # supprimer un des email de l'utilisateur 
+    desc "supprimer un email"
+    params do
+      requires :email_id, type: Integer
+    end
+    delete ":id/users/:user_id/emails/:email_id" do
+      etab = Etablissement[:code_uai => params[:id]]
+      error!("ressource non trouvee", 404) if etab.nil?
+     
+      user = User[:id_ent => params[:user_id]]
+      error!("ressource non trouvee", 404) if user.nil?
+
+      email = Email[:id => params[:email_id]] 
+      check_email!(user, email)
+
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)
+
+      email.destroy()
+
+      present user, with: API::Entities::SimpleUser
+    end
 
     ##############################################################################
     #                  Gestion des parametres                                    #
