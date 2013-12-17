@@ -8,28 +8,36 @@ module RightHelpers
   # to check the cookie value in redis
   def current_user
     # Récupèration de la session
-
     # Search for CASTGC cookie 
-    if cookies[:CASTGC]
-      session = cookies[:CASTGC]
-  
 
-  # session_key is only for test 
-    elsif params[:session_key] 
-      session = params[:session_key]
-    elsif request.env[AuthConfig::HTTP_HEADER] 
-      #session = request.env[AuthConfig::HTTP_HEADER]
-    elsif cookies[:session_key]
-      session = cookies[:session_key]
-    else   
-      session = nil
-    end
-    #puts session 
-    # 
+    # production
+    if cookies[:CASTGC]
+      session = cookies[:CASTGC]  
+    else 
+      session = nil    
+    end 
+
+    # disable this part in production    
+    # session_key is only for test
+    puts "Environment = #{Configuration::ENVIRONEMENT}"
+
+    if Configuration::ENVIRONEMENT == 'dev'
+      if params[:session_key] 
+       session = params[:session_key]
+      elsif request.env[AuthConfig::HTTP_HEADER] 
+        session = request.env[AuthConfig::HTTP_HEADER]
+      elsif cookies[:session_key]
+        session = cookies[:session_key]
+      else   
+        session = nil
+      end
+    end 
+
+  
     user_login = AuthSession.get(session)
     
     #### debug ####
-    puts user_login
+      #puts user_login
     #### debug ####
  
     if !user_login.nil?
