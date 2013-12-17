@@ -12,12 +12,16 @@ module RightHelpers
     # Search for CASTGC cookie 
     if cookies[:CASTGC]
       session = cookies[:CASTGC]
-      # session_key is only for test 
+  
+
+  # session_key is only for test 
     elsif params[:session_key] 
       session = params[:session_key]
     elsif request.env[AuthConfig::HTTP_HEADER] 
       #session = request.env[AuthConfig::HTTP_HEADER]
-    else
+    elsif cookies[:session_key]
+      session = cookies[:session_key]
+    else   
       session = nil
     end
     #puts session 

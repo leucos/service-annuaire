@@ -71,7 +71,7 @@ end
 #-----------------------------------------------------------#
 # create and delete test etablissement functions
 def create_test_etablissement(nom = "test_etablissement")
-  Etablissement.create(:nom => nom, :type_etablissement => TypeEtablissement.first)
+  Etablissement.create(:nom => nom, :type_etablissement => TypeEtablissement.first, :code_uai => "etabDeTest")  
 end
 
 def delete_test_etablissements

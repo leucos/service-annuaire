@@ -484,18 +484,18 @@ class EtabApi < Grape::API
     #{role_id : "ADM_ETB"}
     desc "Assigner un role à un utilisateur"
     params do
-      requires :id, type: Integer 
+      requires :id, type: String
       requires :user_id, type: String 
       requires :role_id, type: String
     end  
-    post "/:id/user/:user_id/role_user" do 
+    post "/:id/users/:user_id/role_user" do 
       # check if user is authorized to  change the role of an other user
       #authorize_activites!(ACT_CREATE, etab.ressource)
-      etab = Etablissement[:id => params[:id]]
+      etab = Etablissement[:code_uai => params[:id]]
       authorize_activites!([ACT_UPDATE, ACT_MANAGE], etab.ressource, SRV_USER)
       authorize_activites!([ACT_CREATE, ACT_MANAGE], etab.ressource, SRV_ROLE)
       error!("ressource non trouvee", 404) if etab.nil?
-      user = User[:id => params[:user_id]]
+      user = User[:id_ent => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
       # i am not sure
       # error!("pas de droits", 403) if user.belongs_to(etab)
@@ -520,18 +520,18 @@ class EtabApi < Grape::API
     ##############################################################################
     desc "Changer le role de quelqu'un"
     params do 
-      requires :id, type: Integer 
+      requires :id, type: String
       requires :user_id, type: String
       requires :old_role_id, type: String
-      requires :role_id  
+      requires :role_id, type:String 
     end  
-    put "/:id/user/:user_id/role_user/:old_role_id" do
-      etab = Etablissement[:id => params[:id]]
+    put "/:id/users/:user_id/role_user/:old_role_id" do
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       authorize_activites!([ACT_UPDATE, ACT_MANAGE], etab.ressource, SRV_USER)
       authorize_activites!([ACT_CREATE, ACT_MANAGE], etab.ressource, SRV_ROLE)
 
-      user = User[:id => params[:user_id]]
+      user = User[:id_ent => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
       old_role = Role[:id => params[:old_role_id]]
       error!("ressource non trouvee", 404) if old_role.nil?
@@ -553,12 +553,12 @@ class EtabApi < Grape::API
     ##############################################################################
     desc "Supprimer un role de l'utilisateur dans l'etablissement"
     params do 
-      requires :id, type: Integer
+      requires :id, type: String
       requires :user_id, type: String
       requires :role_id, type: String 
     end 
-    delete "/:id/user/:user_id/role_user/:role_id" do
-      etab = Etablissement[:id => params[:id]]
+    delete "/:id/users/:user_id/role_user/:role_id" do
+      etab = Etablissement[:code_uai => params[:id]]
       error!("ressource non trouvee", 404) if etab.nil?
       authorize_activites!([ACT_UPDATE, ACT_MANAGE], etab.ressource, SRV_USER)
       authorize_activites!([ACT_DELETE, ACT_MANAGE], etab.ressource, SRV_ROLE)
@@ -572,7 +572,8 @@ class EtabApi < Grape::API
       rescue => e
         error!("Validation Failed", 400)
       end
-    end  
+    end
+      
 
     ##############################################################################
     #                         Gestion des classes                                #
@@ -1944,8 +1945,6 @@ class EtabApi < Grape::API
     end
 
     ##############################################################################
-
-
     #note: is it necessary to do the casting
     desc "Recupere la valeur d'un parametre precis"
     params do 
