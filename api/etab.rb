@@ -479,7 +479,16 @@ class EtabApi < Grape::API
     ##############################################################################
     #             Gestion des roles dans l'etablissement                         #
     ##############################################################################
-    
+    desc "Return Roles in Etablissement"
+    params do 
+      requires :id, type:String
+    end
+    get "/:id/roles" do
+      etab = Etablissement[:code_uai => params[:id]]
+      authorize_activites!([ACT_READ, ACT_MANAGE], etab.ressource, SRV_ROLE)
+      Role.where('priority <= ?', 2) 
+    end    
+
     #Note: use authorize
     #{role_id : "ADM_ETB"}
     desc "Assigner un role à un utilisateur"
@@ -562,7 +571,7 @@ class EtabApi < Grape::API
       error!("ressource non trouvee", 404) if etab.nil?
       authorize_activites!([ACT_UPDATE, ACT_MANAGE], etab.ressource, SRV_USER)
       authorize_activites!([ACT_DELETE, ACT_MANAGE], etab.ressource, SRV_ROLE)
-      user = User[:id => params[:user_id]]
+      user = User[:id_ent => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
       role = Role[:id => params[:role_id]]
       error!("ressource non trouvee", 404) if role.nil?
@@ -573,7 +582,7 @@ class EtabApi < Grape::API
         error!("Validation Failed", 400)
       end
     end
-      
+
 
     ##############################################################################
     #                         Gestion des classes                                #
