@@ -34,7 +34,7 @@ class  AuthApi
 	   	canonical_string += ';'
         canonical_string += app_id
 
-        # puts canonical_string
+        puts canonical_string
 
 	    digest = OpenSSL::Digest::Digest.new('sha1')
 		digested_message = Base64.encode64(OpenSSL::HMAC.digest(digest, secret_key, canonical_string))
@@ -94,12 +94,19 @@ class  AuthApi
 		   	canonical_string += ';'
 	        canonical_string += app_id
 
-	     
+	        #puts "application key in database"
+	        #puts app_key.application_key
+
+	        #puts "calculated canonical string"
+	    	#puts canonical_string  
 
 	        ## resign messsage
 	        digest = OpenSSL::Digest::Digest.new('sha1')
 			signed_message = Base64.encode64(OpenSSL::HMAC.digest(digest, app_key.application_key, canonical_string))
 	
+			#puts signed_message 
+			#puts signature
+
 			if signature == signed_message
 				return true 
 			else 

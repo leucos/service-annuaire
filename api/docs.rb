@@ -6,7 +6,7 @@ class DocsApi < Grape::API
   rescue_from :all
 
   before do
-    #authenticate_app!
+    authenticate_app!
   end
 
   ##############################################################################

@@ -69,19 +69,17 @@ module RightHelpers
     # i think we must send api_id in the request
     # Todo:  use APIAuth to authenticate applications 
 
-    #puts request.inspect 
-  
-    session = params[:api_key] if params[:api_key]
-    session = request.env["HTTP_API_KEY"] if request.env["HTTP_API_KEY"]
-    session.nil? ? app_id = nil : app_id = AuthSession.get(session)
-
-    if app_id == nil && params[:app_id]
-      
-      error!('Non authentifié', 401) if !AuthApi.authenticate(request)
+    if params[:app_id]
+      if !AuthApi.authenticate(request)
+        error!('Non authentifié', 401)
+      end 
+      #unless AuthApi.authenticate(request)
+    else
+      session = params[:api_key] if params[:api_key]
+      session = request.env["HTTP_API_KEY"] if request.env["HTTP_API_KEY"]
+      app_id = AuthSession.get(session)
+      error!('Non authentifié', 401) unless app_id
     end  
-
-    #puts app_id 
-    error!('Non authentifié', 401) unless app_id
   end 
 
 
