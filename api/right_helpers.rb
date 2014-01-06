@@ -74,6 +74,12 @@ module RightHelpers
     session = params[:api_key] if params[:api_key]
     session = request.env["HTTP_API_KEY"] if request.env["HTTP_API_KEY"]
     session.nil? ? app_id = nil : app_id = AuthSession.get(session)
+
+    if app_id == nil && params[:app_id]
+      
+      error!('Non authentifié', 401) if !AuthApi.authenticate(request)
+    end  
+
     #puts app_id 
     error!('Non authentifié', 401) unless app_id
   end 
