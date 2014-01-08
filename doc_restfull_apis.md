@@ -390,72 +390,31 @@ Examples
     //Supprimer son role sur l'établissement
     DEL /etablissement/:id/role_user/:user_id
 
-## classe:
+## Classe:
 
   //Récupérer tous les niveaux possibles
   GET /classe/niveaux/
   ["CP",... "4EME"... "Terminale"]
 
-## alimentation:
+## Alimentation:
 
 Le service d'alimentation est un peu spécial : il permet de gérer l'alimentation automatique (via l'académie) ou manuel (via upload de fichier) en comptes d'un établissement.
 Il donne accès aux logs, à la configuration et à l'activation de ce service.
 C'est un élément centrale de l'annuaire car il permet à un établissement de créer très rapidement un ensemble de compte (surtout avec l'alimentation automatique).
 
-  //Envois de fichier d'alimentation dans la BDD
-  POST /alimentation/:etablissement_id
-  {type: "xml_menesr"} ?
-
-  // Avant l'alimentation on peut manuellement recoller des utilisateurs qui n'ont pas été
-  // recoller automatiquement
-  POST /alimentation/recollement/:alimentation_id
-  {"id_ent" : "VAA60000", "id_jointure_aaf" : 12345678}
-
-  //Récupère les données "brutes" d'une alimentation en cours (pas encore appliquée)
-  //Ou déjà effectuée
-  GET /alimentation/data/:etablissement_id?alimentation_id=1234
-
-  //Récupère les diffs d'une alimentation en cours (pas encore appliquée)
-  //Ou déjà effectuée
-  GET /alimentation/diff/:etablissement_id?alimentation_id=1234
-
-  //Applique une alimentation dans la base de donnée
-  POST /alimentation/apply/:alimentation_id
-
-  //Active ou désactive l'alimentation automatique sur un établissement
-  PUT /alimentation/state/:etablissement_id
-  {enable: false}
-
-  GET /alimentation/state/:etablissement_id
-
-  //Récupère l'historique des alimentations d'un établissement
-  //Pour le type manuel et/ou automatique
-  GET /alimentation/histo/:etablissement_id?type=manuel
-  {
-    alimentation : [
-      {
-        id : 1,
-        errors : 5,
-        warnings : 2,
-        date: '20120910',
-        full: true, //Est-ce un delta ou une complete ?
-        type: "auto",
-        summary : "1 Suppression de compte, 3 modifications etc."
-      },
-      {
-        id : 2,
-        errors : 0,
-        warnings : 1
-        date: '20120908',
-        full: false,
-        type: "auto",
-        summary : "Ajout de l'élève Machin"
-      }
-    ]
-  }
-
-  //Récupérer la liste des comptes et des mots de passe créer automatiquement
-  GET /alimentation/:etablissement_id/:type (eleve, parents ou personnel education nationale)
+    POST /api/alimentation/receive.json recieve data from the annuaire Ent Server and treat them
+    GET /api/alimentation/etablissements.json Retourner la liste des etablissements disponibles
+    GET /api/alimentation/data/{service}/{uai}.json get data per service (table) and code_rne(code_uai)
+    GET /api/alimentation/load/etablissement/{uai}.json load all data related to an etablissment
+    GET /api/alimentation/bilan/{type}/{uai}.json Get bilan (statistics) etablissement info
+    GET /api/alimentation/sync_mef.json Synchronize Mef education national
+    GET /api/alimentation/sync_mat.json Synchronize Matieres education national
+    GET /api/alimentation/sync_fonc.json Synchronize fonctions eduction national
+    GET /api/alimentation/empty/etablissement/{uai}.json empty an alimented structure (etablissement)
+    GET /api/alimentation/aliment/etablissement/{uai}.json aliment a structure (etablissement) entirely
+    GET /api/alimentation/aliment_basic/etablissements.json aliment only the basic information of all etablissements
+    GET /api/alimentation/detache/{uai}.json delete (detache) users from the etablissement
+    GET /api/alimentation/aliment/etablissements.json aliment a list of etablissements
 
 ## Paramètre d'établissement et Préférence utilisateur
 

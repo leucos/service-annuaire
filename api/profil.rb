@@ -23,6 +23,15 @@ class ProfilApi < Grape::API
       
       dataset = Profil.dataset 
       dataset.select(:id, :description, :code_national).naked 
+    end 
+
+    desc "list all fonctions education national" 
+    get "/fonctions" do 
+      authenticate!
+      authorize_activites!([ACT_READ, ACT_MANAGE], Ressource.laclasse, SRV_USER)
+      
+      dataset = Fonction.dataset 
+      dataset.select(:id, :libelle,  :description, :code_men).naked 
     end   
   end
 end   

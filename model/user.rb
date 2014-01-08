@@ -577,13 +577,21 @@ class User < Sequel::Model(:user)
   # @param academique : si oui ou non il s'agit d'un mail académique
   # todo : détecter automatiquement le type académique ?
   def add_email(adresse, academique = false)
-    # Si l'utilisateur n'a pas d'email c'est son mail principal 
-    principal = (Email.filter(:user_id => self.id).count == 0)
-
-    mail = Email.find_or_create(:adresse => adresse, :user_id => self.id)
-    mail.principal = principal
-    mail.academique = academique
-    mail.save   
+    # Si l'utilisateur n'a pas d'email c'est son mail principal
+    #principal = (Email.filter(:user_id => self.id).count == 0)
+    Email.filter(:user_id => self.id).count == 0 ? principal = 1 : principal = 0
+    #mail = Email.find_or_create(:adresse => adresse, :user_id => self.id)
+    mail = Email[:adresse => adresse, :user_id => self.id]
+    if mail
+      mail.principal = principal
+      mail.academique = academique
+      mail.save
+    else
+      mail = Email.create(:adresse => adresse, :user_id => self.id, :principal => principal)
+      mail.principal = principal
+      mail.academique = academique
+      mail.save
+    end
   end
 
   def delete_email(adresse)

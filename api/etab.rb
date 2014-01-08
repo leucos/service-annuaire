@@ -725,6 +725,8 @@ class EtabApi < Grape::API
       
       user = User[:id_ent => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
+
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], classe.ressource)
       begin
         # user has profil eleve 
         if user.profil_user_dataset.where(:profil_id=>'ELV').count == 1 
