@@ -25,7 +25,12 @@ class Application < Sequel::Model(:application)
   # Referential integrity
   one_to_many :application_etablissement
   one_to_many :param_application
+  one_to_one :application_key
 
+  def before_destroy
+    application_key_dataset.destroy()
+    super
+  end
   # Not nullable cols and unicity validation
   def validate
     super
