@@ -97,7 +97,7 @@ class SsoApi < Grape::API
       attributes["ENTEleveClasses"] = cls.nil? ? nil : cls[:libelle]
       attributes["LaclasseNomClasse"] = cls.nil? ? nil : cls[:libelle]
       attributes["ENTEleveNivFormation"] = cls.nil? ? nil : nil
-  
+      #puts attributes.inspect
       attributes
     end
   
