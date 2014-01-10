@@ -37,12 +37,16 @@ class ApplicationApi < Grape::API
       optional :libelle, type:String
       optional :description, type:String
       optional :url, type:String
+      optional :active, type:Boolean
     end 
     post do
       app = Application.find_or_create(:id => params[:code])
       app.libelle = params[:libelle]
       app.description = params[:description]
       app.url = params[:url]
+      if ! params[:active].nil?
+        app.active = params[:active]
+      end  
       app.save
     end 
 
