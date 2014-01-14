@@ -95,56 +95,19 @@ class RoleApi < Grape::API
         #   {"activite_id":"MANAGE","role_id":"TECH","service_id":"USER","condition":"all","parent_service_id":"LACLASSE"}]
 
         # build activity hash for all resources
+        # 
         resources = Service.naked.all
         length = resources.size 
         hash = {}
         resources.each do |elem|
-          hash[elem[:id]] = {:resource => elem[:id], :activities => [{activity:'READ'}, {activity:'DELETE'}, {activity:'CREATE'}, {activity:'UPDATE'}]}; 
+          hash[elem[:id]] = {:resource => elem[:id], :activities => []}; 
         end 
 
-        act = {}
-        i = 0 
+        #{activity:'READ'}, {activity:'DELETE'}, {activity:'CREATE'}, {activity:'UPDATE'} 
         activities.each do |activity|
-        
-          # activity = "MANAGE"
-          if activity[:activite_id] == "MANAGE" 
-            act[activity[:service_id]] = {:activities => [
-              {:activity => "READ", :condition=> activity[:condition], :parent_service => activity[:parent_service_id]}, 
-              {:activity => "CREATE", :condition=> activity[:condition], :parent_service => activity[:parent_service_id]}, 
-              {:activity => "DELETE", :condition=> activity[:condition], :parent_service => activity[:parent_service_id]},
-              {:activity => "UPDATE", :condition=> activity[:condition], :parent_service => activity[:parent_service_id]}
-              ], :resource => activity[:service_id]}
-          # activity != "MANAGE"  
-          else
-            # First time, activity with resource = service_id does not exist 
-            
-            if !act.key?(act[activity[:service_id]])
-              # build object 
-              act[activity[:service_id]] = {:activities => [
-                {:activity => "READ"}, 
-                {:activity => "CREATE"}, 
-                {:activity => "DELETE"},
-                {:activity => "UPDATE"}
-                ], :resource => activity[:service_id]}
-              # modify activity  
-              act[activity[:service_id]][:activities].each do |elem|
-                if elem[:activity] == activity[:activite_id]
-                  elem[:condition]= activity[:condition]
-                  elem[:parent_service] =  activity[:parent_service_id]
-                end  
-              end
-            else #modify activity
-              act[activity[:service_id]][:activities].each do |elem|
-                if elem[:activity] == activity[:activite_id]
-                  elem[:condition]= activity[:condition]
-                  elem[:parent_service] =  activity[:parent_service_id]
-                end  
-              end 
-            end   
-          end     
+          hash[activity[:service_id]][:activities].push({:activity => activity[:activite_id], :condition=> activity[:condition], :parent_service => activity[:parent_service_id]})
         end 
-        act
-        #act.merge(hash){|key, oldval, newval| newval[:activities] + oldval[:activities]}
+        hash
       else 
         error!('Role n\'exist pas', 404)
       end 
@@ -202,7 +165,8 @@ class RoleApi < Grape::API
     end
 
     desc "delete activities of a role"
-    delete "/:role_id/activities/:activitiy_id" do 
+    delete "/:role_id/activities/:activitiy_id" do
+
     end
 
     desc "list types of resources"
@@ -269,6 +233,15 @@ class RoleApi < Grape::API
         puts r[1].parent_service_id
       end 
     end
+
+    desc "delete activities from a role" 
+    params do
+      requires :rights , type: Hash
+      requires :resource_id, type: String
+    end
+    delete "/:role_id/activities/:resource_id" do
+
+    end  
 
 
 
