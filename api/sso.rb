@@ -72,7 +72,7 @@ class SsoApi < Grape::API
       error!("Utilisateur non trouvé", 404) if u.nil?
       profil_user = u.profil_user_display # to be changed
       profils =   u.profil_user_display.collect{|x| "#{x[:profil_id]}:#{x[:etablissement_code_uai]}"}.join(",")
-      roles   =   u.role_user_display.collect{|x| "#{x[:role_id]}:#{x[:etablissement_code_uai]}:#{x[:etablissement_id]}:#{x[:libelle]}"}.join(",")
+      roles   =   u.role_user_display.collect{|x| "#{x[:role_id]}:#{x[:etablissement_code_uai]}:#{x[:etablissement_id]}:#{x[:libelle].gsub("'") { %q{''}}}"}.join(",")
       attributes = {
         "login" => u.login,
         "pass" => u.password,
