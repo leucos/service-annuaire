@@ -11,9 +11,9 @@ class RoleApi < Grape::API
   helpers RightHelpers
 
   # => authenticate user
-  # before do
-  #   authenticate! 
-  # end 
+  #before do
+    #authenticate! 
+  #end 
   
   resource :roles do
 
@@ -36,7 +36,10 @@ class RoleApi < Grape::API
       # role.save 
       role = Role[:id => params[:role_id]]
       if role 
-        role 
+        role.libelle = params[:libelle] if !params[:libelle].nil?
+        role.description = params[:description] if !params[:description].nil?
+        role.priority = params[:priority] if !params[:priority].nil?
+        role.save 
       else
         Role.create(:id => params[:role_id], :libelle => params[:libelle], :description => params[:description])
       end 
