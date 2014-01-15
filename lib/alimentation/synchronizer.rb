@@ -215,7 +215,7 @@ module Alimentation
             Etablissement.create(:id => structure["id"], :code_uai => structure["code_uai"], :siren => structure["siren"],
               :nom => structure["nom"], :adresse => structure["adresse"], :code_postal => structure["code_postal"],
               :ville => structure["ville"],:telephone => structure["telephone"],:fax => structure["fax"], :date_last_maj_aaf => structure["date_last_maj_aaf"],
-              :type_etablissement_id => type_etab.id)  
+              :type_etablissement_id => type_etab.id, :last_alimentation => DateTime.now)  
           else 
             # modify
             @logger.debug("structure: #{structure['code_uai']} will be modifyed")
@@ -231,6 +231,7 @@ module Alimentation
             type_etab = {:type_struct_aaf => structure["type_structure"], :type_contrat => structure["contrat"]}
             type_etab = TypeEtablissement.find_or_create(type_etab)
             record[:type_etablissement_id] = type_etab.id
+            record[:last_alimentation] = DateTime.now
             record.save
           end
         end 
