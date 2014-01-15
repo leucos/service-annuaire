@@ -463,6 +463,7 @@ class EtabApi < Grape::API
           :site_url => x.site_url,
           :alimentation_state => x.alimentation_state,
           :alimentation_date => x.alimentation_date,
+          :last_alimentation => x.last_alimentation, 
           :longitude => x.longitude,
           :latitude => x.latitude , 
           :contacts => x.contacts,

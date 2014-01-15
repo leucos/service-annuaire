@@ -100,7 +100,7 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`etablissement` (
   `data_received` TINYINT(1) NOT NULL DEFAULT 0 ,
   `site_url` VARCHAR(255) NULL ,
   `logo` VARCHAR(45) NULL ,
-  `last_alimentation` VARCHAR(45) NULL ,
+  `last_alimentation` DATE NULL ,
   INDEX `fk_etablissement_type_etablissement1` (`type_etablissement_id` ASC) ,
   PRIMARY KEY (`id`) ,
   CONSTRAINT `fk_etablissement_type_etablissement1`
@@ -322,6 +322,7 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`application` (
   `libelle` VARCHAR(255) NULL ,
   `description` VARCHAR(500) NULL ,
   `url` VARCHAR(45) NOT NULL ,
+  `active` TINYINT(1) NULL DEFAULT 1 ,
   PRIMARY KEY (`id`) )
 ENGINE = InnoDB
 COMMENT = 'application:\nLaclasse.com\ngestion Etablissement\ngestion user' /* comment truncated */;
@@ -718,7 +719,6 @@ ENGINE = InnoDB;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
-
 
 -- -----------------------------------------------------
 -- Data for table `annuairev3`.`type_regroupement`
