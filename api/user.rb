@@ -32,9 +32,10 @@ class UserApi < Grape::API
     def modify_user(user)
       # Use the declared helper
       declared(params, include_missing: false).each do |k,v|
-        user.set(k.to_sym => v)
+        if user.respond_to?(k.to_sym)
+          user.set(k.to_sym => v)
+        end  
       end
-
       user.save()
     end
   end
@@ -68,11 +69,20 @@ class UserApi < Grape::API
       optional :ville, type: String
       optional :id_sconet, type: Integer
       optional :id_jointure_aaf, type: Integer
+      optional :profil, type: String
+      optional :etablissement, type: String
     end
     post do
       authorize_activites!([ACT_CREATE, ACT_MANAGE], Ressource.laclasse, SRV_USER)
       user = User.new
       modify_user(user)
+      if !params[:profil].nil? && !params[:etablissement].nil?
+        etab = Etablissement[:code_uai => params[:etablissement]]
+        profil = Profil[:id => params[:profil]]
+        if !profil.nil? && !etab.nil?
+          user.add_profil(etab.id,profil.id)
+        end 
+      end
       present user, with: API::Entities::SimpleUser
     end
 
