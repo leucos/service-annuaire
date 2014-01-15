@@ -98,14 +98,22 @@ module Rights
               end
             
             #todo add groupees_libre   
-            
-            # to be modified
-            # id ont think its important
+            when SRV_LIBRE
+              # membre
+              groupes = user.groupes_libres
+              groupes.each do |groupe| 
+                  rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
+                  :condition => act[:condition], :parent_service => act[:parent_service_id], :parent_id => groupe[:regroupement_libre_id].to_s, 
+                  :etablissement_id => role_user[:etablissement_id]})
+              end 
+
+          
             when SRV_USER 
               rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
                 :condition => act[:condition], :parent_service => act[:parent_service_id], :parent_id => role_user[:user_id].to_s,
                 :etablissement_id => role_user[:etablissement_id]})
 
+              # to be modified, i'am not sure if this is important    
             when SRV_APP 
               rights.push({:user_id => role_user[:user_id], :activite => act[:activite_id], :target_service => act[:service_id], 
                 :condition => act[:condition], :parent_service => act[:parent_service_id], :parent_id => role_user[:user_id].to_s,
@@ -126,14 +134,13 @@ module Rights
   #-------------------------------------------------------------------------------------------------------------#
   # get rights on a specific resource
 
-  ##/rights/:service_name/:ressource_external_id/:user_id” ⇒ [“create_user”, “assign_role_user”, “create_classe”]
   # @param user_id : utilisateur sur lequel on veut récupérer les droits
   # @param service_id ou type_ressource: service de la ressource sur laquelle on teste les droits
   # @param ressource_id : id de la ressource liée au service
   # @param initial_service_id : si pas précisé == service_id
   # sinon correspond au service sur lequel on veut connaitre les droits.
   # ex: on veut savoir si une personne a le droit de créer des utilisateurs dans un établissement
-  # on fera get_rights("VAA60001", "ETAB", 0, "USER")
+  # on fera get_activities("VAA60001", "1", "ETAB") => get activities for user VAA60001  on etablissement with id = 1 
 
   # get user activities on a  a ressource with ressource_id and type_ressource 
   # or on a service in the case of create (i.e.  USER)  
@@ -153,7 +160,7 @@ module Rights
     
     rights.each do |activity|
 
-      # user has activities on himself
+      # user has activities on himself or his resources ..  
       if activity[:condition] == "self" 
         # himself 
         if activity[:target_service] == type_ressource  && ressource_id == activity[:user_id].to_s
@@ -164,11 +171,12 @@ module Rights
 
         end
       
+      ## belongs to condition 
       # user has activites on a service that belongs to a parent service(etablissement, classe, groupe) 
       elsif  activity[:condition] == "belongs_to" && type_ressource == activity[:target_service] 
         activities.push(activity[:activite]) if ressource.belongs_to(Ressource[:id => activity[:parent_id], :service_id => activity[:parent_service]])
       
-
+      ## all condition ...
       # user has activites on all memebers of a service 
       elsif activity[:condition] == "all" 
         # if parent service == laclasse and type_resource == target service => push activitie in the array 
@@ -185,7 +193,8 @@ module Rights
       # for the moment it is not necessary( i don't use this role)
       elsif activity[:condition] == "parent" && ressource_id == activity[:parent_id] && type_ressource == activity[:parent_class]
         activities.push(activity[:activite])
-      end   
+      end
+
     end
 
     # MANAGE Activity 
