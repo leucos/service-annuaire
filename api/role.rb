@@ -119,11 +119,6 @@ class RoleApi < Grape::API
       requires  :rights , type: Hash
     end
     post "/:role_id/activities" do
-      puts "role_id = #{params[:role_id]}"
-      #params = {"rights":{},"role_id":"ADM_ETB","resource_id":"ROLE","activite_id":"MANAGE"}
-      puts "#####################" 
-      puts params.resource_id
-      puts params.activite_id
       role = Role[:id => params[:role_id]]
       rights = params.rights
       service =  Service[:id => params.resource_id]
@@ -134,26 +129,11 @@ class RoleApi < Grape::API
         rights.each do |r| 
 
           # add new activities 
-          ActiviteRole.find_or_create(:activite_id => r[1].activite_id, :condition => r[1].condition, :role_id => r[1].role_id, 
-          :parent_service_id => r[1].parent_service_id, :service_id => r[1].service_id)
-=begin
-          puts "#####################" 
-          puts r[1].activite_id
-          puts r[1].condition
-          puts r[1].service_id
-          puts r[1].role_id
-          puts r[1].parent_service_id
-          if activity
-            puts "found, dont modify"
-          else 
-            if ActiviteRole.filter(:activite_id => r[1].activite_id, :role_id => r[1].role_id, :service_id =>  r[1].service_id, :condition => r[1].condition ).count > 0
-              puts "modify"
-            else 
-              puts "add"
-            end   
+          if(!r[1].condition.nil? && !r[1].parent_service_id.nil?)
+            ActiviteRole.find_or_create(:activite_id => r[1].activite_id, :condition => r[1].condition, :role_id => r[1].role_id, 
+              :parent_service_id => r[1].parent_service_id, :service_id => r[1].service_id)
           end 
-        end
-=end    
+  
         end 
       else
         error!("resource non trouvé", 404)
