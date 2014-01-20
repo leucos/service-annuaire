@@ -15,7 +15,7 @@ describe "ApiAuth" do
   it "Should  get true for a correctly signed request" do
   	uri = 'http://localhost:9292/api/app'
   	app_id = 'DOC'
-  	secret_key = "tl1NtZijEqtJ/RtHhUw5zby2o7H02wDFX5zT6MSG7ps=" 
+  	secret_key = "j9t5T31lxg6yP+SJcainGHXEM1GF9J05qFwV4bUCjhg=" 
     puts secret_key
     response = AuthApi.servicecall(uri, 'users/VAA60000', {:expand => true, :name =>"bashar"},secret_key, app_id)
     puts response.inspect
