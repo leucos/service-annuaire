@@ -15,9 +15,9 @@ class  AuthApi
 	# une fonction pour generer une clé de 512 bits 
 	def self.generate_key
 		"generate key called"
-		random_bytes = OpenSSL::Random.random_bytes(512)
-		Digest::SHA2.new(512).digest(random_bytes)
-      	Base64.encode64(Digest::SHA2.new(512).digest(random_bytes))
+		random_bytes = OpenSSL::Random.random_bytes(256)
+		Digest::SHA2.new(256).digest(random_bytes)
+      	Base64.encode64(Digest::SHA2.new(256).digest(random_bytes))
 	end   
 
 
@@ -102,7 +102,7 @@ class  AuthApi
 
 	        ## resign messsage
 	        digest = OpenSSL::Digest::Digest.new('sha1')
-			signed_message = Base64.encode64(OpenSSL::HMAC.digest(digest, app_key.application_key, canonical_string))
+			signed_message = Base64.encode64(OpenSSL::HMAC.digest(digest, app_key.application_key.chomp, canonical_string))
 	
 			#puts signed_message 
 			#puts signature
