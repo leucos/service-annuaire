@@ -48,7 +48,12 @@ module API
       end
 
       expose(:enfants) do |user, options|
-        user.enfants
+        a = []
+        user.enfants.each do |enfant|
+           a.push({:enfant => enfant, :etablissements => user.etablissements, :classes => enfant.classes_display, 
+            :groupes_eleves => enfant.groupes_display, :groupes_libres => enfant.groupes_libres})
+        end
+        a
       end     
     end
 
