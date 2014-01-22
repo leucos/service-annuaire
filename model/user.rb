@@ -380,9 +380,14 @@ class User < Sequel::Model(:user)
     end
   end
 
+  def applications
+    ids = etablissements.collect{ |x| x[:id]}
+     Application.join(:application_etablissement, :application_id => :id).where(:etablissement_id => ids).naked.all
+  end
+
   def add_to_regroupement(regroupement_id)
     EleveDansRegroupement.find_or_create(:user_id => self.id, :regroupement_id => regroupement_id)
-  end 
+  end
 
   # Ajoute un role sur une classe
   def add_classe(classe_id, role_id)

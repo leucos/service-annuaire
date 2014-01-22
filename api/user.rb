@@ -382,10 +382,19 @@ class UserApi < Grape::API
       end
     end
 
+
+    #############################################################################
+    desc "Retourner la liste des applications d'un utilisateur"
+    get ":user_id/applications" do
+      user = check_user!()
+      authorize_activites!([ACT_READ, ACT_MANAGE], user.ressource)
+      user.applications
+    end
+
     ##############################################################################
     #Récupère les préférences d'une application
     desc "Récupère les préférences d'une application d'un utilisateur"
-    get ":user_id/application/:application_id/preferences" do 
+    get ":user_id/applications/:application_id/preferences" do
       user = check_user!()
       
       authorize_activites!([ACT_READ, ACT_MANAGE], user.ressource)
@@ -398,7 +407,7 @@ class UserApi < Grape::API
     ##############################################################################
     #Modifie une préférence
     desc "Modifier une(des) preferecne(s)"
-    put ":user_id/application/:application_id/preferences" do
+    put ":user_id/applications/:application_id/preferences" do
       user = check_user!()
 
       authorize_activites!([ACT_UPDATE,ACT_MANAGE], user.ressource)
