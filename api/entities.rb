@@ -91,18 +91,16 @@ module API
     class DetailedEtablissement < Grape::Entity
       expose :id, :code_uai, :nom, :adresse, :code_postal, :ville, :type_etablissement_id, :telephone, :fax, 
       :full_name, :alimentation_state, :alimentation_date, :data_received, :longitude, :latitude, :site_url , :logo
-      expose :classes 
+      expose :classes
       expose :groupes_eleves
       expose :groupes_libres
       expose(:personnel) do |etab, options|
-        etab.personnel 
-        #do |person| 
-          #{:id => person.id, :full_name => person.full_name}
-        #end
+        etab.personnel
       end  
       expose :contacts 
-      expose :eleves 
-      expose :enseignants 
+      expose :eleves
+      expose :enseignants
+      expose :parents
     end
 
     class SimpleRegroupement < Grape::Entity

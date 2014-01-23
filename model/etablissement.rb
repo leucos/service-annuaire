@@ -211,6 +211,13 @@ class Etablissement < Sequel::Model(:etablissement)
     ProfilUser.join(:user, :id => :user_id).filter(:profil_id => "ENS", :etablissement_id => self.id)
     .select(:profil_id, :user_id, :etablissement_id, :id_sconet, :id_jointure_aaf, 
       :nom, :prenom, :id_ent).naked.all
+  end
+
+  # Tous les Parents
+  def parents
+    ProfilUser.join(:user, :id => :user_id).filter(:profil_id => "TUT", :Etablissement_id => self.id)
+      .select(:profil_id, :user_id, :etablissement_id, :id_sconet, :id_jointure_aaf, 
+      :nom, :prenom, :id_ent).naked.all
   end  
 
 end
