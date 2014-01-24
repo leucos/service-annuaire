@@ -29,6 +29,6 @@ require __DIR__('lib/init')
 require __DIR__('model/init')
 require __DIR__('api/init')
 # TEMP : En attendant que l'annuaire soit le seul à être utilisé, on récupère les données de prod d'Oracle
-require __DIR__('oracle/init')
+#require __DIR__('oracle/init')
 
 AuthSession.init()
