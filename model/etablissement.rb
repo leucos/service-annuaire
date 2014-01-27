@@ -170,7 +170,7 @@ class Etablissement < Sequel::Model(:etablissement)
     if code != "all"
       preferences = preferences.filter(:code => code)
     end 
-    preferences.select(:id, :valeur_defaut, :valeur, :libelle, :description, :autres_valeurs, :type_param_id).
+    preferences.select(:id, :code, :valeur_defaut, :valeur, :libelle, :description, :autres_valeurs, :type_param_id).
       all   
   end
 
