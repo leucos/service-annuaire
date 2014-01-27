@@ -12,6 +12,7 @@ spec/reports
 test/tmp
 test/version_tmp
 db/scripts/
+db/scripts/bootstrap.rb
 tmp
 *.log
 
