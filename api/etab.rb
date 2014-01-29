@@ -528,6 +528,40 @@ class EtabApi < Grape::API
       {:user_id => user.id, :user_role => role.id}     
     end
 
+
+    desc "Assigner un role à plusieurs  utilisateurs"
+    params do 
+      requires :checked
+    end 
+    post "/:id/users/roles/:role_id" do
+      puts params[:checked].inspect 
+      etab = Etablissement[:code_uai => params[:id]]
+      authorize_activites!([ACT_UPDATE, ACT_MANAGE], etab.ressource, SRV_USER)
+      authorize_activites!([ACT_CREATE, ACT_MANAGE], etab.ressource, SRV_ROLE)
+      error!("ressource non trouvee", 404) if etab.nil?
+      role = Role[:id => params[:role_id]]
+      error!("ressource non trouvee", 404) if role.nil?
+      begin 
+        # transform checked to JSON
+        checked_users = JSON.parse(params[:checked])
+        checked_users.each do |item|
+          if item["val"] == true
+            user = User[:id => item["id"]]
+            #puts user  
+            if user
+              authorize_activites!([ACT_UPDATE, ACT_MANAGE], user.ressource)  
+              puts "#{user.nom} user have a role #{role.id}"
+              user.add_role(etab.id, role.id)
+            end # end loop
+          end 
+        end # end loop
+        "ok"     
+      rescue => e
+        error!(e.message, 400)
+      end
+      
+    end 
+
     ##############################################################################
     desc "Changer le role de quelqu'un"
     params do 

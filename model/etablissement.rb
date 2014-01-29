@@ -93,7 +93,10 @@ class Etablissement < Sequel::Model(:etablissement)
     #DB[:regroupement].where(:etablissement => self, :type_regroupement_id => "CLS").to_hash
     ds1 = DB.fetch("SELECT `regroupement_id`, count(user_id) AS `profs` FROM `enseigne_dans_regroupement` GROUP BY `regroupement_id`")
     ds2 = DB.fetch("SELECT `regroupement_id`, count(user_id) AS `eleves` FROM `eleve_dans_regroupement` GROUP BY `regroupement_id`") 
-    regroupement_dataset.where(:type_regroupement_id => "CLS").left_join(ds1, :regroupement_id => :id).left_join(ds2, :regroupement_id => :regroupement__id).naked.all
+    regroupement_dataset.where(:type_regroupement_id => "CLS").left_join(ds1, :regroupement_id => :id)
+    .left_join(ds2, :regroupement_id => :regroupement__id)
+    .left_join(:niveau, :ent_mef_jointure => :regroupement__code_mef_aaf)
+    .naked.all
   end
 
   # les groupes d'eleve  dans l'etablissement
