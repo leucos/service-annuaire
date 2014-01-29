@@ -30,7 +30,7 @@ class SsoApi < Grape::API
     params do 
       requires :login, type: String, regexp: /^[a-z]/i, desc: "Doit commencer par une lettre"
     end
-    get "/sso_attributes_men" do
+    get "/sso_attributes_men/:login" do
       u = User[:login => params[:login]]
       error!("Utilisateur non trouvé", 404) if u.nil?
       profil_user = u.profil_user.first

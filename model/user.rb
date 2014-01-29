@@ -123,11 +123,14 @@ class User < Sequel::Model(:user)
       select_json_array!(:emails, {:email__id => "i_id", :email__adresse => "adresse"}).
       select_json_array!(:telephones, {:telephone__id => "i_id", :telephone__numero => "numero"}).
       select_json_array!(:profils, {:profil_national__description => "libelle", :etablissement__nom => "nom"}).
+      select_json_array!(:regroupements,{:regroupement__id =>"i_id", :regroupement__libelle_aaf => "libelle", :regroupement__type_regroupement_id => "type"}).
       left_join(:email, :email__user_id => :user__id).
       left_join(:telephone, :telephone__user_id => :user__id).
       left_join(:profil_user, :profil_user__user_id => :user__id).
       left_join(:etablissement, :etablissement__id => :etablissement_id).
       left_join(:profil_national, :id => :profil_user__profil_id).
+      left_join(:eleve_dans_regroupement, :eleve_dans_regroupement__user_id => :user__id).
+      left_join(:regroupement, :regroupement__id => :eleve_dans_regroupement__regroupement_id).
       group(:user__id)
   end
 

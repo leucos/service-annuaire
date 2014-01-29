@@ -223,12 +223,13 @@ class EtabApi < Grape::API
         optional :etablissement, type: String, desc: "Nom de l'établissement dans lequel est l'utilisateur"
         optional :user_id, type: String
       end 
-    end 
+    end
     get "/:id/users" do
       etab = Etablissement[:code_uai => params[:id]]
       authorize_activites!([ACT_READ, ACT_MANAGE], etab.ressource, SRV_USER)
       accepted_fields = {
-        prenom: :prenom, nom: :user__nom, login: :login, etablissement: :etablissement__nom, id: :user__id, id_ent: :id_ent, profil_id: :profil_user__profil_id, profil: :profil_national__description
+        prenom: :prenom, nom: :user__nom, login: :login, etablissement: :etablissement__nom, id: :user__id, 
+        id_ent: :id_ent, profil_id: :profil_user__profil_id, profil: :profil_national__description, regroupement_id: :regroupement__libelle_aaf
       }
 
       dataset = User.search_all_dataset()
