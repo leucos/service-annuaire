@@ -1058,13 +1058,22 @@ class EtabApi < Grape::API
       desc "lister les matieres enseignees dans letablissement"
       params do 
         requires :id, type: String
+        optional :query, type:String # values all or exculde
+        # all: toutes les matieres de l'academie
+        # exclude: toutes les matieres non enseignées dans l'etablissement
       end
       get "/:id/matieres" do
-        etab = Etablissement[:code_uai => params[:id]]
-        JSON.pretty_generate(etab.matieres)
-      end   
+        if params[:query].nil? # retourner les matieres enseignées dans l'etablissement
+          etab = Etablissement[:code_uai => params[:id]]
+          JSON.pretty_generate(etab.matieres)
+        elsif params[:query] == "all"
+          JSON.pretty_generate(MatiereEnseignee.naked.all)
+        elsif params[:query] == "exclude"
+          etab = Etablissement[:code_uai => params[:id]]
+          JSON.pretty_generate(MatiereEnseignee.exclude_where(:id => etab.matieres.collect{|mat| mat[:id]}).naked.all)
+        end
+      end 
  
-
     ##############################################################################
     #                     Gestion des groupes d'eleves                           #
     ##############################################################################

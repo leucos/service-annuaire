@@ -135,6 +135,11 @@ class Etablissement < Sequel::Model(:etablissement)
     .join(:matiere_enseignee, :matiere_enseignee__id => :matiere_enseignee_id).distinct.naked.all
   end
 
+
+  def add_matieres(matiere_id)
+    
+  end
+
   def contacts
     
     ds1 = User.join(:role_user, :user_id =>:user__id).filter(:role_id =>["ADM_ETB", "TECH"], :role_user__etablissement_id => self.id).join(:role, :id => :role_user__role_id)
@@ -177,10 +182,6 @@ class Etablissement < Sequel::Model(:etablissement)
       all   
   end
 
-  # matieres enseignées dans l'etablissement  
-  def matieres_enseignees
-
-  end
 
   # all (eleves) dans l'etablissement 
   def eleves
