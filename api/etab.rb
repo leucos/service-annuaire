@@ -2141,6 +2141,7 @@ class EtabApi < Grape::API
       error!("ressource non trouvee", 404) if etab.nil?
       ApplicationEtablissement.filter(:etablissement_id => etab.id)
       .join(:application, :application__id => :application_id)
+      .select(:application_id, :etablissement_id,:application_etablissement__active, :id, :libelle, :description, :url)
       .naked.all
     end  
     ##############################################################################
