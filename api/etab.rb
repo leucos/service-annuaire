@@ -346,29 +346,48 @@ class EtabApi < Grape::API
     end
 
     ##############################################################################
+    # we have 2 types de supprission
+    #
     desc "Delete a list of users from the etablissement"
-    delete "/:id/users/list/:ids" do 
-      begin 
+    params do
+      optional :total, type:Boolean
+    end
+    delete "/:id/users/list/:ids" do
+      begin
         # transform checked to JSON
         checked_users = JSON.parse(params[:checked])
         #puts checked_users.inspect
         etab = Etablissement[:code_uai => params[:id]]
-        checked_users.each do |item|
-          if item["val"] == true
-            user = User[:id => item["id"]]
-            #puts user  
-            if user
-              authorize_activites!([ACT_DELETE, ACT_MANAGE], user.ressource)  
-              #puts "#{user.nom} user will be delete"
-              user.destroy
-            end # end loop
-          end 
-        end # end loop
-        "ok"     
+        if (params[:total]== true || params[:total].nil?)
+          checked_users.each do |item|
+            if item["val"] == true
+              user = User[:id => item["id"]]
+              #puts user
+              if user
+                authorize_activites!([ACT_DELETE, ACT_MANAGE], user.ressource)
+                #puts "#{user.nom} user will be delete"
+                user.destroy
+              end # end loop
+            end
+          end # end loop
+        else
+          checked_users.each do |item|
+            if item["val"] == true
+              user = User[:id => item["id"]]
+              #puts user
+              if user
+                authorize_activites!([ACT_DELETE, ACT_MANAGE], user.ressource)
+                # only removes user from etablissement
+                etab.remove_user(user.id)
+              end # end loop
+            end
+          end # end loop
+        end
+        "ok"
       rescue => e
         error!(e.message, 400)
-      end 
-    end 
+      end
+    end
     ##############################################################################
     desc "get the list of (eleves libres) which are not in any class"
     params do 
