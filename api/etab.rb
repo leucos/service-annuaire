@@ -246,13 +246,14 @@ class EtabApi < Grape::API
     desc "get user infon in the etablissement"
     params do 
       requires :id, type:String
-      requires :user_id, type:String 
+      requires :user_id #, type:String 
       #optional :expand, type:Boolean
     end
 
     get "/:id/users/:user_id"  do 
       etab = Etablissement[:code_uai => params[:id]]
-      user = User[:id_ent => params[:user_id]]
+      user = User[:id_ent => params[:user_id]]||User[:id =>params[:user_id]]
+      #user = User.where(Sequel.|({:id_ent => params[:user_id]}, (:id => params[:user_id])))
       authorize_activites!([ACT_READ, ACT_MANAGE], user.ressource)
        if params[:expand] == "true"
         present user, with: API::Entities::DetailedUser
