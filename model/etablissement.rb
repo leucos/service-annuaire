@@ -228,4 +228,15 @@ class Etablissement < Sequel::Model(:etablissement)
   def remove_user(user_id)
     ProfilUser.join(:user, :id => :user_id).filter(:user_id => user_id, :etablissement_id => self.id).destroy
   end
+
+  # Merge 2 accounts in one account
+  def merge_accounts(user1, user2, newUser)
+    DB.transaction do  
+      user = new User() 
+      user.nom = newUser.nom
+      user.prenom = newUser.prenom
+      user.login = newUser.login
+      user.save
+    end 
+  end
 end

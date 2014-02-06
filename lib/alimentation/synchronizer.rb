@@ -132,7 +132,6 @@ module Alimentation
     
 
     #private
-    
     def sync_delta()
       puts "sync_delta is called"
       # database should not be emptied

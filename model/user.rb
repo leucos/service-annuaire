@@ -104,12 +104,6 @@ class User < Sequel::Model(:user)
     return final_login
   end
 
-
-  # is default password
-  def is_default_pass?
-    return self.password == self.id_jointure_aaf
-  end 
-
   # Renvois un dataset utilisé pour faire une recherche sur tous les utilisateurs
   # Et formaté pour renvoyé le résultat en JSON
   def self.search_all_dataset
@@ -250,6 +244,17 @@ class User < Sequel::Model(:user)
   # Utilise l'algorithme BCrypt pour haser le mot de passe
   def password= (pass)
     super(BCrypt::Password.create(pass))
+  end
+
+  # is default password
+  def is_default_pass?
+    return self.password == self.id_ent+"#{self.id_jointure_aaf}"
+  end
+
+  # function initialize passward
+  def initialize_password
+    self.password = self.id_ent+"#{self.id_jointure_aaf}"
+    self.save
   end
 
   # Renvois toutes les relation_eleve dans lequel est impliqué l'utilisateur

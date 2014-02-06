@@ -490,6 +490,19 @@ class UserApi < Grape::API
     end
 
     ##############################################################################
+    # réintialization du mot de pass 
+    desc "reinitializer le mot de pass par defaut d'un utilisateur"
+    post ":user_id/password/initialize" do
+      # authenticated_user
+      user = check_user!()
+      error!("Utilisateur non trouvé", 404) if user.nil?
+      # current user is authorized to modify user password
+      authorize_activites!([ACT_MANAGE, ACT_UPDATE], user.ressource)
+      user.initialize_password
+      user
+    end
+    ##############################################################################
+    
     desc "Simple service permettant de savoir si un login est disponible et valide"
     params do
       requires :login, type: String

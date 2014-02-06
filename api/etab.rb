@@ -347,8 +347,54 @@ class EtabApi < Grape::API
     end
 
     ##############################################################################
+    # réintialization du mot de pass 
+    desc "reinitializer le mot de pass par defaut d'un utilisateur"
+    post ":id/users/:user_id/password/initialize" do
+      # authenticated_user
+      etab = Etablissement[:code_uai => params[:id]]
+      user = User[:id_ent => params[:user_id]]
+      error!("Utilisateur non trouvé", 404) if user.nil?
+      # current user is authorized to modify user password
+      authorize_activites!([ACT_MANAGE, ACT_UPDATE], user.ressource)
+      user.initialize_password
+      user
+    end
+
+    ##############################################################################
+    # Merge accounts  ###################
+    #########################################
+    desc "Merge two accounts in on"
+    params do
+      #required :user1_id
+      #required :user2_id
+      #required :new_user
+    end 
+    post "/:id/users/merge/accounts/:user1_id/:user2_id" do 
+      # Start a transaction
+      etab = Etablissement[:code_uai => params[:id]]
+      puts request.params.inspect
+      user1 = User[params[:user1_id]]
+      user2 = User[params[:user2_id]]
+      authorize_activites!([ACT_DELETE, ACT_MANAGE], user1.ressource)
+      authorize_activites!([ACT_DELETE, ACT_MANAGE], user2.ressource)
+      newUserHash = params[:new_user].to_hash
+      puts newUserHash
+      puts newUserHash["nom"]
+      puts newUserHash["prenom"]
+      DB.transaction do
+        # create a new user
+        nom = newUserHash["nom"]
+        prenom = newUserHash["prenom"]
+        login = User.find_available_login(prenom,nom)
+        user = User.create(:nom => nom, :prenom => prenom, :login => login)
+        # update new user info
+        # delete first account
+        # delete second account
+      end
+    end
+    ##############################################################################
     # we have 2 types de supprission
-    #
+    ##############################################################################
     desc "Delete a list of users from the etablissement"
     params do
       optional :total, type:Boolean
