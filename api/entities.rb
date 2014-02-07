@@ -6,6 +6,7 @@ module API
       expose :id, :id_sconet, :login, :id_jointure_aaf,  :nom, :prenom, :sexe, :id_ent, :date_naissance, :adresse, :code_postal, :ville
       expose(:full_name) {|user,options| user.full_name} 
       expose(:profils) {|user,options| user.profil_user_display}
+      expose(:default_password){|user,options| user.is_default_pass?}
       expose(:roles){|user,options| user.role_user_display}
       expose :email, :as => :emails
       # etablissement + rights + profils
