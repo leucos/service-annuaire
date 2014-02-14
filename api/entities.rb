@@ -55,7 +55,10 @@ module API
             :groupes_eleves => enfant.groupes_display, :groupes_libres => enfant.groupes_libres})
         end
         a
-      end     
+      end
+      expose(:relations) do |user,options|
+        user.relations
+      end
     end
 
     class SimpleUser < Grape::Entity

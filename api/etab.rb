@@ -381,16 +381,100 @@ class EtabApi < Grape::API
       puts newUserHash
       puts newUserHash["nom"]
       puts newUserHash["prenom"]
+      puts newUserHash["classes"]
       DB.transaction do
-        # create a new user
-        nom = newUserHash["nom"]
-        prenom = newUserHash["prenom"]
-        login = User.find_available_login(prenom,nom)
-        user = User.create(:nom => nom, :prenom => prenom, :login => login)
+        # modify destination user 
+        destination_user = User[:id => newUserHash["id"]]
+        source_user = user1 == destination_user ? user2 : user1 
+
+        puts destination_user.id
+        puts source_user.id
+
+        destination_user.nom = newUserHash["nom"]
+        destination_user.prenom = newUserHash["prenom"]
+        destination_user.login = newUserHash["login"]
+        destination_user.date_naissance = newUserHash["date_naissance"]
+        destination_user.ville = newUserHash["ville"]
+        destination_user.adresse = newUserHash["adresse"]
+        destination_user.save
+
+        
+        # add profils
+        destination_user.profil_user_dataset.destroy
+        profils = newUserHash["profils"]
+        profils.each do |profil|
+          profil = profil.to_hash
+          destination_user.add_profil(profil["etablissement_id"], profil["profil_id"])
+          puts "profil #{profil['profil_id']} ajouté"
+        end
+
+        # add roles 
+        destination_user.role_user_dataset.destroy
+        roles = newUserHash["roles"]
+        roles.each do |role|
+          role = role.to_hash
+          destination_user.add_role(role["etablissement_id"], role["role_id"])
+        end
+
+        # add emails
+        emails = newUserHash["emails"]
+        emails.each do |email|
+          email = email.to_hash
+          if !destination_user.has_email(email["adresse"])
+            destination_user.add_email(email["adresse"], email["academique"])
+          end
+        end
+
+        # add telephones
+        telephones = newUserHash["telephones"]
+        telephones.each do |telephone|
+          telephone = telephone.to_hash
+          destination_user.add_telephone(telephone["numero"], telephone["type_telephone_id"])
+        end
+
+        # add parents
+        parents = newUserHash["parents"]
+        parents.each do |parent|
+          puts parent
+        end
+
+        # add groupe eleves
+        groupes_eleves = newUserHash["groupes_eleves"]
+        groupes_eleves.each do |groupe|
+          puts groupe
+        end
+
+        #add classes 
+        classes = newUserHash["classes"]
+        classes.each do |classe|
+          if destination_user.is_eleve?
+            # add eleve to classe 
+          elsif destination_user.is_enseignant?
+            # add enseignant to class 
+          else
+          end  
+        end
+
+        groupes_libres = newUserHash["groupes_libres"]
+        groupes_libres.each do |groupe|
+          puts groupe
+        end 
+
+
+
+        #destination_user.save
+        #source_user.destroy
+
+
+        # delete source user or destination
+
+
+        # user = User.create(:nom => nom, :prenom => prenom, :login => login)
         # update new user info
         # delete first account
         # delete second account
       end
+      "ok"
     end
     ##############################################################################
     # we have 2 types de supprission

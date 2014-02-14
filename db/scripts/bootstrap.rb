@@ -310,7 +310,7 @@ def bootstrap_annuaire()
   # http://eduscol.education.fr/cid57076/l-annuaire-ent-second-degre-et-son-alimentation-automatique.html
 
   Profil.create(:id => 'ELV', :description => 'Elève', :code_national => 'National_ELV', :role_id => ROL_ELV_ETB)
-  Profil.create(:id => 'ETA', :description => 'Personnel adminstartif, technique ou d\'encadrement', :code_national => 'National_ETA', :role_id => ROL_PROF_ETB)
+  Profil.create(:id => 'ETA', :description => 'Personnel administartif, technique ou d\'encadrement', :code_national => 'National_ETA', :role_id => ROL_PROF_ETB)
   Profil.create(:id => 'TUT', :description => "Responsable d'un élève", :code_national => 'National_TUT', :role_id => ROL_PAR_ETB) #role à revoir
   Profil.create(:id => 'DIR', :description => "Personel de direction de l'etablissement", :code_national => 'National_DIR', :role_id => ROL_DIR_ETB)
   Profil.create(:id => 'ENS', :description => 'Enseignant', :code_national => 'ENS', :code_national => 'National_ENS', :role_id => ROL_PROF_ETB)

@@ -713,6 +713,18 @@ class User < Sequel::Model(:user)
     end
   end
 
+  def is_eleve?
+    ProfilUser.filter(:user_id => self.id, :profil_id =>PRF_ELV).empty? ? false : true
+  end
+
+  def is_tuteur?
+    ProfilUser.filter(:user_id => self.id, :profil_id =>PRF_PAR).empty? ? false : true
+  end
+
+  def is_enseignant?
+    ProfilUser.filter(:user_id => self.id, :profil_id =>PRF_ENS).empty? ? false : true
+  end
+  
 private
   
   def regroupements(etablissement_id, type_id)
