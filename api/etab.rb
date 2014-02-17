@@ -432,34 +432,59 @@ class EtabApi < Grape::API
           destination_user.add_telephone(telephone["numero"], telephone["type_telephone_id"])
         end
 
-        # add parents
+        # add groupe eleves
+        # example groupe eleve profil eleve
+        # etablissement_code="0690078K" etablissement_id=4813 etablissement_nom="CLG-VAL D'ARGENT" groupe_id=49 groupe_libelle="6ANGLGR2"
+        destination_user.eleve_dans_regroupement_dataset.destroy
+        destination_user.enseigne_dans_regroupement_dataset.destroy
+        groupes_eleves = newUserHash["groupes_eleves"]
+        groupes_eleves.each do |groupe|
+          if destination_user.is_eleve?
+            destination_user.add_to_regroupement(groupe.groupe_id)
+          elsif destination_user.is_enseignant? || destination_user.is_tuteur?
+            regroupement = Regroupement[:id => groupe.groupe_id]
+            regroupement.add_prof(destination_user, groupe.matiere_enseignee_id)
+          end
+        end
+
+        # add classes
+        # example classe profil enseignant.
+        # classe_id=5 classe_libelle="5B" etablissement_code="0690078K" etablissement_id=4813 etablissement_nom="CLG-VAL D'ARGENT" matiere_enseignee_id="070800"
+        # matiere_libelle="TECHNOLOGIE" prof_principal="N"
+        # example classe profil eleve or tuteur
+        # classe_id=4 classe_libelle="6D" etablissement_code="0690078K" etablissement_id=4813 etablissement_nom="CLG-VAL D'ARGENT"
+        # destroy user classes
+        classes = newUserHash["classes"]
+        classes.each do |classe|
+          # if user is eleve
+          if destination_user.is_eleve?
+            # add eleve to classe
+            destination_user.add_to_regroupement(classe.classe_id)
+          elsif destination_user.is_enseignant? || destination_user.is_tuteur?
+            # add enseignant to class
+            if classe.matiere_enseignee_id != nil
+              regroupement = Regroupement[:id => classe.classe_id]
+              regroupement.add_prof(destination_user, classe.matiere_enseignee_id, classe.prof_principal)
+            end
+          end
+        end
+
+        # add groupes libres
+        destination_user.membre_regroupement_libre_dataset.destroy
+        groupes_libres = newUserHash["groupes_libres"]
+        groupes_libres.each do |groupe|
+          destination_user.add_to_groupe_libre(groupe.regroupement_libre_id)
+        end
+
+        enfants = newUserHash["enfants"]
+        enfants.each do |enfant|
+          puts enfant
+        end
+
         parents = newUserHash["parents"]
         parents.each do |parent|
           puts parent
         end
-
-        # add groupe eleves
-        groupes_eleves = newUserHash["groupes_eleves"]
-        groupes_eleves.each do |groupe|
-          puts groupe
-        end
-
-        #add classes 
-        classes = newUserHash["classes"]
-        classes.each do |classe|
-          if destination_user.is_eleve?
-            # add eleve to classe 
-          elsif destination_user.is_enseignant?
-            # add enseignant to class 
-          else
-          end  
-        end
-
-        groupes_libres = newUserHash["groupes_libres"]
-        groupes_libres.each do |groupe|
-          puts groupe
-        end 
-
 
 
         #destination_user.save
@@ -1775,18 +1800,13 @@ class EtabApi < Grape::API
       user = User[:id_ent => params[:user_id]]
       error!("ressource non trouvee", 404) if user.nil?
       
-      begin 
-        membre = MembreRegroupementLibre[:user_id => user.id, :regroupement_libre_id => groupe.id]
-        if membre 
-          membre
-        else 
-          MembreRegroupementLibre.create(:user_id => user.id, :regroupement_libre_id => groupe.id, :joined_at => DateTime.now)
-        end   
-      rescue => e 
+      begin
+        user.add_to_groupe_libre(groupe.id)
+      rescue => e
         puts e.message
         error!("mouvaise requete", 400)
-      end    
-    end 
+      end
+    end
 
      ##############################################################################
     desc "supprimer un membre du groupe"

@@ -724,6 +724,15 @@ class User < Sequel::Model(:user)
   def is_enseignant?
     ProfilUser.filter(:user_id => self.id, :profil_id =>PRF_ENS).empty? ? false : true
   end
+
+  def add_to_groupe_libre(groupe_id)
+    membre = MembreRegroupementLibre[:user_id => self.id, :regroupement_libre_id => groupe_id]
+    if membre
+      membre
+    else
+      MembreRegroupementLibre.create(:user_id => self.id, :regroupement_libre_id => groupe_id, :joined_at => DateTime.now)
+    end
+  end
   
 private
   
