@@ -442,8 +442,10 @@ class EtabApi < Grape::API
           if destination_user.is_eleve?
             destination_user.add_to_regroupement(groupe.groupe_id)
           elsif destination_user.is_enseignant? || destination_user.is_tuteur?
-            regroupement = Regroupement[:id => groupe.groupe_id]
-            regroupement.add_prof(destination_user, groupe.matiere_enseignee_id)
+            if groupe.matiere_enseignee_id != nil
+              regroupement = Regroupement[:id => groupe.groupe_id]
+              regroupement.add_prof(destination_user, groupe.matiere_enseignee_id)
+            end
           end
         end
 
@@ -478,11 +480,13 @@ class EtabApi < Grape::API
 
         enfants = newUserHash["enfants"]
         enfants.each do |enfant|
+          puts "##enfants ##"
           puts enfant
         end
 
         parents = newUserHash["parents"]
         parents.each do |parent|
+          puts "##parents##"
           puts parent
         end
 

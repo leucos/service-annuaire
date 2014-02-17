@@ -51,15 +51,15 @@ class User < Sequel::Model(:user)
   one_to_many :membre_regroupement_libre
 
   # Liste de tous les élèves avec qui l'utilisateur est en relation
-  many_to_many :relation_eleve, :left_key => :user_id, :right_key => :eleve_id, 
-    :join_table => :relation_eleve, :class => self
+  #many_to_many :relation_eleve, :left_key => :user_id, :right_key => :eleve_id, 
+    #:join_table => :relation_eleve, :class => self
   many_to_many :enfants, :left_key => :user_id, :right_key => :eleve_id, 
     :join_table => :relation_eleve, :class => self do |ds|
       ds.where(:type_relation_eleve_id => [TYP_REL_PERE, TYP_REL_MERE])
     end
   # Liste de tous les utilisateurs (adultes) avec qui l'élève est en relation
-  many_to_many :relation_adulte, :left_key => :eleve_id, :right_key => :user_id, 
-    :join_table => :relation_eleve, :class => self
+  #many_to_many :relation_adulte, :left_key => :eleve_id, :right_key => :user_id, 
+    #:join_table => :relation_eleve, :class => self
   # Liste de tous les parents d'un élève
   many_to_many :parents, :left_key => :eleve_id, :right_key => :user_id, 
     :join_table => :relation_eleve, :class => self do |ds|
@@ -259,7 +259,21 @@ class User < Sequel::Model(:user)
 
   # Renvois toutes les relation_eleve dans lequel est impliqué l'utilisateur
   def relations
-    RelationEleve.filter({:eleve_id => self.id, :user_id => self.id}.sql_or).all
+    RelationEleve.join(:type_relation_eleve, :id => :type_relation_eleve_id).filter({:eleve_id => self.id, :user_id => self.id}.sql_or).naked.all
+  end
+
+  def relations_adultes
+    RelationEleve.join(:type_relation_eleve, :type_relation_eleve__id => :type_relation_eleve_id)
+    .join(:user, :user__id => :relation_eleve__user_id)
+    .filter(:eleve_id => self.id).select(:type_relation_eleve_id, :resp_financier, :resp_legal, :contact, :paiement, :description, :libelle, :id_ent, :nom, :prenom)
+    .naked.all
+  end
+
+  def relations_eleves
+    RelationEleve.join(:type_relation_eleve, :type_relation_eleve__id => :type_relation_eleve_id)
+    .join(:user, :user__id => :relation_eleve__eleve_id)
+    .filter(:user_id => self.id).select(:type_relation_eleve_id, :resp_financier, :resp_legal, :contact, :paiement, :description, :libelle, :id_ent, :nom, :prenom)
+    .naked.all
   end
 
   def find_relation(eleve)

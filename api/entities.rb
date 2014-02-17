@@ -56,8 +56,12 @@ module API
         end
         a
       end
-      expose(:relations) do |user,options|
-        user.relations
+      expose(:relations_eleves) do |user,options|
+        user.relations_eleves
+      end
+
+      expose(:relations_adultes) do |user, options|
+        user.relations_adultes
       end
     end
 
