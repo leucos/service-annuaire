@@ -28,4 +28,12 @@ class RelationEleve < Sequel::Model(:relation_eleve)
     # Il faut s'assurer que l'eleve_id qu'on rajoute n'a pas un profil autre que eleve dans un etablissement
     # et que le user_id n'a pas de profil eleve dans un etablissement
   end
+
+  def self.delete_relation_eleve(eleve_id)
+    self.filter(:eleve_id => eleve_id).destroy
+  end
+
+  def self.delete_relation_parent(parent_id)
+    self.filter(:user_id => parent_id).destroy
+  end
 end

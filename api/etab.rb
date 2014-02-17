@@ -478,26 +478,35 @@ class EtabApi < Grape::API
           destination_user.add_to_groupe_libre(groupe.regroupement_libre_id)
         end
 
+        # add parents
+        # example parent 
+        # contact=true description="Père" id_ent="VAA61236" libelle="PERE" nom="ACHIN" paiement=false prenom="Guillaume" resp_financier=false resp_legal=true type_relation_eleve_id=1 
+        if destination_user.is_eleve?
+          RelationEleve.delete_relation_eleve(destination_user.id)
+          parents = newUserHash["parents"]
+          parents.each do |parent|
+            p = User[:id_ent => parent.id_ent] 
+            destination_user.add_parent(p, parent.type_relation_eleve_id, parent.resp_financier, parent.resp_legal, parent.contact, parent.paiement)
+          end
+        end  
+
+
         enfants = newUserHash["enfants"]
-        enfants.each do |enfant|
-          puts "##enfants ##"
-          puts enfant
-        end
-
-        parents = newUserHash["parents"]
-        parents.each do |parent|
-          puts "##parents##"
-          puts parent
-        end
-
+        if !destination_user.is_eleve?
+          RelationEleve.delete_relation_parent(destination_user.id)
+          enfants.each do |enfant|
+            puts "##enfants ##"
+            e = User[:id_ent => enfant.id_ent]
+            RelationEleve.create(:user_id => destination_user.id, :eleve_id => e.id, 
+              :type_relation_eleve_id => enfant.type_relation_eleve_id, :resp_financier => enfant.resp_financier, 
+              :resp_legal => enfant.resp_legal, :contact => enfant.contact, :paiement => enfant.paiement) 
+            puts enfant
+          end
+        end  
 
         #destination_user.save
         #source_user.destroy
-
-
         # delete source user or destination
-
-
         # user = User.create(:nom => nom, :prenom => prenom, :login => login)
         # update new user info
         # delete first account
