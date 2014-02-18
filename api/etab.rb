@@ -2,6 +2,7 @@
 require 'grape-swagger'
 require 'rack/test'
 require 'net/http'
+require 'rest_client'
 class EtabApi < Grape::API
   prefix 'api'
   version 'v1', :using => :param, :parameter => "v"
@@ -498,9 +499,11 @@ class EtabApi < Grape::API
         etab.applications.each do |app|
           puts app[:url]
           if !app[:url].nil? || app[:url] != ""
-            uri = URI("http://www.dev.laclasse.com/api"+app[:url]+"/users/"+destination_user.id_ent+"/merge/"+source_user.id_ent)
-            res = Net::HTTP.post_form(uri, {})
-            puts res
+            begin
+                RestClient.put("http://www.dev.laclasse.com/api"+app[:url]+"/users/"+destination_user.id_ent+"/merge/"+source_user.id_ent,{})
+            rescue => e
+                puts e.response
+            end
           end
         end
       end
