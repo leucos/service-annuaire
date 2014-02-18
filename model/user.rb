@@ -729,6 +729,7 @@ class User < Sequel::Model(:user)
 
   def is_eleve?
     ProfilUser.filter(:user_id => self.id, :profil_id =>PRF_ELV).empty? ? false : true
+    #ou role 
   end
 
   def is_tuteur?
@@ -746,6 +747,41 @@ class User < Sequel::Model(:user)
     else
       MembreRegroupementLibre.create(:user_id => self.id, :regroupement_libre_id => groupe_id, :joined_at => DateTime.now)
     end
+  end
+
+
+  # Actuellement le traitement est statique
+  # donc, si on ajoute des roles ...? 
+  def responsableOf
+    ids = []
+    self.role_user.each do |role|
+      if role[:role_id]=="TECH"
+        ids = ProfilUser.join(:user, :id => :user_id).filter(:profil_id => "ELV")
+            .select(:id_ent).naked.all.map{|r| r[:id_ent]}
+        #profil eleve only
+      elsif role[:role_id]=="ELV_ETB"
+        ids
+      elsif role[:role_id]=="PROF_ETB"
+        classes = self.enseigne_classes_display
+        eleves = []
+        classes.each do |c|
+          eleves = eleves.concat(Regroupement[c[:classe_id]].eleves.map{|r| r[:id_ent]})
+        end
+        groupes=self.enseigne_groupes_display
+        groupes.each do |g|
+          eleves = eleves.concat(Regroupement[g[:groupe_id]].eleves.map{|r| r[:id_ent]})
+        end
+        ids = ids.concat(eleves)
+        # retourner les eleve dans ses classe/groupe
+      elsif role[:role_id]=="ADM_ETB" || role[:role_id]=="DIR_ETB"||role[:role_id]=="CPE_ETB" ||role[:role_id]=="AVS_ETB"
+        etab = Etablissement[:id => role[:etablissement_id]]
+        eleves = etab.eleves.map{|r| r[:id_ent]}
+        ids = ids.concat(eleves) 
+      elsif role[:role_id] =="PAR_ETB"
+        ids
+      end
+    end
+    ids.uniq
   end
   
 private

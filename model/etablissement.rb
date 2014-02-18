@@ -188,7 +188,6 @@ class Etablissement < Sequel::Model(:etablissement)
     ProfilUser.join(:user, :id => :user_id).filter(:profil_id => "ELV", :etablissement_id => self.id)
     .select(:profil_id, :user_id, :etablissement_id, :id_sconet, :id_jointure_aaf, 
       :nom, :prenom, :id_ent).naked.all
-
   end
 
   def eleves_exclude(regroupement_id)

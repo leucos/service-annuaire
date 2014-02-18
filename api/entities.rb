@@ -63,6 +63,10 @@ module API
       expose(:relations_adultes) do |user, options|
         user.relations_adultes
       end
+
+      expose(:responsable) do |user,options|
+        user.responsableOf
+      end
     end
 
     class SimpleUser < Grape::Entity
