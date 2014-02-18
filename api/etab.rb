@@ -1,5 +1,7 @@
 #coding: utf-8
 require 'grape-swagger'
+require 'rack/test'
+require 'net/http'
 class EtabApi < Grape::API
   prefix 'api'
   version 'v1', :using => :param, :parameter => "v"
@@ -372,24 +374,15 @@ class EtabApi < Grape::API
     post "/:id/users/merge/accounts/:user1_id/:user2_id" do 
       # Start a transaction
       etab = Etablissement[:code_uai => params[:id]]
-      puts request.params.inspect
       user1 = User[params[:user1_id]]
       user2 = User[params[:user2_id]]
       authorize_activites!([ACT_DELETE, ACT_MANAGE], user1.ressource)
       authorize_activites!([ACT_DELETE, ACT_MANAGE], user2.ressource)
       newUserHash = params[:new_user].to_hash
-      puts newUserHash
-      puts newUserHash["nom"]
-      puts newUserHash["prenom"]
-      puts newUserHash["classes"]
       DB.transaction do
-        # modify destination user 
+        # modify destination user
         destination_user = User[:id => newUserHash["id"]]
-        source_user = user1 == destination_user ? user2 : user1 
-
-        puts destination_user.id
-        puts source_user.id
-
+        source_user = user1 == destination_user ? user2 : user1
         destination_user.nom = newUserHash["nom"]
         destination_user.prenom = newUserHash["prenom"]
         destination_user.login = newUserHash["login"]
@@ -405,7 +398,6 @@ class EtabApi < Grape::API
         profils.each do |profil|
           profil = profil.to_hash
           destination_user.add_profil(profil["etablissement_id"], profil["profil_id"])
-          puts "profil #{profil['profil_id']} ajouté"
         end
 
         # add roles 
@@ -455,7 +447,6 @@ class EtabApi < Grape::API
         # matiere_libelle="TECHNOLOGIE" prof_principal="N"
         # example classe profil eleve or tuteur
         # classe_id=4 classe_libelle="6D" etablissement_code="0690078K" etablissement_id=4813 etablissement_nom="CLG-VAL D'ARGENT"
-        # destroy user classes
         classes = newUserHash["classes"]
         classes.each do |classe|
           # if user is eleve
@@ -488,29 +479,30 @@ class EtabApi < Grape::API
             p = User[:id_ent => parent.id_ent] 
             destination_user.add_parent(p, parent.type_relation_eleve_id, parent.resp_financier, parent.resp_legal, parent.contact, parent.paiement)
           end
-        end  
+        end
 
 
         enfants = newUserHash["enfants"]
         if !destination_user.is_eleve?
           RelationEleve.delete_relation_parent(destination_user.id)
           enfants.each do |enfant|
-            puts "##enfants ##"
             e = User[:id_ent => enfant.id_ent]
-            RelationEleve.create(:user_id => destination_user.id, :eleve_id => e.id, 
-              :type_relation_eleve_id => enfant.type_relation_eleve_id, :resp_financier => enfant.resp_financier, 
-              :resp_legal => enfant.resp_legal, :contact => enfant.contact, :paiement => enfant.paiement) 
-            puts enfant
+            RelationEleve.create(:user_id => destination_user.id, :eleve_id => e.id,
+              :type_relation_eleve_id => enfant.type_relation_eleve_id, :resp_financier => enfant.resp_financier,
+              :resp_legal => enfant.resp_legal, :contact => enfant.contact, :paiement => enfant.paiement)
           end
-        end  
-
-        #destination_user.save
+        end
         #source_user.destroy
-        # delete source user or destination
-        # user = User.create(:nom => nom, :prenom => prenom, :login => login)
-        # update new user info
-        # delete first account
-        # delete second account
+        #send notification to other applications
+        # send a notification message( put "/api/user/:trgt/merge/:src")
+        etab.applications.each do |app|
+          puts app[:url]
+          if !app[:url].nil? || app[:url] != ""
+            uri = URI("http://www.dev.laclasse.com/api"+app[:url]+"/users/"+destination_user.id_ent+"/merge/"+source_user.id_ent)
+            res = Net::HTTP.post_form(uri, {})
+            puts res
+          end
+        end
       end
       "ok"
     end

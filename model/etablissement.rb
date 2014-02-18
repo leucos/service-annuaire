@@ -200,7 +200,15 @@ class Etablissement < Sequel::Model(:etablissement)
     else 
       []
     end 
-  end  
+  end
+
+  def applications
+    self.application_etablissement_dataset.join(:application, :id => :application_id).naked.all
+  end
+
+  def active_applications
+    self.application_etablissement_dataset.join(:application, :id => :application_id).where(:application_etablissement__active => true).naked.all
+  end
 
   # (Eleves) that do not belong to any Class
   def eleves_libres
