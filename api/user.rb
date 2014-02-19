@@ -501,8 +501,8 @@ class UserApi < Grape::API
       user.initialize_password
       user
     end
-    ##############################################################################
     
+    ##############################################################################
     desc "Simple service permettant de savoir si un login est disponible et valide"
     params do
       requires :login, type: String

@@ -55,6 +55,39 @@ class  AuthApi
 	    Net::HTTP.get(URI.parse(url))
 	end
 
+	def self.sign(uri,service, args, secret_key, app_id)
+		timestamp = Time.now.getutc.strftime('%FT%T')
+		canonical_string = uri + '/' +  service +'?'
+
+		#sort hash 
+		parameters = Hash[args.sort]
+	   	canonical_string += parameters.collect{|key, value| [key.to_s, CGI::escape(value.to_s)].join('=')}.join('&')
+	   	canonical_string += ';' 
+	   	canonical_string += timestamp
+	   	canonical_string += ';'
+        canonical_string += app_id
+
+        puts canonical_string
+
+	    digest = OpenSSL::Digest::Digest.new('sha1')
+		digested_message = Base64.encode64(OpenSSL::HMAC.digest(digest, secret_key, canonical_string))
+	    
+	    query = args.collect{|key, value| [key.to_s, CGI::escape(value.to_s)].join('=')}.join('&')
+
+	    temp_args = {}
+	    temp_args['app_id'] = app_id
+	    temp_args['timestamp'] = timestamp
+	    temp_args['signature'] = digested_message
+
+	    #  puts "signed message "
+	    #  puts temp_args['signature'] 
+
+	    signature = temp_args.collect{|key, value| [key.to_s, CGI::escape(value.to_s)].join('=')}.join(';').chomp
+
+	    url = uri + '/' + service + '?' + query +";"+ signature
+	    return url
+	end
+
 	# returns uri of the rack request 
 	def self.url(request)
         url = request.scheme + "://"

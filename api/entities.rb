@@ -121,6 +121,7 @@ module API
 
     class DetailedRegroupement < Grape::Entity
       expose :id, :etablissement_id, :libelle, :libelle_aaf, :type_regroupement_id
+      expose(:niveau){|regroupement,options| regroupement.niveau}
       expose(:profs) {|regroupement,options| regroupement.profs}
       expose(:eleves) {|regroupement,options| regroupement.eleves}
     end

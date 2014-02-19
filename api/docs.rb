@@ -69,7 +69,7 @@ class DocsApi < Grape::API
   desc "return user information" 
   params do 
     requires :id, type:String
-    end
+  end
   
   get "/users/:id" do 
       user = User[:id_ent => params[:id]]
@@ -85,15 +85,23 @@ class DocsApi < Grape::API
       end  
   end
 
-
+  #############################################################################
+  desc "return users's ids for which a user is responsable"
+  params do 
+    requires :id, type:String
+  end
+  get "users/:id/responsableOf" do
+    user = User[:id_ent => params[:id]]
+    if !user.nil?
+      user.responsableOf
+    end
+  end
   #############################################################################
   desc "return A list of user informations" 
   params do 
     requires :ids, type:String
-  end
-  
-  get "/users/liste/:ids" do 
-    
+  end 
+  get "/users/liste/:ids" do   
     begin
       ids_array = params[:ids].split(';')
       liste = []
@@ -104,13 +112,36 @@ class DocsApi < Grape::API
           liste.push({id_ent:id, nom:user.nom, prenom:user.prenom, full_name:user.full_name})
         end 
       end
-      liste 
+      # return only uniq elements
+      liste.uniq 
     rescue => e
       error!("mouvaise requete", 404)
     end 
   end
 
-  ##############################################################################
+
+  desc "return a list of user informations"
+  params do 
+    requires :ids, type:String
+  end
+  post "/users/liste" do
+    begin
+      ids_array = params[:ids].split(';')
+      liste = []
+      ids_array.each  do |id|
+        user = User[:id_ent => id]
+        puts user 
+        if user
+          liste.push({id_ent:id, nom:user.nom, prenom:user.prenom, full_name:user.full_name})
+        end 
+      end
+      # return only uniq elements
+      liste.uniq 
+    rescue => e
+      error!("mouvaise requete", 404)
+    end
+  end
+  ##########################################################################Net::HTTP.get(URI.parse(url))####
   desc "return matiere id for libelle long"
   params do 
     requires :libelle, type:String
@@ -178,7 +209,11 @@ class DocsApi < Grape::API
   get "/regroupements/:id" do 
     regroupement = Regroupement[:id => params.id]
     if regroupement
-      regroupement 
+      if params[:expand] == "true"
+        present regroupement, with: API::Entities::DetailedRegroupement
+      else 
+        present regroupement, with: API::Entities::SimpleRegroupement
+      end
     else 
       error!("ressource non trouve", 404)
     end 

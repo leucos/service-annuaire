@@ -69,7 +69,7 @@ class Regroupement < Sequel::Model(:regroupement)
 
   #Les regroupement de type classe ont forcément un niveau
   def niveau
-    Niveau[niveau_id]
+    Niveau[self.code_mef_aaf].mef_libelle
   end
 
   def nb_membres
