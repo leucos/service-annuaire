@@ -23,6 +23,9 @@ http://localhost:9292/swagger_doc  url de documetation.
 Permet de manipuler les utilisateurs ainsi que leur ressources associés (numéro de téléphone, adresse, email, rattachements?)
 Ces APIs Nécessite une **authentification**.
 
+**Note importante:** pour les personnes ayantes les profils suivants: Direction etablissement,Documentatlist, Assistant vie scolaire, 
+on retourne tous les groupes et les classes dans l'etablissement dans le quel la personne a ce profil.
+
     1. GET /api/users/{user_id} Renvois le profil utilisateur si on donne le bon id.
     2. POST /api/users Service de <!-- création d'un utilisateur -->
     3. PUT /api/users/{user_id} Modification d'un compte utilisateur

@@ -458,6 +458,22 @@ class User < Sequel::Model(:user)
     .all
   end  
 
+  def cpe_groupes_display
+    profils_cpe = ProfilUser.filter(:user_id => self.id, :profil_id =>["DIR", "DOC", "EVS"]).all
+    groupes = []
+    if !profils_cpe.empty?
+      profils_cpe.each do |profil|
+        groupes = groupes.concat(
+          Regroupement.join(:etablissement, :etablissement__id => :regroupement__etablissement_id)
+          .filter(:regroupement__type_regroupement_id => 'GRP', :regroupement__etablissement_id => profil.etablissement_id)
+          .naked
+          .select(:code_uai___etablissement_code, :regroupement__id___groupe_id, :libelle_aaf___groupe_libelle, :nom___etablissement_nom, :etablissement_id)
+          .all
+          )
+      end
+    end
+    groupes
+  end
   #Groupes auxquel l'élève est inscrit
   def groupes_eleve(etablissement_id = nil)
     regroupement_eleve =  self.eleve_dans_regroupement.map do |eleve_regroupement|
@@ -508,8 +524,22 @@ class User < Sequel::Model(:user)
     .select(:code_uai___etablissement_code, :libelle_aaf___classe_libelle, :nom___etablissement_nom, 
       :matiere_enseignee_id, :libelle_long___matiere_libelle, :regroupement_id___classe_id, :etablissement_id, :prof_principal)
     .all
-  end 
+  end
 
+  def cpe_classes_display
+    profils_cpe = ProfilUser.filter(:user_id => self.id, :profil_id =>["DIR", "DOC", "EVS"]).all
+    classes = []
+    if !profils_cpe.empty?
+      profils_cpe.each do |profil|
+        classes = classes.concat(
+          Regroupement.join(:etablissement, :etablissement__id => :regroupement__etablissement_id).filter(:regroupement__type_regroupement_id => 'CLS', :regroupement__etablissement_id => profil.etablissement_id).naked
+          .select(:code_uai___etablissement_code, :regroupement__id___classe_id, :libelle_aaf___classe_libelle, :nom___etablissement_nom, :etablissement_id)
+          .all
+          )
+      end
+    end
+    classes
+  end
 
   def enseigne_groupes_display
     self.enseigne_dans_regroupement_dataset
@@ -545,11 +575,11 @@ class User < Sequel::Model(:user)
 
   # a function that returns classes for all profils
   def classes_display
-    enseigne_classes_display.concat(classes_eleve_display).concat(parent_classes_display)
+    enseigne_classes_display.concat(classes_eleve_display).concat(parent_classes_display).concat(cpe_classes_display)
   end 
 
   def groupes_display
-    enseigne_groupes_display.concat(groupes_eleve_display).concat(parent_groupes_display)
+    enseigne_groupes_display.concat(groupes_eleve_display).concat(parent_groupes_display).concat(cpe_groupes_display)
   end 
 
   # Groupes auxquel l'utilisateur enseinge
