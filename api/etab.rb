@@ -500,7 +500,7 @@ class EtabApi < Grape::API
           puts app[:url]
           if !app[:url].nil? || app[:url] != ""
             begin
-                RestClient.put("http://www.dev.laclasse.com/api"+app[:url]+"/users/"+destination_user.id_ent+"/merge/"+source_user.id_ent,{})
+                #RestClient.put("http://www.dev.laclasse.com/"+app[:url]+"/users/"+destination_user.id_ent+"/merge/"+source_user.id_ent,{})
             rescue => e
                 puts e.response
             end
