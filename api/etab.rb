@@ -493,7 +493,7 @@ class EtabApi < Grape::API
               :resp_legal => enfant.resp_legal, :contact => enfant.contact, :paiement => enfant.paiement)
           end
         end
-        #source_user.destroy
+        source_user.destroy
         #send notification to other applications
         # send a notification message( put "/api/user/:trgt/merge/:src")
         etab.applications.each do |app|
