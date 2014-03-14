@@ -40,9 +40,9 @@ module API
         user.groupes_libres 
       end
 
-      expose(:matieres_enseignees) do |user, options|
-        user.matieres_enseignees
-      end
+      #expose(:matieres_enseignees) do |user, options|
+        #user.matieres_enseignees
+      #end
 
       expose(:parents) do |user, options|
         user.parents
@@ -63,10 +63,6 @@ module API
       expose(:relations_adultes) do |user, options|
         user.relations_adultes
       end
-
-      expose(:responsable) do |user,options|
-        user.responsableOf
-      end
     end
 
     class SimpleUser < Grape::Entity
@@ -76,23 +72,7 @@ module API
       expose(:full_name) {|user,options| user.full_name}
       expose(:profils) {|user,options| user.profil_user_display}
       expose :telephone, :as => :telephones
-      expose :email, :as => :emails
-=begin
-      expose(:classes) do |user,options|
-        user.classes_display
-      end
-
-      expose(:groupes_eleve) do |user, options|
-        user.groupes_display
-      end
-
-      expose(:matieres_enseignees) do |user, options|
-        user.matieres_enseignees
-      end 
-      expose(:groupes_libres) do |user,options|
-        user.groupes_libres 
-      end 
-=end      
+      expose :email, :as => :emails      
     end
 
     class SimpleEtablissement < Grape::Entity 
