@@ -226,6 +226,11 @@ class DocsApi < Grape::API
     puts "Authenticated"
     puts AuthApi.authenticate(request) 
  
-  end 
+  end
 
+  ##############################################################################
+  desc " retourner la listed des profils  dans laclasse"
+  get "/profils" do
+    Profil.naked.all
+  end
 end #class
