@@ -115,10 +115,16 @@ class UserApi < Grape::API
     ##############################################################################
     # Supprime un utilisateur 
     desc "Supprission d'un compte utilisateur"
-    delete "/:user_id", :requirements => { :user_id => /.{8}/ } do
-      user = check_user!() 
-      authorize_activites!([ACT_DELETE, ACT_MANAGE], user.ressource)
-      user.destroy()
+    params do
+      requires :user_id, type:String
+    end
+    delete "/:user_id" do
+      user = check_user!()
+      if user
+        authorize_activites!([ACT_DELETE, ACT_MANAGE], user.ressource)
+        user.destroy()
+        puts "user deleted"
+      end
     end
 
     # Récupération des relations 

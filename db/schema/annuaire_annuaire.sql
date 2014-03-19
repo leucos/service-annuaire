@@ -100,6 +100,8 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`etablissement` (
   `data_received` TINYINT(1) NOT NULL DEFAULT 0 ,
   `site_url` VARCHAR(255) NULL ,
   `logo` VARCHAR(45) NULL ,
+  `last_alimentation` DATE NULL ,
+  `activate_alimentation` TINYINT(1) NULL ,
   INDEX `fk_etablissement_type_etablissement1` (`type_etablissement_id` ASC) ,
   PRIMARY KEY (`id`) ,
   CONSTRAINT `fk_etablissement_type_etablissement1`
@@ -321,6 +323,7 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`application` (
   `libelle` VARCHAR(255) NULL ,
   `description` VARCHAR(500) NULL ,
   `url` VARCHAR(45) NOT NULL ,
+  `active` TINYINT(1) NULL DEFAULT 1 ,
   PRIMARY KEY (`id`) )
 ENGINE = InnoDB
 COMMENT = 'application:\nLaclasse.com\ngestion Etablissement\ngestion user' /* comment truncated */;
@@ -551,6 +554,7 @@ COMMENT = 'profil_user is the table that link  the user to an etablisse' /* comm
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`application_etablissement` (
   `application_id` CHAR(8) NOT NULL ,
   `etablissement_id` INT NOT NULL ,
+  `active` TINYINT(1) NULL DEFAULT true ,
   PRIMARY KEY (`application_id`, `etablissement_id`) ,
   INDEX `fk_application_has_etablissement_etablissement1` (`etablissement_id` ASC) ,
   INDEX `fk_application_has_etablissement_application1` (`application_id` ASC) ,
@@ -657,7 +661,7 @@ COMMENT = 'condition in activite_role \nare: :all, :self, belongs_to';
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `annuairev3`.`application_key` (
   `application_id` CHAR(8) NOT NULL ,
-  `application_key` VARCHAR(45) NOT NULL ,
+  `application_key` VARCHAR(255) NOT NULL ,
   `application_secret` VARCHAR(45) NOT NULL ,
   `created_at` DATETIME NOT NULL ,
   `validity_duration` INT NOT NULL ,
@@ -666,7 +670,7 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`application_key` (
   CONSTRAINT `fk_application_key_application1`
     FOREIGN KEY (`application_id` )
     REFERENCES `annuairev3`.`application` (`id` )
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;
 
@@ -684,8 +688,8 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`regroupement_libre` (
   CONSTRAINT `fk_regroupement_libre_user1`
     FOREIGN KEY (`created_by` )
     REFERENCES `annuairev3`.`user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
@@ -702,13 +706,13 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`membre_regroupement_libre` (
   CONSTRAINT `fk_user_has_regroupement_libre_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuairev3`.`user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_user_has_regroupement_libre_regroupement_libre1`
     FOREIGN KEY (`regroupement_libre_id` )
     REFERENCES `annuairev3`.`regroupement_libre` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
@@ -722,9 +726,9 @@ SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 -- -----------------------------------------------------
 START TRANSACTION;
 USE `annuairev3`;
-INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('CLS', 'Classe', 'Classe');
-INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('GRP', 'Groupe d\'élèves', 'Groupe d\'élèves');
-INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('LBR', 'Groupe d\'élèves', 'Groupe libre');
+INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('1', 'CLS', 'Classe');
+INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('2', 'GRP', 'Groupe d\'élèves');
+INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('3', 'ENV', 'Groupe de travail');
 
 COMMIT;
 
@@ -775,5 +779,3 @@ INSERT INTO `annuairev3`.`type_telephone` (`id`, `libelle`, `description`) VALUE
 INSERT INTO `annuairev3`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('AUTRE', 'Autre', 'Autre numéro de téléphone');
 
 COMMIT;
-
-

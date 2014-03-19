@@ -330,7 +330,7 @@ def bootstrap_annuaire()
   # create another supper admin user
   u2 = User.create(:nom => "Levallois", :prenom => "Pierre-Gille", :sexe => "M", :login => "plevallois", :password => "toortoor")
   RoleUser.create(:user_id => u2.id, :etablissement_id => e.id, :role_id => ROL_TECH)
-  ProfilUser.create(:user_id => u.id, :profil_id => 'COL', :etablissement_id => e.id)
+  ProfilUser.create(:user_id => u2.id, :profil_id => 'COL', :etablissement_id => e.id)
 
   u3 = User.create(:nom => "Le Moine", :prenom => "Gwenhael", :sexe => "M", :login => "gwenhael", :password => "suicyco")
   ProfilUser.create(:user_id => u3.id, :profil_id => 'COL', :etablissement_id => e.id)

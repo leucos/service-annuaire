@@ -156,24 +156,32 @@ class User < Sequel::Model(:user)
   def before_destroy
     #Supprime tous les email et les numéros de téléphone du User
     email_dataset.destroy()
+    puts "emails deleted !"
     telephone_dataset.destroy()
-
+    puts "telephones deleted !"
     # Supprime aussi toutes les relation_eleve liées au User
     # La syntaxe pour les OR sql est pas évidente je trouve..
     RelationEleve.where(Sequel.expr(:user_id => self.id) | Sequel.expr(:eleve_id => self.id)).destroy()
-
+    puts "relations deleted !"
     # On supprime tous les RoleUser liés à ce User
     role_user_dataset.destroy()
-    
+    puts "roles deleted !"
     # Et les enseignements
     EnseigneDansRegroupement.where(:user_id => self.id).destroy()
+    puts "groupe deleted !"
     EleveDansRegroupement.where(:user_id => self.id).destroy()
+    puts "eleve deleted !"
     #enseigne_dans_regroupement_dataset.destroy()
+    MembreRegroupementLibre.where(:user_id => self.id).destroy()
+    puts "groupe libre deleted"
 
+    RegroupementLibre.where(:created_by => self.id).destroy()
     # Enfin tous ses profils dans l'établissement
     profil_user_dataset.destroy()
+    puts "profil deleted !"
 
     param_user_dataset.destroy()
+    puts "params deleted !"
     super
   end
 
