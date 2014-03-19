@@ -108,7 +108,7 @@ module API
 
 
     class SimpleGroupeLibre < Grape::Entity
-      expose :id, :created_at, :created_by, :libelle
+      expose :id, :created_at, :created_by, :libelle, :libelle_aaf
     end
 
     class DetailedGroupeLibre < Grape::Entity
