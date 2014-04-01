@@ -609,11 +609,11 @@ class User < Sequel::Model(:user)
 
   # a function that returns classes for all profils
   def classes_display
-    enseigne_classes_display.concat(classes_eleve_display).concat(parent_classes_display).concat(cpe_classes_display)
+    enseigne_classes_display.concat(classes_eleve_display).concat(parent_classes_display).concat(cpe_classes_display).uniq{|x| x[:classe_id]}
   end 
 
   def groupes_display
-    enseigne_groupes_display.concat(groupes_eleve_display).concat(parent_groupes_display).concat(cpe_groupes_display)
+    enseigne_groupes_display.concat(groupes_eleve_display).concat(parent_groupes_display).concat(cpe_groupes_display).uniq{|x| x[:groupe_id]}
   end 
 
   # Groupes auxquel l'utilisateur enseinge
