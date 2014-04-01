@@ -73,7 +73,7 @@ module SearchHelpers
   end
 
   def super_search!(dataset, accepted_fields)
-    if params[:query]
+    if params[:query] && params[:query]!=''
       patterns = split_query(params[:query])
       dataset = apply_filter!(patterns, dataset, accepted_fields)
     end
