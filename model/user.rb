@@ -467,6 +467,7 @@ class User < Sequel::Model(:user)
   end  
 
   def cpe_groupes_display
+    # users with profil cpe
     profils_cpe = ProfilUser.filter(:user_id => self.id, :profil_id =>["DIR", "DOC", "EVS"]).all
     groupes = []
     if !profils_cpe.empty?
@@ -474,6 +475,20 @@ class User < Sequel::Model(:user)
         groupes = groupes.concat(
           Regroupement.join(:etablissement, :etablissement__id => :regroupement__etablissement_id)
           .filter(:regroupement__type_regroupement_id => 'GRP', :regroupement__etablissement_id => profil.etablissement_id)
+          .naked
+          .select(:code_uai___etablissement_code, :regroupement__id___groupe_id, :libelle_aaf___groupe_libelle, :nom___etablissement_nom, :etablissement_id)
+          .all
+          )
+      end
+    end
+
+    #user with role admin etablissement
+    role_admin = RoleUser.filter(:user_id => self.id, :role_id => ROL_ADM_ETB)
+    if !role_admin.empty?
+      role_admin.each  do |role|
+        groupes = groupes.concat(
+          Regroupement.join(:etablissement, :etablissement__id => :regroupement__etablissement_id)
+          .filter(:regroupement__type_regroupement_id => 'GRP', :regroupement__etablissement_id => role.etablissement_id)
           .naked
           .select(:code_uai___etablissement_code, :regroupement__id___groupe_id, :libelle_aaf___groupe_libelle, :nom___etablissement_nom, :etablissement_id)
           .all
@@ -541,6 +556,17 @@ class User < Sequel::Model(:user)
       profils_cpe.each do |profil|
         classes = classes.concat(
           Regroupement.join(:etablissement, :etablissement__id => :regroupement__etablissement_id).filter(:regroupement__type_regroupement_id => 'CLS', :regroupement__etablissement_id => profil.etablissement_id).naked
+          .select(:code_uai___etablissement_code, :regroupement__id___classe_id, :libelle_aaf___classe_libelle, :nom___etablissement_nom, :etablissement_id)
+          .all
+          )
+      end
+    end
+
+    role_admin = RoleUser.filter(:user_id => self.id, :role_id => ROL_ADM_ETB)
+    if !role_admin.empty?
+      role_admin.each  do |role|
+        classes = classes.concat(
+          Regroupement.join(:etablissement, :etablissement__id => :regroupement__etablissement_id).filter(:regroupement__type_regroupement_id => 'CLS', :regroupement__etablissement_id => role.etablissement_id).naked
           .select(:code_uai___etablissement_code, :regroupement__id___classe_id, :libelle_aaf___classe_libelle, :nom___etablissement_nom, :etablissement_id)
           .all
           )
