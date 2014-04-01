@@ -47,12 +47,12 @@ module SearchHelpers
     dataset = dataset.search(accepted_fields.values, fuzzy_patterns)
 
     # Puis on filtre de manière les champs spécifiés un par un
-    field_patterns.each do |fp|
-      field, pattern = fp.split(':')
-      field = field.to_sym
-      check_field!(field, accepted_fields, "Champ de recherche #{field} non accepté")
-      dataset = dataset.filter(accepted_fields[field] => pattern)
-    end
+    #field_patterns.each do |fp|
+      #field, pattern = fp.split(':')
+      #field = field.to_sym
+      #check_field!(field, accepted_fields, "Champ de recherche #{field} non accepté")
+      #dataset = dataset.filter(accepted_fields[field] => pattern)
+    #end
 
     return dataset
   end
