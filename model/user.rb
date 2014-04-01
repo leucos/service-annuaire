@@ -495,7 +495,7 @@ class User < Sequel::Model(:user)
           )
       end
     end
-    groupes
+    groupes.uniq
   end
   #Groupes auxquel l'élève est inscrit
   def groupes_eleve(etablissement_id = nil)
@@ -572,7 +572,7 @@ class User < Sequel::Model(:user)
           )
       end
     end
-    classes
+    classes.uniq
   end
 
   def enseigne_groupes_display
