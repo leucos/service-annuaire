@@ -64,7 +64,7 @@ module API
         user.relations_adultes
       end
 
-      expose(:application) do |user, options|
+      expose(:applications) do |user, options|
         user.applications
       end
     end

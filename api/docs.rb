@@ -52,7 +52,6 @@ class DocsApi < Grape::API
     optional :data_de_naissance
   end 
   get "/users" do
-    puts "here"
     users = User.join(:profil_user, :user_id => :user__id).join(:etablissement, :etablissement__id => :etablissement_id).naked
     .filter(:user__nom => params[:nom].capitalize, :user__prenom => params[:prenom].capitalize, :etablissement__code_uai => params[:etablissement]).select(:id_ent)
      
@@ -84,16 +83,17 @@ class DocsApi < Grape::API
         error!("resource non trouvee", 404) 
       end  
   end
-
   #############################################################################
-  desc "return users's ids for which a user is responsable"
-  params do 
+  desc "Retourner la liste des applications d'un utilisateur"
+  params do
     requires :id, type:String
   end
-  get "users/:id/responsableOf" do
+  get "/users/:id/applications" do
     user = User[:id_ent => params[:id]]
     if !user.nil?
-      user.responsableOf
+      user.applications
+    else
+      error!("resource non trouvee", 404)
     end
   end
   #############################################################################
