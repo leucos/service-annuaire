@@ -1,5 +1,6 @@
 require __DIR__('right_helpers')
 require __DIR__('search_helpers')
+require __DIR__('utils_helpers')
 require __DIR__('entities')
 require __DIR__('user')
 require __DIR__('sso')
@@ -12,5 +13,6 @@ require __DIR__('profil')
 require __DIR__('docs')
 require __DIR__('role')
 require __DIR__('root')
+
 
 

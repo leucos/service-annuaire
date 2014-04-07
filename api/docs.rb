@@ -3,6 +3,7 @@ require_relative '../lib/auth_api'
 class DocsApi < Grape::API
   format :json
   helpers RightHelpers
+  helpers UtilsHelpers
   rescue_from :all
 
   before do
@@ -69,8 +70,7 @@ class DocsApi < Grape::API
   params do 
     requires :id, type:String
   end
-  
-  get "/users/:id" do 
+  get "/users/:id" do
       user = User[:id_ent => params[:id]]
 
       if !user.nil?
@@ -82,6 +82,25 @@ class DocsApi < Grape::API
       else
         error!("resource non trouvee", 404) 
       end  
+  end
+  #############################################################################
+  desc "Modification d'un compte utilisateur"
+  params do
+    optional :login, type: String, desc: "Doit commencer par une lettre et ne pas comporter d'espace"
+    optional :password, type: String
+    optional :nom, type: String
+    optional :prenom, type: String
+    optional :sexe, type: String, desc: "Valeurs possibles : F ou M"
+    optional :date_naissance, type: Date
+    optional :adresse, type: String
+    optional :code_postal, type: Integer, desc: "Ne doit comporter que 6 chiffres"
+    optional :ville, type: String
+    optional :bloque, type:Boolean
+  end
+  put "/users/:user_id" do
+    user = check_user!()
+    modify_user(user)
+    present user, with: API::Entities::SimpleUser
   end
   #############################################################################
   desc "Retourner la liste des applications d'un utilisateur"
