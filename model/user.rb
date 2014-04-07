@@ -412,7 +412,8 @@ class User < Sequel::Model(:user)
 
   def applications
     ids = etablissements.collect{ |x| x[:id]}
-     Application.join(:application_etablissement, :application_id => :id).where(:etablissement_id => ids).naked.all
+    Application.join(:application_etablissement, :application_id => :id).join(:etablissement, :etablissement__id => :etablissement_id).where(:etablissement_id => ids)
+    .select(:application__id, :application__libelle, :application__description, :application__url, :application_etablissement__active, :application_id, :etablissement_id, :etablissement__code_uai___etablissement_code_uai).naked.all
   end
 
   def add_to_regroupement(regroupement_id)

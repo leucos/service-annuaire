@@ -63,6 +63,10 @@ module API
       expose(:relations_adultes) do |user, options|
         user.relations_adultes
       end
+
+      expose(:application) do |user, options|
+        user.applications
+      end
     end
 
     class SimpleUser < Grape::Entity
