@@ -203,8 +203,7 @@ class EtabApi < Grape::API
         }
       else 
         error!("etablissement non trouve", 404)
-      end   
-  
+      end
     end
 
     ##############################################################################

@@ -3,7 +3,7 @@ module API
     class DetailedUser < Grape::Entity
       #root 'users', 'user'
       # TODO expose resource url instead of ids
-      expose :id, :id_sconet, :login, :id_jointure_aaf,  :nom, :prenom, :sexe, :id_ent, :date_naissance, :adresse, :code_postal, :ville
+      expose :id, :id_sconet, :login, :id_jointure_aaf,  :nom, :prenom, :sexe, :id_ent, :date_naissance, :adresse, :code_postal, :ville, :avatar
       expose(:full_name) {|user,options| user.full_name} 
       expose(:profils) {|user,options| user.profil_user_display}
       expose(:default_password){|user,options| user.is_default_pass?}
@@ -72,7 +72,7 @@ module API
     class SimpleUser < Grape::Entity
       #format_with :iso_timestamp{ |dt| dt.iso8601 }
       #root 'users', 'user'
-      expose :id, :id_sconet, :id_jointure_aaf, :login, :nom, :prenom, :sexe, :id_ent, :date_naissance, :adresse, :code_postal, :ville
+      expose :id, :id_sconet, :id_jointure_aaf, :login, :nom, :prenom, :sexe, :id_ent, :date_naissance, :adresse, :code_postal, :ville, :avatar
       expose(:full_name) {|user,options| user.full_name}
       expose(:profils) {|user,options| user.profil_user_display}
       expose :telephone, :as => :telephones
