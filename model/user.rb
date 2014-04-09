@@ -25,8 +25,11 @@
 # bloque                        | tinyint(1)          | false    |          | 0          | 
 # change_password               | tinyint(1)          | false    |          | 0          | 
 # id_ent                        | char(16)            | false    | UNI      |            | 
+# avatar                        | varchar(255)        | true     |          |            |
 # ------------------------------+---------------------+----------+----------+------------+--------------------
 #
+require 'carrierwave/sequel'
+
 class User < Sequel::Model(:user)
   # Déclenché quand on tente d'envoyer un mail de regénération de mot de passe
   # sur un email qui nous appartient pas ou qui n'appartient pas aux parents
@@ -65,6 +68,9 @@ class User < Sequel::Model(:user)
     :join_table => :relation_eleve, :class => self do |ds|
       ds.where(:type_relation_eleve_id => [TYP_REL_PERE, TYP_REL_MERE])
     end
+
+  # uploader   
+  mount_uploader :avatar, ImageUploader
     
   # Check si l'id passé en paramètre correspond bien aux critères d'identifiant ENT
   def self.is_valid_ent_id?(id)

@@ -20,6 +20,8 @@ gem 'grape-swagger'
 gem 'mongo'
 gem 'bson_ext'
 gem 'rmagick'
+gem 'carrierwave'
+gem 'carrierwave-sequel'
 
 group :development do
   gem 'rack-test'

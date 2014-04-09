@@ -15,8 +15,16 @@ require ::File.expand_path('../app', __FILE__)
 
 # for the moment angular js is accesed statically
 use Rack::Static, :urls => ["/api/logos"], :root => File.expand_path('../public', __FILE__)
-use Rack::Static, :urls => ["/api/avatars"], :root => File.expand_path('../public', __FILE__)
+use Rack::Static, :urls => ["/api/avatar"], :root => File.expand_path('../public', __FILE__)
 
+#configure carrierwave 
+CarrierWave.configure do |config|
+  config.root = File.expand_path '../public', __FILE__
+end
+
+#router = Rack::Router.new do
+  #get "/hello/:name" => "hello"
+#end
 
 # run apis, these apis are routed using the :resource element that englobe the apis
 run UserApi

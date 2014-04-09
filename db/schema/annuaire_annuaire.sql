@@ -29,6 +29,7 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`user` (
   `bloque` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Si oui ou non le compte est bloqué (plus d\'accès à l\'établissement et autre).' ,
   `change_password` TINYINT(1) NULL DEFAULT 0 COMMENT 'doit changer son password' ,
   `id_ent` CHAR(16) NOT NULL ,
+  `avatar` VARCHAR(255) NOT NULL DEFAULT 'empty',
   PRIMARY KEY (`id`) ,
   INDEX `id_jointure_aaf_UNIQUE` USING BTREE (`id_jointure_aaf` ASC) ,
   UNIQUE INDEX `id_sconet_UNIQUE` (`id_sconet` ASC) ,
@@ -143,8 +144,8 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`regroupement` (
   CONSTRAINT `fk_regroupement_etablissement1`
     FOREIGN KEY (`etablissement_id` )
     REFERENCES `annuairev3`.`etablissement` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB
 COMMENT = 'change code_mef to code_mef_aaf ';
 
@@ -175,13 +176,13 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`enseigne_dans_regroupement` (
   CONSTRAINT `fk_user_has_regroupement_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuairev3`.`user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_user_has_regroupement_regroupement1`
     FOREIGN KEY (`regroupement_id` )
     REFERENCES `annuairev3`.`regroupement` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_enseigne_regroupement_matiere_enseignee1`
     FOREIGN KEY (`matiere_enseignee_id` )
     REFERENCES `annuairev3`.`matiere_enseignee` (`id` )
@@ -221,18 +222,18 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`relation_eleve` (
   CONSTRAINT `fk_user_has_user_user1`
     FOREIGN KEY (`eleve_id` )
     REFERENCES `annuairev3`.`user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_user_has_user_user2`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuairev3`.`user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_relation_eleve_type_relation_eleve1`
     FOREIGN KEY (`type_relation_eleve_id` )
     REFERENCES `annuairev3`.`type_relation_eleve` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
@@ -261,13 +262,13 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`telephone` (
   CONSTRAINT `fk_telephone_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuairev3`.`user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_telephone_type_telephone1`
     FOREIGN KEY (`type_telephone_id` )
     REFERENCES `annuairev3`.`type_telephone` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
@@ -359,13 +360,13 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`param_application` (
   CONSTRAINT `fk_param_application_application1`
     FOREIGN KEY (`application_id` )
     REFERENCES `annuairev3`.`application` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_param_application_type_param1`
     FOREIGN KEY (`type_param_id` )
     REFERENCES `annuairev3`.`type_param` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB
 COMMENT = 'Paramètres de l\'application avec leurs valeurs par défaut. ';
 
@@ -407,8 +408,8 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`email` (
   CONSTRAINT `fk_email_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuairev3`.`user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
@@ -455,13 +456,13 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`param_etablissement` (
   CONSTRAINT `fk_param_application_has_etablissement_etablissement1`
     FOREIGN KEY (`etablissement_id` )
     REFERENCES `annuairev3`.`etablissement` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_param_etablissement_param_application1`
     FOREIGN KEY (`param_application_id` )
     REFERENCES `annuairev3`.`param_application` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
@@ -478,13 +479,13 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`param_user` (
   CONSTRAINT `fk_param_application_has_user_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuairev3`.`user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_param_user_param_application1`
     FOREIGN KEY (`param_application_id` )
     REFERENCES `annuairev3`.`param_application` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
@@ -503,18 +504,18 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`role_user` (
   CONSTRAINT `fk_role_has_user_user1`
     FOREIGN KEY (`user_id` )
     REFERENCES `annuairev3`.`user` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_role_user_role1`
     FOREIGN KEY (`role_id` )
     REFERENCES `annuairev3`.`role` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_role_user_etablissement1`
     FOREIGN KEY (`etablissement_id` )
     REFERENCES `annuairev3`.`etablissement` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 
@@ -561,8 +562,8 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`application_etablissement` (
   CONSTRAINT `fk_application_has_etablissement_application1`
     FOREIGN KEY (`application_id` )
     REFERENCES `annuairev3`.`application` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_application_has_etablissement_etablissement1`
     FOREIGN KEY (`etablissement_id` )
     REFERENCES `annuairev3`.`etablissement` (`id` )
@@ -635,23 +636,23 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`activite_role` (
   CONSTRAINT `fk_role_has_service_has_activite_activite1`
     FOREIGN KEY (`activite_id` )
     REFERENCES `annuairev3`.`activite` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_activite_role_role1`
     FOREIGN KEY (`role_id` )
     REFERENCES `annuairev3`.`role` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_activite_role_service1`
     FOREIGN KEY (`service_id` )
     REFERENCES `annuairev3`.`service` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION,
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
   CONSTRAINT `fk_activite_role_service2`
     FOREIGN KEY (`parent_service_id` )
     REFERENCES `annuairev3`.`service` (`id` )
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
 ENGINE = InnoDB
 COMMENT = 'condition in activite_role \nare: :all, :self, belongs_to';
 
@@ -671,7 +672,7 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`application_key` (
     FOREIGN KEY (`application_id` )
     REFERENCES `annuairev3`.`application` (`id` )
     ON DELETE CASCADE
-    ON UPDATE NO ACTION)
+    ON UPDATE CASCADE)
 ENGINE = InnoDB;
 
 

@@ -657,6 +657,8 @@ class UserApi < Grape::API
       end
     end  
     ############################################################
+    # v1 upload
+=begin         
     desc "Upload an image(avatar)"
     params do
       requires :user_id, type:String
@@ -672,6 +674,7 @@ class UserApi < Grape::API
         File.open(tempfile.path, 'rb') do |input|
           File.open("public/api/avatars/avatar_#{params[:user_id]}.#{imagetype}", 'wb') {|out| out.write(input.read) }
         end
+
         # add avatar name to database if neaded
         user.avatar = "avatar_#{params[:user_id]}.#{imagetype}"
         user.save 
@@ -679,6 +682,36 @@ class UserApi < Grape::API
         {
           user: params[:id],
           filename: "avatar_#{params[:user_id]}.#{imagetype}",
+          size: params[:image][:tempfile].size,
+          type: imagetype
+        }
+      else
+        error!("utilisateur non trouve", 404)
+      end
+    end
+=end
+    desc "Upload an avatar v2"
+    params do
+      requires :user_id, type:String
+      requires :image
+    end
+    post "/:user_id/upload/avatar" do
+      user = check_user!()
+      authorize_activites!([ACT_UPDATE, ACT_CREATE, ACT_MANAGE], user.ressource)
+      if user
+        tempfile = params[:image][:tempfile]
+        imagetype = params[:image][:type].split("/")[1]
+        # add avatar name to database if neaded
+        uploader = ImageUploader.new
+        
+        # delete old avatar
+        user.remove_avatar!
+        user.avatar = params[:image]
+        user.save
+        #puts "avatar saved"
+        {
+          user: params[:id],
+          filename: user.avatar,
           size: params[:image][:tempfile].size,
           type: imagetype
         }
