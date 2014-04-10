@@ -237,16 +237,33 @@ class DocsApi < Grape::API
       error!("ressource non trouve", 404)
     end 
   end
-
   ##############################################################################
-  desc "api de test"
-  get "/signed" do 
-    
-    puts "Authenticated"
-    puts AuthApi.authenticate(request) 
- 
+  desc "Upload an avatar"
+  params do
+    requires :user_id, type:String
+    requires :image
   end
-
+  post "/users/:user_id/upload/avatar" do
+    user = User[id_ent => params[:user_id]]
+    if user
+      tempfile = params[:image][:tempfile]
+      imagetype = params[:image][:type].split("/")[1]
+      # add avatar name to database if neaded
+      uploader = ImageUploader.new
+      # delete old avatar
+      user.remove_avatar!
+      user.avatar = params[:image]
+      user.save
+      {
+        user: params[:id],
+        filename: user.avatar,
+        size: tempfile.size,
+        type: imagetype
+      }
+    else
+      error!("utilisateur non trouve", 404)
+    end
+  end
   ##############################################################################
   desc " retourner la listed des profils  dans laclasse"
   get "/profils" do
