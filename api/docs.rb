@@ -9,20 +9,14 @@ class DocsApi < Grape::API
   before do
     authenticate_app!
   end
-
   ##############################################################################
-  get '/' do 
-    "found"
-  end    
   desc "get the list of etablissements"
-  get "/etablissements" do 
+  get "/etablissements" do
     ds = DB[:etablissement]
     #dataset = ds.all
     dataset = Etablissement.dataset
     dataset.select(:id, :code_uai, :nom).naked
   end
-
-
   ##############################################################################
   desc "Get etablissement info"
   params do
@@ -31,57 +25,126 @@ class DocsApi < Grape::API
   end  
   get "/etablissements/:uai" do
     etab = Etablissement[:code_uai => params[:uai]]
-    #authorize_activites!(ACT_READ,etab.ressource)
-    # construct etablissement entity.
     if !etab.nil?
       if params[:expand] == "true"
         present etab, with: API::Entities::DetailedEtablissement
-      else 
+      else
         present etab, with: API::Entities::SimpleEtablissement
      end
     else
-      error!("ressource non trouve", 404) 
-    end 
+      error!("ressource non trouve", 404)
+    end
   end
-
   ##############################################################################
+  desc "list all classes in the etablissement"
+  params do
+    requires :uai, type: String
+  end
+  get "/etablissements/:uai/classes" do
+    etab = Etablissement[:code_uai => params[:uai]]
+    error!("ressource non trouvee", 404) if etab.nil?
+    begin
+      JSON.pretty_generate(etab.classes)
+    rescue => e
+      error!("mouvaise requete", 400)
+    end
+  end
+  ##############################################################################
+  desc "lister les groupes eleves dans l\'etablissement"
+  params do
+    requires :uai, type:String
+  end
+  get "/etablissements/:uai/groupes" do
+    etab = Etablissement[:code_uai => params[:uai]]
+    error!("ressource non trouvee", 404) if etab.nil?
+    JSON.pretty_generate(etab.groupes_eleves)
+   end
+  ###############################################################################
+  # pour l'instant les apis concernant les groupes libres son attachés à un etablissement
+  # peut-etre on va les separer àpres.
+  desc "listre les groupes libres dans un etablissement"
+  params do
+    requires :uai, type: String
+  end
+  get "/etablissements/:uai/groupes_libres" do
+    etab = Etablissement[:code_uai => params[:uai]]
+    error!("ressource non trouvee", 404) if etab.nil?
+    etab.groupes_libres
+  end
+  ###############################################################################
   desc "search user return user info"
-  params do 
+  params do
     requires :etablissement, type:String
     requires :nom, type:String
     requires :prenom, type:String
     optional :data_de_naissance
-  end 
+  end
   get "/users" do
     users = User.join(:profil_user, :user_id => :user__id).join(:etablissement, :etablissement__id => :etablissement_id).naked
     .filter(:user__nom => params[:nom].capitalize, :user__prenom => params[:prenom].capitalize, :etablissement__code_uai => params[:etablissement]).select(:id_ent)
-     
     if users.empty?
-      error!("ressource non trouve", 404) 
+      error!("ressource non trouve", 404)
     elsif (users.count == 1)
-      users 
-    else 
+      users
+    else
       error!("plusieurs utilisateurs ont ete trouves")
-    end     
+    end
   end
-
   ##############################################################################
-  desc "return user information" 
-  params do 
+  desc "return user information"
+  params do
     requires :id, type:String
   end
   get "/users/:id" do
       user = User[:id_ent => params[:id]]
-
       if !user.nil?
         if params[:expand] == "true"
           present user, with: API::Entities::DetailedUser
-        else 
+        else
           present user, with: API::Entities::SimpleUser
         end 
       else
-        error!("resource non trouvee", 404) 
+        error!("resource non trouvee", 404)
       end  
+  end
+  #############################################################################
+  desc "retourner les classes d'un  utilisateur"
+  params do
+    requires :id, type: String
+  end
+  get "/users/:id/classes" do
+    user = User[:id_ent => params[:id]]
+    if !user.nil?
+      user.classes_display
+    else
+      error!("resource non trouvee", 404)
+    end
+  end
+  #############################################################################
+  desc "retourner les groupes eleves d'un  utilisateur"
+  params do
+    requires :id, type: String
+  end
+  get "/users/:id/groupes" do
+    user = User[:id_ent => params[:id]]
+    if !user.nil?
+      user.groupes_display
+    else
+      error!("resource non trouvee", 404)
+    end
+  end
+  #############################################################################
+  desc "retourner les groupes eleves d'un  utilisateur"
+  params do
+    requires :id, type: String
+  end
+  get "/users/:id/groupes_libres" do
+    user = User[:id_ent => params[:id]]
+    if !user.nil?
+      user.groupes_libres
+    else
+      error!("resource non trouvee", 404)
+    end
   end
   #############################################################################
   desc "Modification d'un compte utilisateur"

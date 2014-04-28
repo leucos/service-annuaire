@@ -1683,7 +1683,6 @@ class EtabApi < Grape::API
       authorize_activites!([ACT_READ, ACT_MANAGE], etab.ressource, SRV_LIBRE)
       etab.groupes_libres
     end
-
     ##############################################################################
     desc "retournez les details d'un groupe libre"
     params do 
