@@ -36,6 +36,25 @@ class DocsApi < Grape::API
     end
   end
   ##############################################################################
+   desc "list all regroupements  in the etablissement"
+  params do
+    requires :uai, type: String
+  end
+  get "/etablissements/:uai/regroupements" do
+    etab = Etablissement[:code_uai => params[:uai]]
+    error!("ressource non trouvee", 404) if etab.nil?
+    begin
+      JSON.pretty_generate ({
+        classes: etab.classes,
+        groupes_eleves: etab.groupes_eleves,
+        groupes_libres: etab.groupes_libres
+      })
+    rescue => e
+      error!("mouvaise requete", 400)
+    end
+  end
+
+
   desc "list all classes in the etablissement"
   params do
     requires :uai, type: String
@@ -106,6 +125,23 @@ class DocsApi < Grape::API
       else
         error!("resource non trouvee", 404)
       end  
+  end
+  #############################################################################
+  desc "retourner les regroupements d'un utilisateurs"
+  params do
+    requires :id, type: String
+  end
+  get "/users/:id/regroupements" do
+    user = User[:id_ent => params[:id]]
+    if !user.nil?
+      JSON.pretty_generate({
+        classes: user.classes_display,
+        groupes_eleves: user.groupes_display,
+        groupes_libres: user.groupes_libres
+        })
+    else
+      error!("resource non trouvee", 404)
+    end
   end
   #############################################################################
   desc "retourner les classes d'un  utilisateur"
@@ -200,8 +236,7 @@ class DocsApi < Grape::API
       error!("mouvaise requete", 404)
     end 
   end
-
-
+  #############################################################################
   desc "return a list of user informations"
   params do 
     requires :ids, type:String
