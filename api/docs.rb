@@ -54,7 +54,7 @@ class DocsApi < Grape::API
     end
   end
 
-
+  ##############################################################################
   desc "list all classes in the etablissement"
   params do
     requires :uai, type: String
@@ -89,6 +89,16 @@ class DocsApi < Grape::API
     etab = Etablissement[:code_uai => params[:uai]]
     error!("ressource non trouvee", 404) if etab.nil?
     etab.groupes_libres
+  end
+  ###############################################################################
+  desc "lister les matieres dans un etablissement"
+  params do 
+    requires :uai, type:String
+  end
+  get "/etablissements/:uai/matieres" do
+    etab = Etablissement[:code_uai => params[:uai]]
+    error!("ressource non trouvee", 404) if etab.nil?
+    JSON.pretty_generate(etab.matieres)
   end
   ###############################################################################
   desc "search user return user info"

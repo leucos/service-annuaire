@@ -130,9 +130,10 @@ class Etablissement < Sequel::Model(:etablissement)
   end
 
   def matieres
-    regroupement_dataset.select(:matiere_enseignee__id, :matiere_enseignee__libelle_long)
+    self.regroupement_dataset
     .join(:enseigne_dans_regroupement, :regroupement_id => :id)
-    .join(:matiere_enseignee, :matiere_enseignee__id => :matiere_enseignee_id).distinct.naked.all
+    .join(:matiere_enseignee, :matiere_enseignee__id => :matiere_enseignee_id)
+    .select(:matiere_enseignee__id, :matiere_enseignee__libelle_long, :matiere_enseignee__libelle_court).distinct.naked.all
   end
 
 
