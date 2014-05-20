@@ -126,7 +126,10 @@ class Etablissement < Sequel::Model(:etablissement)
   def personnel
     # Seul les profil ayant un code ministeriel font parti de l'éducation nationale.
     # temp : peut-etre un peu léger, que faire des cuisiniers (sont-ils alimentés) par exemple ?
-    User.filter(:profil_user => ProfilUser.filter(:etablissement => self, :profil_id => Profil.exclude(:id => ["ELV", "TUT"]).select(:id))).select(:id, :id_ent, :nom, :prenom).all
+    User.filter(:profil_user => ProfilUser.filter(:etablissement => self, :profil_id => Profil.exclude(:id => ["ELV", "TUT"]).select(:id)))
+    .join(:profil_user, :user_id => :id)
+    .join(:profil_national, :profil_national__id => :profil_id)
+    .naked.all
   end
 
   def matieres
