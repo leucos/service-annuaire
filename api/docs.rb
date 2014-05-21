@@ -1,13 +1,14 @@
 require_relative '../lib/auth_api'
 
 class DocsApi < Grape::API
+  prefix 'api/app'
   format :json
   helpers RightHelpers
   helpers UtilsHelpers
   rescue_from :all
 
   before do
-    authenticate_app!
+    #authenticate_app!
   end
   ##############################################################################
   desc "get the list of etablissements"

@@ -36,9 +36,9 @@ run AlimentationApi
 run ProfilApi
 run RoleApi
 
-map "/api/app" do
+#map "/api/app" do
   run DocsApi
-end 
+#end 
 
 map "/api/sso" do
   run SsoApi
