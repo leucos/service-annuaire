@@ -130,7 +130,7 @@ class Etablissement < Sequel::Model(:etablissement)
     .join(:profil_user, :user_id => :id)
     .join(:profil_national, :profil_national__id => :profil_id)
     .select(:user__id, :id_ent, :nom, :prenom, :profil_id, :description, :etablissement_id, :code_national)
-    .naked.all
+    .distinct.naked.all
   end
 
   def matieres
