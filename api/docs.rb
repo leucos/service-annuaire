@@ -8,7 +8,7 @@ class DocsApi < Grape::API
   rescue_from :all
 
   before do
-    #authenticate_app!
+    authenticate_app!
   end
   ##############################################################################
   desc "get the list of etablissements"
@@ -37,7 +37,7 @@ class DocsApi < Grape::API
     end
   end
   ##############################################################################
-   desc "list all regroupements  in the etablissement"
+  desc "list all regroupements  in the etablissement"
   params do
     requires :uai, type: String
   end
@@ -100,6 +100,16 @@ class DocsApi < Grape::API
     etab = Etablissement[:code_uai => params[:uai]]
     error!("ressource non trouvee", 404) if etab.nil?
     JSON.pretty_generate(etab.matieres)
+  end
+  ###############################################################################
+  desc "retourner la liste des personnel dans l\'etablissement"
+  params do 
+    requires :uai, type:String
+  end
+  get "/etablissements/:uai/personnel" do
+    etab = Etablissement[:code_uai => params[:uai]]
+    error!("ressource non trouvee", 404) if etab.nil?
+    JSON.pretty_generate(etab.personnel)
   end
   ###############################################################################
   desc "search user return user info"
