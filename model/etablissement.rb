@@ -128,8 +128,11 @@ class Etablissement < Sequel::Model(:etablissement)
     # temp : peut-etre un peu léger, que faire des cuisiniers (sont-ils alimentés) par exemple ?
     User.join(:profil_user, :user_id => :id)
     .join(:profil_national, :profil_national__id => :profil_id)
-    .filter(:etablissement_id => self.id, :profil_id => Profil.exclude(:id => ["ELV", "TUT"]).select(:id))
-    .select(:user__id, :id_ent, :nom, :prenom, :profil_id, :description, :etablissement_id, :code_national)
+    .join(:profil_user_fonction, :profil_user_fonction__profil_id => :profil_user__profil_id, :profil_user_fonction__user_id => :profil_user__user_id)
+    .join(:fonction, :fonction__id => :profil_user_fonction__fonction_id)
+    .filter(:profil_user__etablissement_id => self.id, :profil_user__profil_id => Profil.exclude(:id => ["ELV", "TUT"]).select(:id))
+    .select(:user__id, :id_ent, :nom, :prenom, :profil_user__profil_id, :profil_national__description, :profil_user__etablissement_id, :code_national, 
+      :fonction__libelle, :fonction__description)
     .distinct.naked.all
   end
 
