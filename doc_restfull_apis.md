@@ -15,7 +15,7 @@ L'usage de 401 et 403 est inspiré de l'API google drive
 ## Documentation swagger
 On peux consulter la documentation **swagger** des APIs en accedant au site:
 http://petstore.swagger.wordnik.com/ et mettre 
-http://localhost:9292/swagger_doc  url de documetation.
+http://serveur/api/documentation  url de documetation.
 
 
 ##  Les services (APIs) /users
