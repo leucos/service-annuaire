@@ -730,6 +730,7 @@ USE `annuairev3`;
 INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('1', 'CLS', 'Classe');
 INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('2', 'GRP', 'Groupe d\'élèves');
 INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('3', 'ENV', 'Groupe de travail');
+INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('4', 'LBR', 'Groupe libre');
 
 COMMIT;
 

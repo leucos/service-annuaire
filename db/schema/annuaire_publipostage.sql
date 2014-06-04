@@ -761,3 +761,63 @@ ENGINE = InnoDB;
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+
+-- -----------------------------------------------------
+-- Data for table `annuairev3`.`type_regroupement`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `annuairev3`;
+INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('CLS', 'Classe', 'Classe');
+INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('GRP', 'Groupe d\'éleves', 'Groupe d\'élèves');
+INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('ENV', 'Groupe de travail', 'Groupe de travail');
+INSERT INTO `annuairev3`.`type_regroupement` (`id`, `libelle`, `description`) VALUES ('LBR', 'Groupe libre', 'Groupe libre');
+
+COMMIT;
+
+-- -----------------------------------------------------
+-- Data for table `annuairev3`.`type_relation_eleve`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `annuairev3`;
+INSERT INTO `annuairev3`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (1, 'Père', 'PERE');
+INSERT INTO `annuairev3`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (2, 'Mère', 'Mère');
+INSERT INTO `annuairev3`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (3, 'Tuteur', 'Tuteur');
+INSERT INTO `annuairev3`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (4, 'Autre membre de la famille','A_MMBR');
+INSERT INTO `annuairev3`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (5, 'Ddass', 'DDASS');
+INSERT INTO `annuairev3`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (6, 'Autre cas', 'A_CAS');
+INSERT INTO `annuairev3`.`type_relation_eleve` (`id`, `description`, `libelle`) VALUES (7, 'Eleve lui meme', 'ELEVE');
+COMMIT;
+  
+-- -----------------------------------------------------
+-- Data for table `annuairev3`.`type_etablissement`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `annuairev3`;
+INSERT INTO `annuairev3`.`type_etablissement` (`nom`, `type_contrat`, `libelle`, `type_struct_aaf` ) VALUES ('Service du département', 'PU', NULL, 'SERVICE DU DEPARTEMENT');
+INSERT INTO `annuairev3`.`type_etablissement` (`nom`, `type_contrat`, `libelle`, `type_struct_aaf`) VALUES ('Ecole', 'PR', 'Ecole privée', 'ECOLE');    
+INSERT INTO `annuairev3`.`type_etablissement` (`nom`, `type_contrat`, `libelle`, `type_struct_aaf`) VALUES ('Ecole', 'PU', 'Ecole publique','ECOLE');    
+INSERT INTO `annuairev3`.`type_etablissement` (`nom`, `type_contrat`, `libelle`, `type_struct_aaf`) VALUES ('Collège', 'PR',  'Collège privé','COLLEGE');    
+INSERT INTO `annuairev3`.`type_etablissement` (`nom`, `type_contrat`, `libelle`, `type_struct_aaf`) VALUES ('Collège', 'PU',  'Collège public','COLLEGE');
+INSERT INTO `annuairev3`.`type_etablissement` (`nom`, `type_contrat`, `libelle`, `type_struct_aaf`) VALUES ('Lycée', 'PR',  'Lycée privé','LYCEE');
+INSERT INTO `annuairev3`.`type_etablissement` (`nom`, `type_contrat`, `libelle`, `type_struct_aaf`) VALUES ('Lycée', 'PU',  'Lycée public','LYCEE');
+INSERT INTO `annuairev3`.`type_etablissement` (`nom`, `type_contrat`, `libelle`, `type_struct_aaf`) VALUES ('Bâtiment', 'PU',  'Bâtiment public','LYCEE');
+INSERT INTO `annuairev3`.`type_etablissement` (`nom`, `type_contrat`, `libelle`, `type_struct_aaf`) VALUES ('Lycée professionnel', 'PR',  'Lycée professionnel privé','LYCEE PROFESSIONEL');
+INSERT INTO `annuairev3`.`type_etablissement` (`nom`, `type_contrat`, `libelle`, `type_struct_aaf`) VALUES ('Maison Familiale Rurale', 'PU', 'Maison Familiale Rurale','MAISON FAMILIALE RURALE');
+INSERT INTO `annuairev3`.`type_etablissement` (`nom`, `type_contrat`, `libelle`, `type_struct_aaf`) VALUES ('Campus', 'PU', 'Campus public','CAMPUS');
+INSERT INTO `annuairev3`.`type_etablissement` (`nom`, `type_contrat`, `libelle`, `type_struct_aaf`) VALUES ('CRDP', 'PU', 'Centre Régional de Documentation Pédagogique','CRDP');
+INSERT INTO `annuairev3`.`type_etablissement` (`nom`, `type_contrat`, `libelle`, `type_struct_aaf`) VALUES ('CG Jeunes', 'PU', 'CG Jeunes','CG JEUNES');
+INSERT INTO `annuairev3`.`type_etablissement` (`nom`, `type_contrat`, `libelle`, `type_struct_aaf`) VALUES ( 'Cité scolaire', 'PR', 'Cité scolaire privée','CITE SCOLAIRE');
+INSERT INTO `annuairev3`.`type_etablissement` (`nom`, `type_contrat`, `libelle`, `type_struct_aaf`) VALUES ( 'Cité scolaire', 'PU', 'Cité scolaire publique','CITE SCOLAIRE');
+COMMIT;
+-- -----------------------------------------------------
+-- Data for table `annuairev3`.`type_telephone`
+-- -----------------------------------------------------
+START TRANSACTION;
+USE `annuairev3`;
+INSERT INTO `annuairev3`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('MAISON', 'Domicile', 'Numéro au domicile');
+INSERT INTO `annuairev3`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('PORTABLE', 'Portable', 'Numéro de portable');
+INSERT INTO `annuairev3`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('TRAVAIL', 'Travail', 'Numéro professionnel bureau');
+INSERT INTO `annuairev3`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('FAX', 'Fax', 'Numéro du fax ou téléphone/fax');
+INSERT INTO `annuairev3`.`type_telephone` (`id`, `libelle`, `description`) VALUES ('AUTRE', 'Autre', 'Autre numéro de téléphone');
+
+COMMIT;

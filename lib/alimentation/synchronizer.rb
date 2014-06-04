@@ -276,6 +276,7 @@ module Alimentation
       profil_id = PRF_ELV
       DB.transaction do
         data.each do |eleve| 
+          @logger.debug("treat eleve: #{eleve}")
           begin 
             record = User[:id_jointure_aaf => eleve["id_jointure_aaf"]]
             # search Users for corresponding records
@@ -329,7 +330,8 @@ module Alimentation
       @logger.debug("modify or create person educ nat  is called")
       etablissement_id = Etablissement[:code_uai => @uai].id
       DB.transaction do 
-        data.each do |person| 
+        data.each do |person|
+          @logger.debug("treat person : #{person}")
           begin 
             found_one = false
             record = User[:id_jointure_aaf => person["id_jointure_aaf"]]
@@ -409,6 +411,7 @@ module Alimentation
       #etablissement_id = Etablissement[:code_uai => @uai].id
       DB.transaction do 
         data.each do |parent| 
+          @logger.debug("treat parent: #{parent}")
           begin 
             record = User[:id_jointure_aaf => parent["id_jointure_aaf"]]
             # search Users for corresponding records
@@ -505,6 +508,7 @@ module Alimentation
         data.each do |regroupement|
           # search Regroupements table  for corresponding records
           # i do not know if libelle_aaf is unique ?!!
+          @logger.debug("treat regroupement: #{regroupement}")
           begin
             etablissement = Etablissement[:code_uai => @uai]
             record = Regroupement[:libelle_aaf => regroupement["libelle_aaf"],:etablissement_id => etablissement.id]
@@ -592,6 +596,7 @@ module Alimentation
       @logger.debug("Rattache eleves aux regroupements")
       DB.transaction do
         data.each do |rattachement|
+          @logger.debug("rattachement : #{rattachement}")
           begin
             # find eleve
             user = User[:id_jointure_aaf => rattachement["id_jointure_aaf"]]
@@ -638,6 +643,7 @@ module Alimentation
       @logger.debug("Rattache profs aux regroupements")
       DB.transaction do 
         data.each do |rattachement|
+          @logger.debug("rattachement : #{rattachement}")
           begin
             # find prof 
             prof = User[:id_jointure_aaf => rattachement["id_jointure_aaf"]]
@@ -682,6 +688,7 @@ module Alimentation
       @logger.debug("Rattache eleves aux parents")
       DB.transaction do 
         data.each do |rattachement|
+          @logger.debug("rattachement : #{rattachement}")
           begin
             # find eleve 
             eleve = User[:id_jointure_aaf => rattachement["id_jointure_aaf_eleve"]]
@@ -716,6 +723,7 @@ module Alimentation
       @logger.debug("rattache fonctions aux person")
       DB.transaction do  
         data.each do |rattachement| 
+          @logger.debug("rattachement : #{rattachement}")
           begin
             # find person
             person = User[:id_jointure_aaf => rattachement["id_jointure_aaf"]]
@@ -774,6 +782,7 @@ module Alimentation
       @logger.debug("dettachement")
       DB.transaction do 
         data.each do |detachement|
+          @logger.debug("detachement : #{detachement}")
           begin
             etablissement = Etablissement[:code_uai => @uai]
             if etablissement.nil?
