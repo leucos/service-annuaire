@@ -686,5 +686,20 @@ class UserApi < Grape::API
         error!("utilisateur non trouve", 404)
       end
     end
+    ############################################################
+    desc "supprimer l 'avatar"
+    params do
+      requires :user_id, type:String
+    end
+    delete "/:user_id/avatar" do
+      user = check_user!()
+      authorize_activites!([ACT_UPDATE, ACT_CREATE, ACT_MANAGE, ACT_DELETE], user.ressource)
+      if user
+        user.remove_avatar!
+        user.save
+      else
+        error!("utilisateur non trouve", 404)
+      end
+    end
   end #resource
 end

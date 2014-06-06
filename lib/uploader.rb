@@ -1,8 +1,9 @@
 require 'carrierwave'
 class ImageUploader < CarrierWave::Uploader::Base
 	storage :file
-	#before :store, :remove!
 	#after :cache, :remove!
+  #before :store, :remove!
+  after :remove, :delete_empty_upstream_dirs
 
   def unlink_original(file)
     return unless delete_original_file
@@ -19,6 +20,13 @@ class ImageUploader < CarrierWave::Uploader::Base
 
   def extension_white_list
     %w(jpg jpeg gif png)
+  end
+
+  def delete_empty_upstream_dirs
+    path = ::File.expand_path(store_dir, root)
+    Dir.delete(path) # fails if path not empty dir
+  rescue SystemCallError
+    true # nothing, the dir is not empty
   end
 
   protected
