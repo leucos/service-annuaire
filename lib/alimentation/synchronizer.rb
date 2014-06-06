@@ -429,7 +429,7 @@ module Alimentation
               # TODO: generate default password algorithm instead of this
               password = parent['id_jointure_aaf']
 
-              user = User.create(:login => login, :id_jointure_aaf => parent["id_jointure_aaf"], :nom => parent["nom"], :id_ent => parent["uid"]
+              user = User.create(:login => login, :id_jointure_aaf => parent["id_jointure_aaf"], :nom => parent["nom"], :id_ent => parent["uid"],
                 :prenom => parent["prenom"], :date_naissance => parent["date_naissance"],:sexe => parent["sexe"], 
                 :adresse => parent["adresse"], :ville => parent["ville"],
                 :password => password)
