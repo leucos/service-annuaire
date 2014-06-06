@@ -42,6 +42,7 @@ require_relative 'eleve_regroupement'
 require_relative 'profil_user_has_fonction'
 require_relative 'regroupement_libre'
 require_relative 'membre_regroupement_libre'
+require_relative 'reserved_uid'
 
 #On fait manuellement l'association table=>model car elle est impossible a faire automatiquement
 #(pas de lien 1<=>1 entre dataset et model stackoverflow 9408785)

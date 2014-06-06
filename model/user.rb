@@ -154,7 +154,7 @@ class User < Sequel::Model(:user)
 
   # Très important : Hook qui génère l'id unique du user avant de l'inserer dans la BDD
   def before_create
-    self.id_ent = LastUid::get_next_uid()
+    #self.id_ent = LastUid::get_next_uid()
     self.date_creation ||= Time.now
     super
   end
