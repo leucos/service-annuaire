@@ -168,7 +168,7 @@ class AlimentationApi < Grape::API
         #output  instead of result
         {"data" => result, "count" => records}
       rescue => e
-        error!("Bad Request: #{e.message}", 400) 
+        error!("mauvase requete: #{e.message}", 400) 
       end
     end
     
@@ -191,7 +191,7 @@ class AlimentationApi < Grape::API
         result = JSON.parse(res.body)
         {"data" => result, "count" => result.count}
       rescue => e
-        error!("Bad Request:#{e.message}", 400)
+        error!("mauvaise requete:#{e.message}", 400)
       end
     end
     #-----------------------------------------#
@@ -363,16 +363,17 @@ class AlimentationApi < Grape::API
         output = ""
         infostack = {}
         infostack["errors"] = []
-        logger = nil 
-        @@services.each do |service| 
-          begin
-          res = Net::HTTP.get_response(URI("#{Configuration::ALIMENTATION_SERVER}index.php?action=api&service=#{service}&rne=#{params[:uai]}"))
-          #raise "can not pull data #{service} from the server" if res.code != 200       # => '200 
-          result = JSON.parse(res.body)
+        logger = nil
+        # alimenter l'etablissement 
+        begin
           #["etablissement", "classes", "groupes", "eleves", "pers_educ_nat", "parents", 
           #"pers_rel_eleve","rattachements_eleves", "rattachements_profs", "detachements","fonctions_pen"]
           synchronizer = Alimentation::Synchronizer.new("Complet", params[:uai],"","","")
           logger = synchronizer.logger
+          @@services.each do |service|
+          res = Net::HTTP.get_response(URI("#{Configuration::ALIMENTATION_SERVER}index.php?action=api&service=#{service}&rne=#{params[:uai]}"))
+          #raise "can not pull data #{service} from the server" if res.code != 200       # => '200 
+          result = JSON.parse(res.body)  
           #puts service 
           case service
             when "etablissement"
@@ -383,7 +384,9 @@ class AlimentationApi < Grape::API
               output += "Synchronize etablissement: #{params[:uai]} \n"
               output += "Synchronization took #{fin-start} seconds \n"
               infostack["etablissement"] = {:uai => params[:uai], :sync_time => fin-start, 
-                :errors => synchronizer.errorstack} 
+                :errors => synchronizer.errorstack}
+                #empty errorstack
+              synchronizer.errorstack = []
 
             when "classes"
               #synchronizer.type_data = "CLASSES"
@@ -394,7 +397,9 @@ class AlimentationApi < Grape::API
               output += "number of classes = #{result.count} \n"
               output += "Synchronization took #{fin-start} seconds \n"
               infostack["classes"] = {:count => result.count, :sync_time => fin-start, 
-                :errors => synchronizer.errorstack} 
+                :errors => synchronizer.errorstack}
+              #empty errorstack
+              synchronizer.errorstack = []
 
             when "groupes"
               #synchronizer.type_data = "GROUPES"
@@ -405,7 +410,9 @@ class AlimentationApi < Grape::API
               output += "number of groups = #{result.count} \n"
               output += "Synchronization took #{fin-start} seconds \n"
               infostack["groupes"] = {:count => result.count, :sync_time => fin-start, 
-                :errors => synchronizer.errorstack} 
+                :errors => synchronizer.errorstack}
+              #empty errorstack
+              synchronizer.errorstack = []
 
             when "eleves"
               #synchronizer.type_data = "COMPTES"
@@ -417,7 +424,9 @@ class AlimentationApi < Grape::API
               output += "number of eleves = #{result.count} \n"
               output += "Synchronization took #{fin-start} seconds \n" 
               infostack["eleves"] = {:count => result.count, :sync_time => fin-start, 
-                :errors => synchronizer.errorstack} 
+                :errors => synchronizer.errorstack}
+                #empty errorstack
+              synchronizer.errorstack = []
 
             when "pers_educ_nat"
               #synchronizer.type_data = "COMPTES"
@@ -429,7 +438,9 @@ class AlimentationApi < Grape::API
               output += "number of persons = #{result.count} \n"
               output += "Synchronization took #{fin-start} seconds \n"
               infostack["pers_educ_nat"] = {:count => result.count, :sync_time => fin-start, 
-                :errors => synchronizer.errorstack} 
+                :errors => synchronizer.errorstack}
+              #empty errorstack
+              synchronizer.errorstack = []
 
             when "parents"
               #synchronizer.type_data = "COMPTES"
@@ -441,7 +452,9 @@ class AlimentationApi < Grape::API
               output += "number of parents = #{result.count} \n"
               output += "Synchronization took #{fin-start} seconds \n"
               infostack["parent"] = {:count => result.count, :sync_time => fin-start, 
-                :errors => synchronizer.errorstack} 
+                :errors => synchronizer.errorstack}
+                #empty errorstack
+              synchronizer.errorstack = []
 
             when "pers_rel_eleve"
               #synchronizer.type_data = "RATTACHEMENTS"
@@ -453,7 +466,9 @@ class AlimentationApi < Grape::API
               output += "number of rattachements = #{result.count} \n"
               output += "Synchronization took #{fin-start} seconds \n"
               infostack["pers_rel_eleve"] = {:count => result.count, :sync_time => fin-start, 
-                :errors => synchronizer.errorstack} 
+                :errors => synchronizer.errorstack}
+                #empty errorstack
+              synchronizer.errorstack = []
 
             when "rattachements_eleves" 
               #synchronizer.type_data = "RATTACHEMENTS"
@@ -465,7 +480,9 @@ class AlimentationApi < Grape::API
               output += "number of rattachements = #{result.count} \n"
               output += "Synchronization took #{fin-start} seconds \n"
               infostack["rattachement_eleves"] = {:count => result.count, :sync_time => fin-start, 
-                :errors => synchronizer.errorstack} 
+                :errors => synchronizer.errorstack}
+              #empty errorstack
+              synchronizer.errorstack = []
 
             when "rattachements_profs"
               #synchronizer.type_data = "RATTACHEMENTS"
@@ -477,7 +494,9 @@ class AlimentationApi < Grape::API
               output += "number of rattachements = #{result.count} \n"
               output += "Synchronization took #{fin-start} seconds \n"
               infostack[:rattachement_profs] = {:count => result.count, :sync_time => fin-start, 
-                :errors => synchronizer.errorstack} 
+                :errors => synchronizer.errorstack}
+              #empty errorstack
+              synchronizer.errorstack = []
 
             when "detachements"
               #synchronizer.type_data = "DETACHEMENTS"
@@ -488,7 +507,9 @@ class AlimentationApi < Grape::API
               output += "number of detachements = #{result.count} \n"
               output += "Synchronization took #{fin-start} seconds \n"
               infostack["detachements"] = {:count => result.count, :sync_time => fin-start, 
-                :errors => synchronizer.errorstack}  
+                :errors => synchronizer.errorstack}
+              #empty errorstack
+              synchronizer.errorstack = []
 
             when "fonctions_pen"
               #synchronizer.type_data = "FONCTIONS"
@@ -499,17 +520,19 @@ class AlimentationApi < Grape::API
               output += "number of fonctions = #{result.count} \n"
               output += "Synchronization took #{fin-start} seconds \n"
               infostack["fonction_pen"] = {:count => result.count, :sync_time => fin-start, 
-                :errors => synchronizer.errorstack} 
+                :errors => synchronizer.errorstack}
+              #empty errorstack
+              synchronizer.errorstack = []
             else
               raise "alimentation type not supported #{service}" 
            end
-          #infostack["errors"] + synchronizer.errorstack  
-          rescue => e 
-           output+="Error: #{e.message} \n"
-           infostack["errors"].push(e.message)
-            #error!("Bad Request: #{e.message}", 400)
-          end               
-        end #Loop 
+          #infostack["errors"] + synchronizer.errorstack
+          end #Loop
+        rescue => e 
+          output+="Error: #{e.message} \n"
+          infostack["errors"].push(e.message)
+          #error!("Bad Request: #{e.message}", 400)
+        end
       #output
       Laclasse::Log.info("Bilan etablissement")
       Laclasse::Log.info(JSON.pretty_generate(infostack))

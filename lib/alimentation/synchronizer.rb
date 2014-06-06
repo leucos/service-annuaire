@@ -239,8 +239,9 @@ module Alimentation
         @errorstack.push(e.message) 
       end 
     end
-    
     # -----------------------------------------------------------
+
+    
     # syncronize user
     def modify_or_create_user(data)
       @logger.debug("modify or create user is called")
