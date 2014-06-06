@@ -913,6 +913,9 @@ module Alimentation
           role.destroy
         end   
       end   
-    end  
+    end
+
+    #----------------------------------------------------------#  
+
   end
 end

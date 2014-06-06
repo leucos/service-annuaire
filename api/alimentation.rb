@@ -24,6 +24,8 @@ class AlimentationApi < Grape::API
     #data for an etablissement
     @@services = ["etablissement", "classes", "groupes", "eleves", "pers_educ_nat", "parents", 
       "pers_rel_eleve","rattachements_eleves", "rattachements_profs", "detachements", "fonctions_pen"]
+
+    @@reprise_services = ['EleveRepriseData', 'PersRelEleveRepriseData', 'PersEducNatRepriseData', 'EtabRepriseData']  
   
   resource :alimentation do
     
@@ -171,6 +173,28 @@ class AlimentationApi < Grape::API
     end
     
     #-----------------------------------------#
+    desc "afficher les données de reprise"
+    params do
+      requires :service, :type => String, :desc => "service"
+      optional :uai, :type => String, :desc => "uai"
+    end
+    get "/reprise_data/:service/:uai" do
+      #urls de reprise de données oracle
+      #http://www.dev.laclasse.com/pls/public/export_aaf.fichier?name=EtabRepriseData&uai=0690078K
+      #http://www.dev.laclasse.com/pls/public/export_aaf.fichier?name=EleveRepriseData&uai=0690078K
+      #http://www.dev.laclasse.com/pls/public/export_aaf.fichier?name=PersRelEleveRepriseData&uai=0690078K
+      #http://www.dev.laclasse.com/pls/public/export_aaf.fichier?name=PersEducNatRepriseData&uai=0690078K
+      begin
+        puts "service= #{params[:service]}"
+        puts "uai = #{ params[:uai]}"
+        res = Net::HTTP.get_response(URI("#{Configuration::REPRISE_SERVER_URL}?name=#{params[:service]}&uai=#{params[:uai]}"))
+        result = JSON.parse(res.body)
+        {"data" => result, "count" => result.count}
+      rescue => e
+        error!("Bad Request:#{e.message}", 400)
+      end
+    end
+    #-----------------------------------------#
     #Todo: errors
     desc "load all data related to an etablissment"
     params do
@@ -317,7 +341,7 @@ class AlimentationApi < Grape::API
       requires :uai, :type => String, :desc => "code_uai"
     end
     get "/aliment/etablissement/:uai" do
-        #Url of services
+        #Urls of alimentation services
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=etablissement&rne=0690078K
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=classes&rne=0690078K
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=groupes&rne=0690078K
@@ -329,6 +353,13 @@ class AlimentationApi < Grape::API
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=rattachements_profs&rne=0690078K
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=detachements&rne=0690078K
         #http://www.dev.laclasse.com/annuaire/index.php?action=api&service=fonctions_pen&rne=0690078K
+
+        #urls de reprise de données oracle
+        #http://www.dev.laclasse.com/pls/public/export_aaf.fichier?name=EtabRepriseData&uai=0690078K
+        #http://www.dev.laclasse.com/pls/public/export_aaf.fichier?name=EleveRepriseData&uai=0690078K
+        #http://www.dev.laclasse.com/pls/public/export_aaf.fichier?name=PersRelEleveRepriseData&uai=0690078K
+        #http://www.dev.laclasse.com/pls/public/export_aaf.fichier?name=PersEducNatRepriseData&uai=0690078K
+
         output = ""
         infostack = {}
         infostack["errors"] = []
