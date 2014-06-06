@@ -29,7 +29,7 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`user` (
   `bloque` TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Si oui ou non le compte est bloqué (plus d\'accès à l\'établissement et autre).' ,
   `change_password` TINYINT(1) NULL DEFAULT 0 COMMENT 'doit changer son password' ,
   `id_ent` CHAR(16) NOT NULL ,
-  `avatar` VARCHAR(255) NOT NULL DEFAULT 'empty',
+  `avatar` VARCHAR(255) NOT NULL DEFAULT 'empty' ,
   PRIMARY KEY (`id`) ,
   INDEX `id_jointure_aaf_UNIQUE` USING BTREE (`id_jointure_aaf` ASC) ,
   UNIQUE INDEX `id_sconet_UNIQUE` (`id_sconet` ASC) ,
@@ -323,7 +323,7 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`application` (
   `id` CHAR(8) NOT NULL ,
   `libelle` VARCHAR(255) NULL ,
   `description` VARCHAR(500) NULL ,
-  `url` VARCHAR(45) NOT NULL ,
+  `url` VARCHAR(2000) NOT NULL ,
   `active` TINYINT(1) NULL DEFAULT 1 ,
   PRIMARY KEY (`id`) )
 ENGINE = InnoDB
@@ -714,6 +714,55 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`membre_regroupement_libre` (
     REFERENCES `annuairev3`.`regroupement_libre` (`id` )
     ON DELETE CASCADE
     ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `annuairev3`.`publipostage`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `annuairev3`.`publipostage` (
+  `id` INT NOT NULL AUTO_INCREMENT ,
+  `date` DATETIME NULL ,
+  `message` MEDIUMTEXT NULL ,
+  `profils` VARCHAR(255) NULL ,
+  `difusion_email` TINYINT(1) NULL DEFAULT 0 ,
+  `difusion_pdf` TINYINT(1) NULL DEFAULT 0 ,
+  `difusion_notif` TINYINT(1) NULL DEFAULT 0 ,
+  `message_type` VARCHAR(45) NULL DEFAULT '' ,
+  `descriptif` VARCHAR(255) NULL DEFAULT '\"\"' ,
+  `personnels` TEXT NULL ,
+  PRIMARY KEY (`id`) )
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `annuairev3`.`destinataires`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `annuairev3`.`destinataires` (
+  `regroupement_id` INT NOT NULL ,
+  `publipostage_id` INT NOT NULL ,
+  PRIMARY KEY (`regroupement_id`, `publipostage_id`) ,
+  INDEX `fk_regroupement_has_publipostage_publipostage1` (`publipostage_id` ASC) ,
+  INDEX `fk_regroupement_has_publipostage_regroupement1` (`regroupement_id` ASC) ,
+  CONSTRAINT `fk_regroupement_has_publipostage_regroupement1`
+    FOREIGN KEY (`regroupement_id` )
+    REFERENCES `annuairev3`.`regroupement` (`id` )
+    ON DELETE CASCADE
+    ON UPDATE CASCADE,
+  CONSTRAINT `fk_regroupement_has_publipostage_publipostage1`
+    FOREIGN KEY (`publipostage_id` )
+    REFERENCES `annuairev3`.`publipostage` (`id` )
+    ON DELETE CASCADE
+    ON UPDATE CASCADE)
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `annuairev3`.`reserved_uid`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `annuairev3`.`reserved_uid` (
+  `reserved_uid` CHAR(8) NOT NULL ,
+  PRIMARY KEY (`reserved_uid`) )
 ENGINE = InnoDB;
 
 

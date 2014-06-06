@@ -9,6 +9,7 @@ Ensemble de services web (REST) pour manipuler les données d'annuaire dans lacl
     export NLS_LANG=FRENCH_FRANCE.UTF8
     bundle install
     bundle exec rake db:configure
+    mysql -u user -p password < annuaire_create.sql
     bundle exec rake db:bootstrap
     
 puis utiliser les service de l'alimentation pour alimenter les matieres, fonctions, code_mef

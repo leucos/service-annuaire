@@ -36,10 +36,16 @@ class LastUid < Sequel::Model(:last_uid)
   def self.get_next_uid ()
     last_uid = LastUid.first ? LastUid.first.last_uid : nil
     next_uid = increment_uid(last_uid)
-    if last_uid
-      LastUid.update(:last_uid => next_uid)
+    if ReservedUid[:reserved_uid => next_uid].nil? #not reserved
+      # save uid
+      if last_uid
+        LastUid.update(:last_uid => next_uid)
+      else
+       LastUid.create(:last_uid => next_uid)
+      end
     else
-      LastUid.create(:last_uid => next_uid)
+      LastUid.update(:last_uid => next_uid)
+      self.get_next_uid()
     end
     return next_uid
   end

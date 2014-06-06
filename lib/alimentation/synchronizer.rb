@@ -288,11 +288,14 @@ module Alimentation
               # insert the hash into user table
               # TODO: generate default password algorithm instead of this
               password = eleve['id_jointure_aaf']
-              user = User.create(:id_sconet => eleve["id_sconet"], :login => login, 
+              user = User.create(:id_sconet => eleve["id_sconet"], :login => login, :id_ent =>eleve["uid"],
                 :id_jointure_aaf => eleve["id_jointure_aaf"], :nom => eleve["nom"], :prenom => eleve["prenom"],
                 :date_naissance => eleve["date_naissance"],:sexe => eleve["sexe"], :date_creation => eleve["date_last_maj_aaf"],
                 :password => password)
-              
+
+              #add uid to reseved uid
+              ReservedUid.insert(:reserved_uid => eleve["uid"])
+
               # add profil eleve to user
               user.add_profil(etablissement_id, profil_id)
             
@@ -343,11 +346,14 @@ module Alimentation
               # insert the hash into user table
               # TODO: generate default password algorithm instead of this
               password = person['id_jointure_aaf']
-              user = User.create(:login => login, 
+              user = User.create(:login => login, :id_ent => person["uid"],
                 :id_jointure_aaf => person["id_jointure_aaf"], :nom => person["nom"], :prenom => person["prenom"].capitalize,
                 :date_naissance => person["date_naissance"],:sexe => person["sexe"],
                 :password => password)
               
+              #add uid to reseved uid
+              ReservedUid.insert(:reserved_uid => person["uid"])
+
               # add profile ENS to user
               if person["devant_eleve"] == "O"
               profil_id = 'ENS' #??
@@ -423,10 +429,13 @@ module Alimentation
               # TODO: generate default password algorithm instead of this
               password = parent['id_jointure_aaf']
 
-              user = User.create(:login => login, :id_jointure_aaf => parent["id_jointure_aaf"], :nom => parent["nom"],
+              user = User.create(:login => login, :id_jointure_aaf => parent["id_jointure_aaf"], :nom => parent["nom"], :id_ent => parent["uid"]
                 :prenom => parent["prenom"], :date_naissance => parent["date_naissance"],:sexe => parent["sexe"], 
                 :adresse => parent["adresse"], :ville => parent["ville"],
                 :password => password)
+
+              #add uid to reseved uid
+              ReservedUid.insert(:reserved_uid => parent["uid"])
 
               # code postal  
               if !parent["code_postal"].nil? && parent["code_postal"] != ""
