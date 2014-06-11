@@ -537,7 +537,7 @@ class AlimentationApi < Grape::API
             case service
               when "EleveRepriseData"
                 start = Time.now
-                #synchronizer.syncronize_person(result)
+                synchronizer.syncronize_person(result)
                 fin = Time.now
                 output += "Synchronize eleves \n"
                 output += "number of account = #{result.count} \n"
@@ -547,7 +547,7 @@ class AlimentationApi < Grape::API
                 synchronizer.errorstack = []
               when "PersEducNatRepriseData"
                 start = Time.now
-                #synchronizer.syncronize_person(result)
+                synchronizer.syncronize_person(result)
                 fin= Time.now
                 output += "Synchronize persons  \n"
                 output += "number of account = #{result.count} \n"
@@ -557,7 +557,7 @@ class AlimentationApi < Grape::API
                 synchronizer.errorstack = []
               when "PersRelEleveRepriseData"
                 start = Time.now
-                #synchronizer.syncronize_person(result)
+                synchronizer.syncronize_person(result)
                 fin= Time.now
                 output += "Synchronize parents  \n"
                 output += "number of account = #{result.count} \n"
