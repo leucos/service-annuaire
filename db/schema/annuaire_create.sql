@@ -34,7 +34,7 @@ CREATE  TABLE IF NOT EXISTS `annuairev3`.`user` (
   INDEX `id_jointure_aaf_UNIQUE` USING BTREE (`id_jointure_aaf` ASC) ,
   UNIQUE INDEX `id_sconet_UNIQUE` (`id_sconet` ASC) ,
   UNIQUE INDEX `login_UNIQUE` (`login` ASC) ,
-  INDEX `id_ent_UNIQUE` (`id_ent` ASC) )
+  INDEX `id_ent_UNIQUE` USING HASH (`id_ent` ASC) )
 ENGINE = InnoDB
 COMMENT = 'change id to integer and \nmodify id_ent';
 
