@@ -537,7 +537,7 @@ class AlimentationApi < Grape::API
             case service
               when "EleveRepriseData"
                 start = Time.now
-                synchronizer.syncronize_eleve(result)
+                #synchronizer.syncronize_person(result)
                 fin = Time.now
                 output += "Synchronize eleves \n"
                 output += "number of account = #{result.count} \n"
@@ -547,7 +547,7 @@ class AlimentationApi < Grape::API
                 synchronizer.errorstack = []
               when "PersEducNatRepriseData"
                 start = Time.now
-                synchronizer.syncronize_person(result)
+                #synchronizer.syncronize_person(result)
                 fin= Time.now
                 output += "Synchronize persons  \n"
                 output += "number of account = #{result.count} \n"
@@ -556,10 +556,26 @@ class AlimentationApi < Grape::API
                   :errors => synchronizer.errorstack}
                 synchronizer.errorstack = []
               when "PersRelEleveRepriseData"
-                puts "do nothing"
+                start = Time.now
+                #synchronizer.syncronize_person(result)
+                fin= Time.now
+                output += "Synchronize parents  \n"
+                output += "number of account = #{result.count} \n"
+                output += "Synchronization took #{fin-start} seconds \n"
+                infostack["compte_parents"] = {:count => result.count, :sync_time => fin-start, 
+                  :errors => synchronizer.errorstack}
+                synchronizer.errorstack = []
               when "EtabRepriseData"
-                puts "do nothing"
-            end
+                start = Time.now
+                synchronizer.syncronize_etablissement(result)
+                fin= Time.now
+                output += "Synchronize etablissement \n"
+                output += "number of account = #{result.count} \n"
+                output += "Synchronization took #{fin-start} seconds \n"
+                infostack["sync etablissement"] = {:count => result.count, :sync_time => fin-start,
+                  :errors => synchronizer.errorstack}
+                synchronizer.errorstack = []
+            end #end case
           end
         rescue => e
           output+="Error: #{e.message} \n"

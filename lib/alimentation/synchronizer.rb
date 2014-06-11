@@ -324,31 +324,6 @@ module Alimentation
       end 
       @logger.info("treated eleves #{data.count} records")
     end
-    #-------------------------------------------------------------#
-    def syncronize_eleve(data)
-      @logger.debug("syncronizer les eleves")
-      DB.transaction do
-        data.each do |eleve|
-          @logger.debug("traiter l\'eleve: #{eleve}")
-          begin
-            user = User[:id_ent => eleve["uid"]]
-            if user.nil?
-              raise "l\'eleve avec l\'id #{eleve['uid']} n\'existe pas"
-            else
-              if User.is_login_available?(eleve["login"])
-                user.login = eleve["login"]
-              end
-              user.password = eleve["pwd"]
-              user.date_creation = eleve["date_creation"]
-              user.save
-            end
-          rescue => e
-            @logger.error(e.message)
-            @errorstack.push(e.message)
-          end
-        end #data
-      end #Transaction
-    end
     #--------------------------------------------------------------#
     def syncronize_person(data)
       @logger.debug("syncronizer les pers educ national")
@@ -374,7 +349,56 @@ module Alimentation
         end #data
       end #Transaction
     end
-
+    #----------------------------------------------------------------#
+    def syncronize_etablissement(data)
+      @logger.debug("syncronizer l\'etablissement")
+      DB.transaction do
+        data.each do |etablissement|
+          @logger.debug("traiter l\'etablissement: #{etablissement}")
+          begin
+            etab = Etablissement[:code_uai => etablissement["uai"]]
+            if etab.nil?
+              raise "l\'etablissement n\'existe pas"
+            else
+              etab.longitude = etablissement["longitude"]
+              etab.latitude = etablissement["latitude"]
+              etab.ip_prive = etablissement["ip_priv"]
+              etab.ip_pub_passerelle = etablissement["ip_pub"]
+              etab.nom_passerelle = etablissement["nom_domaine"]
+              etab.id_marquage_ministere = etablissement["id_marquage_minitere"]
+              etab.url_blog = etablissement["url_blog_etablissement"]
+              etab.date_connexion_annuaire_ent = etablissement["date_connexion_annuaire_ent"]
+              etab.save
+              #save groupe blogs
+              etablissement["blog_classes"].each do |blog_classe|
+                @logger.debug("traiter la classe #{blog_classe}")
+                @logger.debug("etab_id #{etab.id} libelle_aaf #{blog_classe['nom_aaf']}")
+                classe = Regroupement[:etablissement_id => etab.id, :libelle_aaf => blog_classe["nom_aaf"]]
+                if classe.nil?
+                  raise "classe n\'existe pas"
+                else
+                  classe.url_blog = blog_classe["url_blog"]
+                  classe.save
+                end
+              end
+              etablissement["blog_groupe_eleves"].each do |blog_groupe|
+                @logger.debug("traiter la classe #{blog_groupe}")
+                groupe = Regroupement[:etablissement_id => etab.id, :libelle_aaf => blog_groupe["nom_aaf"]]
+                if groupe.nil?
+                  raise "groupe n\'existe pas"
+                else
+                  groupe.url_blog = blog_groupe["url_blog"]
+                  groupe.save
+                end
+              end
+            end
+          rescue => e
+            @logger.error(e.message)
+            @errorstack.push(e.message)
+          end
+        end
+      end 
+    end
     #------------------------------------------------------------#
     #Compte profil person educ nat
     #{"id_jointure_aaf":"19797","nom":"ANGONIN","prenom":"FRANCOISE","date_naissance":"13/09/1952",
