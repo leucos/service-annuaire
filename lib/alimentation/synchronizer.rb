@@ -349,6 +349,32 @@ module Alimentation
         end #data
       end #Transaction
     end
+    #--------------------------------------------------------------#
+    def syncronize_person(data)
+      @logger.debug("syncronizer les pers educ national")
+      DB.transaction do
+        data.each do |person|
+          @logger.debug("traiter la personne: #{person}")
+          begin
+            user = User[:id_ent => person["uid"]]
+            if user.nil?
+              raise "la personne avec l\'id #{person['uid']} n\'existe pas"
+            else
+              if User.is_login_available?(person["login"])
+                user.login = person["login"]
+              end
+              user.password = person["pwd"]
+              user.date_creation = person["date_creation"]
+              user.save
+            end
+          rescue => e
+            @logger.error(e.message)
+            @errorstack.push(e.message)
+          end
+        end #data
+      end #Transaction
+    end
+
     #------------------------------------------------------------#
     #Compte profil person educ nat
     #{"id_jointure_aaf":"19797","nom":"ANGONIN","prenom":"FRANCOISE","date_naissance":"13/09/1952",

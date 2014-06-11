@@ -546,7 +546,15 @@ class AlimentationApi < Grape::API
                   :errors => synchronizer.errorstack}
                 synchronizer.errorstack = []
               when "PersEducNatRepriseData"
-                puts "do nothing"
+                start = Time.now
+                synchronizer.syncronize_person(result)
+                fin= Time.now
+                output += "Synchronize persons  \n"
+                output += "number of account = #{result.count} \n"
+                output += "Synchronization took #{fin-start} seconds \n"
+                infostack["compte_persons"] = {:count => result.count, :sync_time => fin-start, 
+                  :errors => synchronizer.errorstack}
+                synchronizer.errorstack = []
               when "PersRelEleveRepriseData"
                 puts "do nothing"
               when "EtabRepriseData"
