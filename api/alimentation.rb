@@ -370,6 +370,7 @@ class AlimentationApi < Grape::API
           #"pers_rel_eleve","rattachements_eleves", "rattachements_profs", "detachements","fonctions_pen"]
           synchronizer = Alimentation::Synchronizer.new("Complet", params[:uai],"","","")
           logger = synchronizer.logger
+          # alimenter l'etablissement
           @@services.each do |service|
           res = Net::HTTP.get_response(URI("#{Configuration::ALIMENTATION_SERVER}index.php?action=api&service=#{service}&rne=#{params[:uai]}"))
           #raise "can not pull data #{service} from the server" if res.code != 200       # => '200 
@@ -528,7 +529,31 @@ class AlimentationApi < Grape::API
            end
           #infostack["errors"] + synchronizer.errorstack
           end #Loop
-        rescue => e 
+          #synchronizer les compte
+          #'EleveRepriseData', 'PersRelEleveRepriseData', 'PersEducNatRepriseData', 'EtabRepriseData'
+          @@reprise_services.each do |service|
+            res = Net::HTTP.get_response(URI("#{Configuration::REPRISE_SERVER_URL}?name=#{service}&uai=#{params[:uai]}"))
+            result = JSON.parse(res.body)
+            case service
+              when "EleveRepriseData"
+                start = Time.now
+                synchronizer.syncronize_eleve(result)
+                fin = Time.now
+                output += "Synchronize eleves \n"
+                output += "number of account = #{result.count} \n"
+                output += "Synchronization took #{fin-start} seconds \n"
+                infostack["compte_eleves"] = {:count => result.count, :sync_time => fin-start, 
+                  :errors => synchronizer.errorstack}
+                synchronizer.errorstack = []
+              when "PersEducNatRepriseData"
+                puts "do nothing"
+              when "PersRelEleveRepriseData"
+                puts "do nothing"
+              when "EtabRepriseData"
+                puts "do nothing"
+            end
+          end
+        rescue => e
           output+="Error: #{e.message} \n"
           infostack["errors"].push(e.message)
           #error!("Bad Request: #{e.message}", 400)

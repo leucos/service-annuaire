@@ -324,7 +324,31 @@ module Alimentation
       end 
       @logger.info("treated eleves #{data.count} records")
     end
-
+    #-------------------------------------------------------------#
+    def syncronize_eleve(data)
+      @logger.debug("syncronizer les eleves")
+      DB.transaction do
+        data.each do |eleve|
+          @logger.debug("traiter l\'eleve: #{eleve}")
+          begin
+            user = User[:id_ent => eleve["uid"]]
+            if user.nil?
+              raise "l\'eleve avec l\'id #{eleve['uid']} n\'existe pas"
+            else
+              if User.is_login_available?(eleve["login"])
+                user.login = eleve["login"]
+              end
+              user.password = eleve["pwd"]
+              user.date_creation = eleve["date_creation"]
+              user.save
+            end
+          rescue => e
+            @logger.error(e.message)
+            @errorstack.push(e.message)
+          end
+        end #data
+      end #Transaction
+    end
     #------------------------------------------------------------#
     #Compte profil person educ nat
     #{"id_jointure_aaf":"19797","nom":"ANGONIN","prenom":"FRANCOISE","date_naissance":"13/09/1952",
@@ -915,7 +939,6 @@ module Alimentation
         end   
       end   
     end
-
     #----------------------------------------------------------#  
 
   end
