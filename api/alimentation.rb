@@ -163,7 +163,7 @@ class AlimentationApi < Grape::API
                 start = Time.now
                 synchronizer.syncronize_etablissement(result)
                 fin= Time.now
-                outputn = ''
+                output = ''
                 output += "Synchronize etablissement \n"
                 output += "number of account = #{result.count} \n"
                 output += "Synchronization took #{fin-start} seconds \n"
