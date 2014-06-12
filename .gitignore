@@ -60,5 +60,5 @@ public/
 fontconfig/
 
 # gemfile loc 
-Gemfile.lock
+# Gemfile.lock
 

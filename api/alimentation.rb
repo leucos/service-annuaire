@@ -117,9 +117,11 @@ class AlimentationApi < Grape::API
             result = JSON.parse(res.body)
             case service
               when "EleveRepriseData"
+                puts "EleveRepriseData"
                 start = Time.now
                 synchronizer.syncronize_person(result)
                 fin = Time.now
+                output =''
                 output += "Synchronize eleves \n"
                 output += "number of account = #{result.count} \n"
                 output += "Synchronization took #{fin-start} seconds \n"
@@ -127,10 +129,13 @@ class AlimentationApi < Grape::API
                 logger.info(output)
                 logger.error(synchronizer.errorstack)
                 synchronizer.errorstack = []
+
               when "PersEducNatRepriseData"
+                puts "PersEducNat"
                 start = Time.now
                 synchronizer.syncronize_person(result)
                 fin= Time.now
+                output = ''
                 output += "Synchronize persons  \n"
                 output += "number of account = #{result.count} \n"
                 output += "Synchronization took #{fin-start} seconds \n"
@@ -138,10 +143,13 @@ class AlimentationApi < Grape::API
                 logger.info(output)
                 logger.error(synchronizer.errorstack)
                 synchronizer.errorstack = []
+
               when "PersRelEleveRepriseData"
+                puts "PersRelEleve"
                 start = Time.now
                 synchronizer.syncronize_person(result)
                 fin= Time.now
+                output = ''
                 output += "Synchronize parents  \n"
                 output += "number of account = #{result.count} \n"
                 output += "Synchronization took #{fin-start} seconds \n"
@@ -149,10 +157,13 @@ class AlimentationApi < Grape::API
                 logger.info(output)
                 logger.error(synchronizer.errorstack)
                 synchronizer.errorstack = []
+
               when "EtabRepriseData"
+                puts "EtabRepriseData"
                 start = Time.now
                 synchronizer.syncronize_etablissement(result)
                 fin= Time.now
+                outputn = ''
                 output += "Synchronize etablissement \n"
                 output += "number of account = #{result.count} \n"
                 output += "Synchronization took #{fin-start} seconds \n"
@@ -161,9 +172,10 @@ class AlimentationApi < Grape::API
                 logger.error(synchronizer.errorstack)
                 synchronizer.errorstack = []
             end #end case
-          end
-        end
+          end #end loop
+        end  #end if
       rescue => e 
+        puts e.message
         error!("Bad Request: #{e.message}", 400) 
       end 
     end
@@ -628,7 +640,7 @@ class AlimentationApi < Grape::API
                   :errors => synchronizer.errorstack}
                 synchronizer.errorstack = []
             end #end case
-          end
+          end #end loop
         rescue => e
           output+="Error: #{e.message} \n"
           infostack["errors"].push(e.message)
