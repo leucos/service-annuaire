@@ -110,7 +110,59 @@ class AlimentationApi < Grape::API
           end
           res  
         end
-
+        # not sure of this code
+        if type_data=="DETACHEMENTS"
+          @@reprise_services.each do |service|
+            res = Net::HTTP.get_response(URI("#{Configuration::REPRISE_SERVER_URL}?name=#{service}&uai=#{params[:uai]}"))
+            result = JSON.parse(res.body)
+            case service
+              when "EleveRepriseData"
+                start = Time.now
+                synchronizer.syncronize_person(result)
+                fin = Time.now
+                output += "Synchronize eleves \n"
+                output += "number of account = #{result.count} \n"
+                output += "Synchronization took #{fin-start} seconds \n"
+                puts output
+                logger.info(output)
+                logger.error(synchronizer.errorstack)
+                synchronizer.errorstack = []
+              when "PersEducNatRepriseData"
+                start = Time.now
+                synchronizer.syncronize_person(result)
+                fin= Time.now
+                output += "Synchronize persons  \n"
+                output += "number of account = #{result.count} \n"
+                output += "Synchronization took #{fin-start} seconds \n"
+                puts output
+                logger.info(output)
+                logger.error(synchronizer.errorstack)
+                synchronizer.errorstack = []
+              when "PersRelEleveRepriseData"
+                start = Time.now
+                synchronizer.syncronize_person(result)
+                fin= Time.now
+                output += "Synchronize parents  \n"
+                output += "number of account = #{result.count} \n"
+                output += "Synchronization took #{fin-start} seconds \n"
+                puts output
+                logger.info(output)
+                logger.error(synchronizer.errorstack)
+                synchronizer.errorstack = []
+              when "EtabRepriseData"
+                start = Time.now
+                synchronizer.syncronize_etablissement(result)
+                fin= Time.now
+                output += "Synchronize etablissement \n"
+                output += "number of account = #{result.count} \n"
+                output += "Synchronization took #{fin-start} seconds \n"
+                puts output
+                logger.info(output)
+                logger.error(synchronizer.errorstack)
+                synchronizer.errorstack = []
+            end #end case
+          end
+        end
       rescue => e 
         error!("Bad Request: #{e.message}", 400) 
       end 
@@ -529,7 +581,7 @@ class AlimentationApi < Grape::API
            end
           #infostack["errors"] + synchronizer.errorstack
           end #Loop
-          #synchronizer les compte
+          #synchronizer les comptes
           #'EleveRepriseData', 'PersRelEleveRepriseData', 'PersEducNatRepriseData', 'EtabRepriseData'
           @@reprise_services.each do |service|
             res = Net::HTTP.get_response(URI("#{Configuration::REPRISE_SERVER_URL}?name=#{service}&uai=#{params[:uai]}"))
