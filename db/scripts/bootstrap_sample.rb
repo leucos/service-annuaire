@@ -1,6 +1,7 @@
 #encoding: utf-8
 require 'sequel'
 require_relative '../../config/database'
+require_relative '../../config/constants'
 require_relative '../../model/init'
 
 def create_super_admin_and_ressource_laclasse()
