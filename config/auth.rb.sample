@@ -1,5 +1,5 @@
 module AuthConfig
-  STORED_SESSION = {"VAA60000" => "3qauE3IohE3yxdYX4pznOg"}
+  STORED_SESSION = {"CAS" => "secured Api key"}
   REDIS_CONFIG  = {:host => '127.0.0.1', :port => 6379}
   # En second
   SESSION_DURATION = 3600

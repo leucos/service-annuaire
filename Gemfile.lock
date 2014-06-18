@@ -59,7 +59,6 @@ GEM
     redis (3.0.2)
     rest-client (1.6.7)
       mime-types (>= 1.16)
-    rmagick (2.13.1)
     rspec (2.12.0)
       rspec-core (~> 2.12.0)
       rspec-expectations (~> 2.12.0)
@@ -68,7 +67,6 @@ GEM
     rspec-expectations (2.12.1)
       diff-lcs (~> 1.1.3)
     rspec-mocks (2.12.2)
-    ruby-oci8 (2.1.4)
     sequel (3.44.0)
     simplecov (0.7.1)
       multi_json (~> 1.0)
@@ -105,9 +103,7 @@ DEPENDENCIES
   rake
   redis
   rest-client
-  rmagick
   rspec
-  ruby-oci8
   sequel
   simplecov
   thin

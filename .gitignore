@@ -11,7 +11,8 @@ rdoc
 spec/reports
 test/tmp
 test/version_tmp
-db/scripts/
+db/scripts/bcn_parser.rb
+db/scripts/bootstrap_etab.rb
 db/scripts/bootstrap.rb
 tmp
 *.log
@@ -60,5 +61,5 @@ public/
 fontconfig/
 
 # gemfile loc 
-# Gemfile.lock
+#Gemfile.lock
 

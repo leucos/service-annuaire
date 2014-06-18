@@ -4,8 +4,6 @@
 #
 # It will be required from either `config.ru` or `start.rb`
 require 'rubygems'
-
-require 'oci8'
 require 'sequel'
 require 'grape'
 require 'i18n'

@@ -4,7 +4,7 @@ source :rubygems
 
 gem 'sequel'
 gem 'mysql2'
-gem 'ruby-oci8'
+#gem 'ruby-oci8'
 gem 'thin'
 gem 'bcrypt-ruby'
 gem 'grape'
@@ -19,7 +19,7 @@ gem 'mail'
 gem 'grape-swagger'
 gem 'mongo'
 gem 'bson_ext'
-gem 'rmagick'
+#gem 'rmagick'
 gem 'carrierwave'
 gem 'carrierwave-sequel'
 

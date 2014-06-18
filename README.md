@@ -9,16 +9,22 @@ Ensemble de services web (REST) pour manipuler les données d'annuaire dans lacl
     export NLS_LANG=FRENCH_FRANCE.UTF8
     bundle install
     bundle exec rake db:configure
+    modifier les configurations dans le dossier /config/ si besoin
+
+## bootstrap database
+	create database annuairev3 in mysql
     mysql -u user -p password < annuaire_create.sql
     bundle exec rake db:bootstrap
     
-puis utiliser les service de l'alimentation pour alimenter les matieres, fonctions, code_mef
+puis utiliser les service de l'alimentation pour alimenter les matieres, fonctions, code_mefs
 
+ **note: api_key is configured in config/auth.rb **
+ 
     annuaire_server/api/alimentation/sync_mat?api_key="secret"
     annuaire_server/api/alimentation/sync_fonc?api_key="secret"
     annuaire_server/api/alimentation/sync_mef?api_key="secret"
   
-### Dans le cas d'utilisation d'oracle
+### Dans le cas d'utilisation d'oracle "supprimé"
     bundle exec rake db:configure_oracle
     bundle exec rake db:bootstrap
     bundle exec rake db:bootstrap_matiere
