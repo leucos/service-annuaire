@@ -1,40 +1,44 @@
-namespace :db do
-  RAMAZE_ROOT = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+# coding: utf-8
 
+namespace :db do
+  APP_ROOT = File.expand_path(File.join(File.dirname(__FILE__), '..'))
+
+  desc 'Loading database server configuration and sequel extensions.'
   task :load_config do
-    require(File.join(RAMAZE_ROOT, 'app'))
+    require 'sequel'
+    require './config/database'
     Sequel.extension :migration
     Sequel.extension :schema_dumper
   end
 
+  desc 'Configuring database server.'
   task :configure do
     require 'erb'
-    File.open(File.join(RAMAZE_ROOT,'config', 'database.rb'), 'w') do |new_file|
-      new_file.write ERB.new(File.read(File.join(RAMAZE_ROOT, 'config', 'database.erb'))).result(binding)
+    File.open(File.join( APP_ROOT, 'config', 'database.rb'), 'w') do |new_file|
+      new_file.write ERB.new(File.read(File.join(APP_ROOT, 'config', 'database.erb'))).result(binding)
     end
   end
 
-  task :configure_oracle do
-    require 'erb'
-    File.open(File.join(RAMAZE_ROOT,'config', 'oracle.rb'), 'w') do |new_file|
-      new_file.write ERB.new(File.read(File.join(RAMAZE_ROOT, 'config', 'oracle.erb'))).result(binding)
-    end
+  desc 'Dumps the schema to db/schema/sequel_schema.db'
+  task schemadump: :load_config do
+    # foreign_key dump is sometimes wrong with non autoincrmente type (ie char)
+    # so we need to dump the base in two times : the structure without foreign_keys and the foreigne_key alone
+    schema = DB.dump_schema_migration(foreign_key: false)
+    File.open(File.join(APP_ROOT, 'migrations', '001_db_schema.rb'), 'w'){|f| f.write(schema)}
+    fk = "\n# Adding Foreign Keys \n\n" << DB.dump_foreign_key_migration
+    File.open(File.join(APP_ROOT, 'migrations', '001_db_schema.rb'), 'a'){|f| f.write(fk)}
   end
 
-  desc "Dumps the schema to db/schema/sequel_schema.db"
-  task :schemadump => :load_config do
-    #foreign_key dump is sometimes wrong with non autoincrmente type (ie char)
-    #so we need to dump the base in two times : the structure without foreign_keys and the foreigne_key alone
-    schema = DB.dump_schema_migration(:foreign_key => false)
-    schema_file = File.open(File.join(RAMAZE_ROOT, 'db', 'schema', 'sequel_schema.rb'), "w"){|f| f.write(schema)}
-    fk = DB.dump_foreign_key_migration
-    fk_file = File.open(File.join(RAMAZE_ROOT, 'db', 'schema', 'sequel_schema_fk.rb'), "w"){|f| f.write(fk)}
+  desc 'Apply migrations'
+  task migrations: :load_config do
+    Sequel::Migrator.run( DB, 'migrations' )
   end
-  
-  desc "Migrate the database through scripts in db/migrations and update db/schema.rb by invoking db:schemadump. Target specific version with VERSION=x. Turn off output with VERBOSE=false."
-  task :migrate => :load_config do
-    Sequel::Migrator.apply(DB, File.join(RAMAZE_ROOT, 'db', 'migrations'))
-    Rake::Task["db:schemadump"].invoke
+
+  desc 'Open pry with DB environment setup'
+  task pry: :load_config do
+    require 'pry'
+    require './models/models'
+    pry.binding
   end
 
   namespace :migrate do
@@ -89,4 +93,5 @@ namespace :db do
     clean_annuaire()
   end
   #task :reset => ['db:schema:drop', 'db:schema:load']
+
 end
