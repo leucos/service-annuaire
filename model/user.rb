@@ -550,14 +550,13 @@ class User < Sequel::Model(:user)
 
   # user readable format of enseigne classes
   def enseigne_classes_display
-    self.enseigne_dans_regroupement_dataset
-    .join(:regroupement, :id => :regroupement_id)
-    .join(:etablissement, :id => :etablissement_id)
-    .join(:matiere_enseignee, :id => :enseigne_dans_regroupement__matiere_enseignee_id)
-    .where(:type_regroupement_id => 'CLS').naked
+    self.enseigne_dans_regroupement_dataset.join(:regroupement, :regroupement__id =>:regroupement_id)
+    .join(:etablissement, :etablissement__id => :etablissement_id)
+    .join(:matiere_enseignee, :matiere_enseignee__id => :enseigne_dans_regroupement__matiere_enseignee_id)
+    .where(:type_regroupement_id => 'CLS')
     .select(:code_uai___etablissement_code, :libelle_aaf___classe_libelle, :nom___etablissement_nom, 
       :matiere_enseignee_id, :libelle_long___matiere_libelle, :regroupement_id___classe_id, :etablissement_id, :prof_principal)
-    .all
+    .naked.all
   end
 
   def cpe_classes_display
@@ -588,12 +587,12 @@ class User < Sequel::Model(:user)
 
   def enseigne_groupes_display
     self.enseigne_dans_regroupement_dataset
-    .join(:regroupement, :id => :regroupement_id)
-    .join(:etablissement, :id => :etablissement_id)
-    .join(:matiere_enseignee, :id => :enseigne_dans_regroupement__matiere_enseignee_id)
-    .where(:type_regroupement_id => 'GRP').naked
+    .join(:regroupement, :regroupement__id => :regroupement_id)
+    .join(:etablissement, :etablissement__id => :etablissement_id)
+    .join(:matiere_enseignee, :matiere_enseignee__id => :enseigne_dans_regroupement__matiere_enseignee_id)
+    .where(:type_regroupement_id => 'GRP')
     .select(:code_uai___etablissement_code, :libelle_aaf___groupe_libelle, :nom___etablissement_nom, :matiere_enseignee_id, :libelle_long___matiere_libelle, :regroupement_id___groupe_id, :etablissement_id)
-    .all
+    .naked.all
   end 
 
   ########################## 
@@ -620,12 +619,12 @@ class User < Sequel::Model(:user)
 
   # a function that returns classes for all profils
   def classes_display
-    enseigne_classes_display.concat(classes_eleve_display).concat(parent_classes_display).concat(cpe_classes_display).uniq{|x| x[:classe_id]}
+    enseigne_classes_display.concat(classes_eleve_display).concat(parent_classes_display).concat(cpe_classes_display).uniq{|x| [x[:classe_id], x[:matiere_enseignee_id]]}
   end 
 
   def groupes_display
-    enseigne_groupes_display.concat(groupes_eleve_display).concat(parent_groupes_display).concat(cpe_groupes_display).uniq{|x| x[:groupe_id]}
-  end 
+    enseigne_groupes_display.concat(groupes_eleve_display).concat(parent_groupes_display).concat(cpe_groupes_display).uniq{|x| [x[:groupe_id], x[:matiere_enseignee_id]]}
+  end
 
   # Groupes auxquel l'utilisateur enseinge
   def enseigne_groupes(etablissement_id = nil)
