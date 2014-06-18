@@ -1,4 +1,4 @@
-source :rubygems
+source 'https://rubygems.org' 
 #source 'http://gems.erasme.org'
 #grape entities works only with version 0.2.6 and swagger 0.3.0
 
